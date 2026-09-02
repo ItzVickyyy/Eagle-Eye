@@ -1,5 +1,5 @@
 # Eagle Eye — CDLB Media Club News Website
-## System Specification & Rebuild Plan (v3.1)
+## System Specification & Rebuild Plan (v4)
 
 > Based on the original Grade 12 Practical Research (Dumagco, Reboton, Salen — "Development of News Website for the Schools Publication of Colegio de Los Baños"). This is a personal rebuild project by the original project developer/author, using the old system as a reference and improving it with a modern technology stack and expanded features.
 
@@ -7,17 +7,22 @@
 
 ## 1. Project Overview
 
-| Item | Original (G12) | v2.0 Target (College) |
+| Item | Original 2023 Project | Eagle Eye Rebuild |
 |---|---|---|
-| Name | Eagle Eye | Eagle Eye (or rebrand) |
-| Client | CDLB Media Club | CDLB Media Club |
-| Hosting | Local server / LAN only | Cloud hosting (public URL) |
-| Stack | HTML, CSS, JS, PHP, MySQL, VS Code | Modern framework stack (see §3) |
-| Auth | 2 hardcoded shared accounts (Admin/SuAdmin) | Per-user accounts, hashed passwords, roles |
-| Media | Text-only articles (upload feature failed) | Image/video upload, galleries |
-| Scope gaps | No comments, no analytics, no responsive testing documented, no real hosting | Address all of these |
+| Name | Eagle Eye | Eagle Eye |
+| Organization | CDLB Media Club | CDLB Media Club |
+| Hosting | Local server / LAN only | Cloud hosting with a public URL |
+| Stack | HTML, CSS, JS, PHP, MySQL, VS Code | React + FastAPI + PostgreSQL |
+| Auth | 2 hardcoded shared accounts | Per-user accounts, secure password hashing, roles |
+| Articles | Headline, author, category, date, up to eight paragraph fields | Rich article editor, structured content, drafts, review, publishing |
+| Media | Image upload existed but was unreliable | Reliable image/video/media management |
+| Navigation | News, Academics, Sports, Events, About Us, Contact Us | Dynamic categories, search, tags, article pages, About Us, Contact |
+| Design | Green/white Eagle Eye branding | Preserve the recognizable green/white identity while modernizing the UI |
+| Deployment | Local/LAN | Production-ready public deployment |
 
-**Core problem being solved (carried over):** CDLB's Media Club currently relies on Facebook for publishing, which is unorganized and hard to browse. The goal is a centralized, searchable, categorized news website.
+**Core purpose:** Eagle Eye is a centralized digital publication for the CDLB Media Club. It should make school news easier to publish, organize, search, read, and preserve than the club's earlier approach of relying heavily on social media.
+
+The rebuild should retain the identity and useful content concepts of the original project while replacing its technical limitations with a maintainable modern full-stack application.
 
 ---
 
@@ -26,6 +31,114 @@
 Eagle Eye is a personal rebuild of the earlier CDLB Media Club news website. The objective is to take the original concept and make it a substantially more usable, secure, responsive, maintainable, and deployable web application.
 
 This is **not being treated as a formal capstone development process**. The system can be designed and implemented iteratively with AI assistance. The initial design can be generic as long as it is clean, functional, responsive, and easy to refine after seeing the working application.
+
+## 1.2 Legacy Project Reference — Media Club 2023
+
+The uploaded **Media-Club-2023** project is the primary visual and functional reference for the original Eagle Eye implementation. It was a PHP/MySQL website with separate public and administration areas.
+
+### Original purpose and club identity
+
+The original About Us content describes the CDLB Media Club as an organization established on **May 4, 2023**. It was founded through the HUMSS Department after members attended the Gandingan Awards and gained the idea to establish a media club. The 2023 project described the club as having **43 members and 4 advisers** at that time. This membership count is a historical snapshot and must not be treated as the current membership count.
+
+The original site described the club's purpose as keeping students, faculty, personnel, and people interested in Colegio de Los Baños updated about current events within the school and, at times, activities outside the school. Its materials included **articles, videos, and photo galleries**.
+
+The project also recorded collaboration with organizations from the University of the Philippines Los Baños:
+- **UPLB Jocks** — training related to broadcasting
+- **UPLB Times** — training related to journalism
+
+These details should be retained as historical/reference content where appropriate, but editable through the new CMS rather than permanently hardcoded.
+
+### Original public navigation
+
+The 2023 public website used:
+- Eagle Eye logo and title
+- News
+- Academics
+- Sports
+- Events
+- About Us
+- Contact Us
+- Search
+- A welcome landing page
+
+The original homepage used the wording:
+
+> **WELCOME**
+>
+> **TO THE CLUB'S PUBLICATION WEBSITE**
+
+The new homepage does not have to copy this layout exactly, but the phrase and the original site's publication-oriented identity may be reused or modernized if appropriate.
+
+### Original article categories
+
+The legacy database used four categories:
+- **News**
+- **Acads / Academics**
+- **Sports**
+- **Events**
+
+The rebuild should initialize these as sensible default categories while keeping categories database-driven and editable by authorized administrators.
+
+### Original article structure
+
+The old `upload` table stored:
+- Headline
+- Author
+- Category
+- Date Published
+- First Paragraph
+- Second Paragraph
+- Third Paragraph
+- Fourth Paragraph
+- Fifth Paragraph
+- Sixth Paragraph
+- Seventh Paragraph
+- Eighth Paragraph
+- Filename
+
+The rebuild should preserve the underlying publishing concept but **not reproduce the eight-fixed-paragraph architecture**. Use one structured rich-text article body instead, with optional media embedded or associated with the article.
+
+### Original administrative functionality
+
+The old administration area included:
+- Login
+- Administrator home/control panel
+- Create article
+- Edit article
+- Delete article
+- Image upload
+- About Us/member management
+- Profile/archive views
+- Password-change-related screens
+
+The rebuild should preserve the useful intent of these functions while replacing the shared-account and hardcoded-content approach with proper authentication, permissions, validation, and CMS workflows.
+
+### Original organizational structure
+
+The 2023 project represented the Media Club using:
+- Advisers
+- Officers
+- Assistant Officers
+- Members
+
+It also organized members by functional departments such as:
+- **Broadcasting**
+- **Editorial**
+- **Multimedia**
+- **Social Media**
+
+The rebuild should support these as editable organizational data rather than hardcoded HTML. The `club_members` model should therefore support a member's name, photo, role/position, department, position title, and active/archive state.
+
+### Historical visual assets
+
+The old project includes the original:
+- Eagle Eye logo (`Images/logo.webp`)
+- Favicon (`Images/logoico.ico`)
+- Repeating background artwork (`styles/Background.webp`)
+- League Spartan Bold font assets
+- Article/member imagery
+
+These files are useful **brand references**. They should not automatically be copied into the new application without review, but the new design should use them as references for visual identity. If the original logo is reused, preserve its recognizable Eagle Eye identity while improving its presentation and responsiveness.
 
 ## 2. Lessons From the Original System (What to Fix)
 
@@ -46,7 +159,7 @@ Pulled directly from the original Chapter V recommendations and observed gaps:
 
 ---
 
-## 3. Proposed Tech Stack (v3.0)
+## 3. Proposed Tech Stack
 
 ### Recommended — React + FastAPI + PostgreSQL Full Stack
 
@@ -88,6 +201,49 @@ The development approach should therefore be practical and iterative:
 - AI should preserve the requirements in this document rather than inventing major features without approval.
 - The system should remain functional at every major step so the project can be run and reviewed continuously.
 - When a design decision is uncertain, prioritize a clean, responsive, accessible, maintainable implementation over spending time on a separate design artifact.
+
+### 3.3 Eagle Eye Visual Identity & Design Direction
+
+The original 2023 website has a very recognizable **green-and-white visual identity**. The rebuild should retain that identity rather than inventing an unrelated color system.
+
+#### Primary colors observed in the legacy project
+
+- **Primary dark green:** `#0A703E`
+- **Secondary green:** `#10894C`
+- **White:** `#FFFFFF`
+- **Black:** `#000000`
+- **Muted gray:** approximately `#696969`
+- **Legacy supporting green:** `#4F6F52`
+
+The two main brand greens should be treated as the core palette:
+
+```text
+#0A703E  — primary/dark Eagle Eye green
+#10894C  — secondary/brighter green
+#FFFFFF  — primary light/background color
+```
+
+Do not turn the new interface into a literal copy of the old CSS. Instead, use these colors in a modern design system with appropriate neutral colors, accessible contrast, borders, surfaces, hover states, and typography.
+
+#### Typography reference
+
+The original project consistently used **League Spartan Bold** through a locally loaded font. The new site may use League Spartan or a visually similar modern font for headings/branding, while using a highly readable companion font for long-form article text if needed.
+
+#### Logo reference
+
+The original Eagle Eye logo combines a broadcasting/media visual with a green eagle motif and an "ON AIR" label. The new website should preserve the logo's identity where the asset is suitable for reuse.
+
+#### Background reference
+
+The legacy project used a very light repeating media/broadcast-themed background pattern. The new design may reinterpret this idea subtly, but the pattern should never compete with article readability or accessibility.
+
+#### Design principle
+
+**Preserve the identity, modernize the implementation.**
+
+The new UI should feel like the same Eagle Eye organization evolved into a modern publication—not like an unrelated news template.
+
+AI is explicitly allowed to make the first design pass directly in React. No Figma file is required. The first version should prioritize a polished, responsive, functional result; visual refinement can happen after the running site is reviewed.
 
 ### 3.1 Eagle Eye Application Architecture
 
@@ -143,7 +299,7 @@ The system should follow a separation-of-concerns approach:
 | **Contributor** *(new)* | Regular club members/writers | Create/edit own drafts only; cannot publish directly (goes to review queue) |
 | **Guest/Reader** | Public visitor | Browse, search, read, comment (optional), contact form, subscribe to newsletter (optional) |
 
-This fixes the "2 shared passwords" problem and adds a realistic editorial workflow (draft → review → publish), which is a common capstone-level feature reviewers like to see.
+This fixes the "2 shared passwords" problem and adds a realistic editorial workflow (draft → review → publish), which makes the publishing process more controlled and maintainable.
 
 ---
 
@@ -365,17 +521,31 @@ Recommended build order:
 
 The design does not need to be finalized before development. AI can generate the initial interface from the requirements, after which the design can be refined directly while using the running application.
 
-## 9. Suggested New/Expanded Research Questions (for your paper)
+## 8.1 Legacy-to-New Mapping
 
-1. What modern web framework and architecture best supports scalability and maintainability for CDLB's news website compared to the original implementation?
-2. How can role-based access control and a review workflow improve content quality and accountability compared to shared admin credentials?
-3. How can media (image/video) upload be reliably implemented, addressing the original system's limitation?
-4. How does deploying the website on a public host with a real domain affect accessibility and reach for students and faculty?
-5. How do students/faculty rate the improved system compared to the original (comparative evaluation)?
+Use the 2023 project as a reference, not as the codebase to mechanically port.
 
----
+| Legacy 2023 | Eagle Eye Rebuild |
+|---|---|
+| PHP pages | React routes/components + FastAPI endpoints |
+| MySQL/MariaDB | PostgreSQL |
+| `administration` table | `users` + role-based authorization |
+| Shared Admin/SuAdmin credentials | Individual accounts and roles |
+| `upload` table | `articles` + `categories` + `media` |
+| Fixed eight paragraph fields | Rich article body |
+| Hardcoded categories | Database-managed categories |
+| `member` table | `club_members` CMS |
+| Local image folder | Managed media storage |
+| iframe-based page navigation | React routing |
+| CSS viewport-based sizing | Responsive CSS/Tailwind layout |
+| Green/white styling | Modernized Eagle Eye design system using legacy greens |
+| Admin direct publishing | Draft → Pending Review → Published |
+| Basic search | Search across headline/body/author/category/date |
+| Local/LAN deployment | Public cloud deployment |
 
-## 10. Technical Foundation Checklist
+This mapping is intended to prevent accidental loss of the original project's useful concepts while avoiding the technical limitations of the old implementation.
+
+## 9. Technical Foundation Checklist
 
 Before feature development begins:
 
@@ -392,7 +562,7 @@ Before feature development begins:
 - [ ] Decide and configure production media storage
 - [ ] Prepare the deployment architecture and production database
 
-## 11. Quick Feature Checklist
+## 10. Quick Feature Checklist
 
 - [ ] Real hosting + domain (fixes #1 recommendation from original study)
 - [ ] Secure per-user auth w/ hashed passwords (fixes #2)

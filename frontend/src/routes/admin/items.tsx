@@ -17,7 +17,7 @@ function getItemsQueryOptions() {
   }
 }
 
-export const Route = createFileRoute("/_layout/items")({
+export const Route = createFileRoute("/admin/items")({
   component: Items,
   head: () => ({
     meta: [

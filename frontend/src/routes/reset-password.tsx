@@ -51,7 +51,7 @@ export const Route = createFileRoute("/reset-password")({
   validateSearch: searchSchema,
   beforeLoad: async ({ search }) => {
     if (isLoggedIn()) {
-      throw redirect({ to: "/" })
+      throw redirect({ to: "/admin" })
     }
     if (!search.token) {
       throw redirect({ to: "/login" })

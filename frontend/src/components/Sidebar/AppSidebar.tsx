@@ -13,21 +13,21 @@ import { type Item, Main } from "./Main"
 import { User } from "./User"
 
 const baseItems: Item[] = [
-  { icon: Home, title: "Dashboard", path: "/" },
-  { icon: Briefcase, title: "Items", path: "/items" },
+  { icon: Home, title: "Dashboard", path: "/admin" },
+  { icon: Briefcase, title: "Items", path: "/admin/items" },
 ]
 
 export function AppSidebar() {
   const { user: currentUser } = useAuth()
 
   const items = currentUser?.is_superuser
-    ? [...baseItems, { icon: Users, title: "Admin", path: "/admin" }]
+    ? [...baseItems, { icon: Users, title: "Admin", path: "/admin/users" }]
     : baseItems
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="px-4 py-6 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:items-center">
-        <Logo variant="responsive" />
+        <Logo variant="responsive" to="/admin" />
       </SidebarHeader>
       <SidebarContent>
         <Main items={items} />

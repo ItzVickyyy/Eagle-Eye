@@ -268,6 +268,14 @@ def create_article(
         # Contributors cannot directly publish; force pending review
         desired_status = ArticleStatus.pending
 
+    if article_in.category_id is not None:
+        cat = session.get(Category, article_in.category_id)
+        if not cat:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Category with id {article_in.category_id} does not exist",
+            )
+
     now = datetime.now(UTC)
     date_published = now if desired_status == ArticleStatus.published else None
 
@@ -290,7 +298,14 @@ def create_article(
 
     # Attach tags
     if article_in.tag_ids:
-        for tid in article_in.tag_ids:
+        unique_tag_ids = list(dict.fromkeys(article_in.tag_ids))
+        for tid in unique_tag_ids:
+            tag = session.get(Tag, tid)
+            if not tag:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Tag with id {tid} does not exist",
+                )
             session.add(ArticleTag(article_id=article.id, tag_id=tid))
         session.commit()
 
@@ -340,13 +355,29 @@ def update_article(
                 raise HTTPException(status_code=409, detail="Slug already in use")
             update_dict["slug"] = new_slug
 
+    if "category_id" in update_dict and update_dict["category_id"] is not None:
+        cat = session.get(Category, update_dict["category_id"])
+        if not cat:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Category with id {update_dict['category_id']} does not exist",
+            )
+
     tag_ids = update_dict.pop("tag_ids", None)
     if tag_ids is not None:
+        unique_tag_ids = list(dict.fromkeys(tag_ids))
+        for tid in unique_tag_ids:
+            tag = session.get(Tag, tid)
+            if not tag:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Tag with id {tid} does not exist",
+                )
         # replace existing tags
         session.exec(
             ArticleTag.__table__.delete().where(ArticleTag.article_id == article.id)  # type: ignore
         )
-        for tid in tag_ids:
+        for tid in unique_tag_ids:
             session.add(ArticleTag(article_id=article.id, tag_id=tid))
 
     article.updated_at = datetime.now(UTC)

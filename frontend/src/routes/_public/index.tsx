@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_public/")({
   head: () => ({
     meta: [
       {
-        title: "Eagle Eye — CDLB Media Club",
+        title: "Eagle Eye â€” CDLB Media Club",
       },
     ],
   }),
@@ -35,7 +35,7 @@ function Home() {
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <EmptyState
           title="No stories published yet"
-          description="Check back soon — the Eagle Eye newsroom is just getting started."
+          description="Check back soon â€” the Eagle Eye newsroom is just getting started."
         />
       </div>
     )
@@ -140,14 +140,14 @@ function Home() {
             </h2>
             <p className="mt-3 max-w-2xl text-muted-foreground">
               Eagle Eye is the official student-run publication of Colegio de
-              los Baños, covering campus news, academics, sports, and student
-              life — written, edited, and photographed entirely by CDLB
+              los BaÃ±os, covering campus news, academics, sports, and student
+              life â€” written, edited, and photographed entirely by CDLB
               students.
             </p>
           </div>
           <div className="flex lg:justify-end">
             <Button asChild size="lg">
-              <Link to="/about">Meet the team</Link>
+              <Link to="/about-us">Meet the team</Link>
             </Button>
           </div>
         </div>

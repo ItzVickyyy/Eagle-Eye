@@ -1,11 +1,6 @@
 import { Link } from "@tanstack/react-router"
 
-import { useTheme } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
-import icon from "/assets/images/fastapi-icon.svg"
-import iconLight from "/assets/images/fastapi-icon-light.svg"
-import logo from "/assets/images/fastapi-logo.svg"
-import logoLight from "/assets/images/fastapi-logo-light.svg"
 
 interface LogoProps {
   variant?: "full" | "icon" | "responsive"
@@ -20,42 +15,52 @@ export function Logo({
   asLink = true,
   to = "/",
 }: LogoProps) {
-  const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === "dark"
+  const iconMark = (
+    <span
+      className={cn(
+        "flex items-center justify-center rounded-md bg-primary text-primary-foreground font-serif font-bold shrink-0",
+        variant === "icon" ? "size-8 text-base" : "size-9 text-lg",
+        className,
+      )}
+    >
+      E
+    </span>
+  )
 
-  const fullLogo = isDark ? logoLight : logo
-  const iconLogo = isDark ? iconLight : icon
+  const fullMark = (
+    <span className="flex items-center gap-2.5">
+      <span className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground font-serif text-lg font-bold shrink-0">
+        E
+      </span>
+      <span className="flex flex-col leading-tight">
+        <span className="font-serif text-lg font-bold tracking-tight text-foreground">
+          Eagle Eye
+        </span>
+        <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          CDLB Media Club
+        </span>
+      </span>
+    </span>
+  )
+
+  const responsiveMark = (
+    <>
+      <span className="group-data-[collapsible=icon]:hidden">{fullMark}</span>
+      <span className="hidden group-data-[collapsible=icon]:flex">
+        {iconMark}
+      </span>
+    </>
+  )
 
   const content =
-    variant === "responsive" ? (
-      <>
-        <img
-          src={fullLogo}
-          alt="FastAPI"
-          className={cn(
-            "h-6 w-auto group-data-[collapsible=icon]:hidden",
-            className,
-          )}
-        />
-        <img
-          src={iconLogo}
-          alt="FastAPI"
-          className={cn(
-            "size-5 hidden group-data-[collapsible=icon]:block",
-            className,
-          )}
-        />
-      </>
-    ) : (
-      <img
-        src={variant === "full" ? fullLogo : iconLogo}
-        alt="FastAPI"
-        className={cn(variant === "full" ? "h-6 w-auto" : "size-5", className)}
-      />
-    )
+    variant === "responsive"
+      ? responsiveMark
+      : variant === "icon"
+        ? iconMark
+        : fullMark
 
   if (!asLink) {
-    return content
+    return <>{content}</>
   }
 
   return <Link to={to}>{content}</Link>

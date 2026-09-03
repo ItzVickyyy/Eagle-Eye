@@ -17,10 +17,10 @@ import { LoadingButton } from "@/components/ui/loading-button"
 import { Textarea } from "@/components/ui/textarea"
 import useCustomToast from "@/hooks/useCustomToast"
 
-export const Route = createFileRoute("/_public/contact")({
+export const Route = createFileRoute("/_public/contact-us")({
   component: ContactPage,
   head: () => ({
-    meta: [{ title: "Contact Us - Eagle Eye" }],
+    meta: [{ title: "Contact Us — Eagle Eye" }],
   }),
 })
 
@@ -50,7 +50,7 @@ function ContactPage() {
   // e.g. ContactService.sendMessage({ body: data }).
   const onSubmit = (_data: ContactFormData) => {
     showSuccessToast(
-      "Thanks! Our contact form isn't wired up to email yet — please reach us directly at eagleeye@cdlb.edu.ph in the meantime.",
+      "Thanks! Our contact form isn't wired up to email yet â€” please reach us directly at eagleeye@cdlb.edu.ph in the meantime.",
     )
     form.reset()
   }
@@ -89,15 +89,15 @@ function ContactPage() {
                 <div>
                   <p className="font-medium text-foreground">Media Club Room</p>
                   <p className="text-muted-foreground">
-                    Colegio de los Baños
+                    Colegio de los BaÃ±os
                     <br />
-                    Los Baños, Laguna, Philippines
+                    Los BaÃ±os, Laguna, Philippines
                   </p>
                 </div>
               </li>
             </ul>
             <p className="mt-6 text-xs text-muted-foreground">
-              Have a story tip? Include as much detail as you can — dates,
+              Have a story tip? Include as much detail as you can â€” dates,
               names, and where it happened help us follow up faster.
             </p>
           </div>
@@ -167,7 +167,7 @@ function ContactPage() {
                     <FormLabel>Message</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Tell us more…"
+                        placeholder="Tell us moreâ€¦"
                         rows={5}
                         {...field}
                       />
@@ -186,7 +186,7 @@ function ContactPage() {
                 Send Message
               </LoadingButton>
               <p className="text-xs text-muted-foreground">
-                This form isn't connected to email yet — for now, reach us
+                This form isn't connected to email yet â€” for now, reach us
                 directly at{" "}
                 <a
                   href="mailto:eagleeye@cdlb.edu.ph"

@@ -7,7 +7,7 @@ export const Route = createFileRoute("/admin/")({
   head: () => ({
     meta: [
       {
-        title: "Dashboard - FastAPI Template",
+        title: "Dashboard — Eagle Eye",
       },
     ],
   }),
@@ -23,7 +23,7 @@ function Dashboard() {
           Hi, {currentUser?.full_name || currentUser?.email} 👋
         </h1>
         <p className="text-muted-foreground">
-          Welcome back, nice to see you again!!!
+          Welcome back to the Eagle Eye newsroom.
         </p>
       </div>
     </div>

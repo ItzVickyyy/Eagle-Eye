@@ -18,8 +18,8 @@ import { cn } from "@/lib/utils"
 const primaryNav = [
   { label: "Home", to: "/" as const },
   { label: "News", to: "/news" as const },
-  { label: "About Us", to: "/about" as const },
-  { label: "Contact", to: "/contact" as const },
+  { label: "About Us", to: "/about-us" as const },
+  { label: "Contact", to: "/contact-us" as const },
 ]
 
 export function SiteHeader() {
@@ -31,7 +31,7 @@ export function SiteHeader() {
       {/* Utility bar */}
       <div className="hidden border-b border-border/60 bg-muted/40 sm:block">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-1.5 text-xs text-muted-foreground sm:px-6 lg:px-8">
-          <p>Colegio de los Baños Media Club</p>
+          <p>Colegio de los BaÃƒÂ±os Media Club</p>
           <p>{todayLabel()}</p>
         </div>
       </div>
@@ -199,7 +199,7 @@ function SearchButton() {
           onBlur={() => {
             if (!value) setOpen(false)
           }}
-          placeholder="Search articles…"
+          placeholder="Search articlesÃ¢â‚¬Â¦"
           className="h-9 w-36 rounded-md border bg-background px-3 text-sm shadow-xs outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 sm:w-52"
         />
         <Button type="submit" size="icon" variant="ghost" aria-label="Search">

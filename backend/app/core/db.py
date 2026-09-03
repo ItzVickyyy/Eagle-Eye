@@ -2,25 +2,12 @@ from sqlmodel import Session, create_engine, select
 
 from app import crud
 from app.core.config import settings
-from app.models import User, UserCreate
+from app.models import Category, User, UserCreate, UserRole
 
 engine = create_engine(str(settings.DATABASE_URL), pool_pre_ping=True)
 
 
-# make sure all SQLModel models are imported (app.models) before initializing DB
-# otherwise, SQLModel might fail to initialize relationships properly
-# for more details: https://github.com/fastapi/full-stack-fastapi-template/issues/28
-
-
 def init_db(session: Session) -> None:
-    # Tables should be created with Alembic migrations
-    # But if you don't want to use migrations, create
-    # the tables un-commenting the next lines
-    # from sqlmodel import SQLModel
-
-    # This works because the models are already imported and registered from app.models
-    # SQLModel.metadata.create_all(engine)
-
     user = session.exec(
         select(User).where(User.email == settings.FIRST_SUPERUSER)
     ).first()
@@ -29,5 +16,21 @@ def init_db(session: Session) -> None:
             email=settings.FIRST_SUPERUSER,
             password=settings.FIRST_SUPERUSER_PASSWORD,
             is_superuser=True,
+            role=UserRole.super_admin,
         )
-        user = crud.create_user(session=session, user_create=user_in)
+        crud.create_user(session=session, user_create=user_in)
+
+    default_categories = [
+        {"name": "News", "slug": "news", "description": "School announcements, events, and campus happenings."},
+        {"name": "Academics", "slug": "academics", "description": "Classroom milestones, honors, and academic competitions."},
+        {"name": "Sports", "slug": "sports", "description": "Game recaps, athlete spotlights, and team standings."},
+        {"name": "Events", "slug": "events", "description": "School programs, club activities, and community events."},
+    ]
+    for cat_data in default_categories:
+        existing = session.exec(
+            select(Category).where(Category.slug == cat_data["slug"])
+        ).first()
+        if not existing:
+            category = Category(**cat_data)
+            session.add(category)
+    session.commit()

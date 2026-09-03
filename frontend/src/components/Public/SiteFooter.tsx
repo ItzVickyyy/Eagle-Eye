@@ -1,17 +1,64 @@
+import { useQuery } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
 import { Mail } from "lucide-react"
 import { FaFacebookF, FaInstagram, FaXTwitter } from "react-icons/fa6"
 
-import { categories } from "@/data/mockNews"
+import { CategoriesService, SettingsService } from "@/client"
 
-const socialLinks = [
-  { icon: FaFacebookF, href: "https://facebook.com", label: "Facebook" },
-  { icon: FaInstagram, href: "https://instagram.com", label: "Instagram" },
-  { icon: FaXTwitter, href: "https://twitter.com", label: "Twitter" },
+const fallbackCategories = [
+  { name: "News", slug: "news" },
+  { name: "Academics", slug: "academics" },
+  { name: "Sports", slug: "sports" },
+  { name: "Events", slug: "events" },
 ]
 
 export function SiteFooter() {
   const currentYear = new Date().getFullYear()
+
+  // Fetch categories from API
+  const { data: categoriesData } = useQuery({
+    queryKey: ["site-categories"],
+    queryFn: () => CategoriesService.readCategories({ query: { limit: 10 } }),
+  })
+
+  // Fetch site settings from API
+  const { data: settingsRes } = useQuery({
+    queryKey: ["public-site-settings"],
+    queryFn: () => SettingsService.getSiteSettings(),
+  })
+
+  const categories: Array<{ name: string; slug: string }> =
+    (categoriesData as any)?.data?.data ||
+    (categoriesData as any)?.data ||
+    fallbackCategories
+
+  const settingsMap: Record<string, string> = {}
+  const settingsItems: any[] =
+    (settingsRes as any)?.data?.data || (settingsRes as any)?.data || []
+  settingsItems.forEach((item) => {
+    if (item?.key && item?.value !== undefined) {
+      settingsMap[item.key] = item.value
+    }
+  })
+
+  const siteName = settingsMap["site_name"] || "Eagle Eye"
+  const siteTagline =
+    settingsMap["site_tagline"] ||
+    "The official student publication of Colegio de Los Baños, reporting campus news since day one."
+  const contactEmail = settingsMap["contact_email"] || "mediaclub@cdlb.edu.ph"
+  const schoolName = settingsMap["school_name"] || "Colegio de Los Baños"
+  const newsroomLocation =
+    settingsMap["newsroom_location"] || "Los Baños, Laguna, Philippines"
+  const facebookUrl =
+    settingsMap["facebook_url"] || "https://facebook.com/cdlbmediaclub"
+  const twitterUrl = settingsMap["twitter_url"] || ""
+  const instagramUrl = settingsMap["instagram_url"] || ""
+
+  const socialLinks = [
+    { icon: FaFacebookF, href: facebookUrl, label: "Facebook" },
+    { icon: FaInstagram, href: instagramUrl || "https://instagram.com", label: "Instagram" },
+    { icon: FaXTwitter, href: twitterUrl || "https://twitter.com", label: "Twitter" },
+  ].filter((s) => Boolean(s.href))
 
   return (
     <footer className="border-t bg-muted/30">
@@ -23,12 +70,11 @@ export function SiteFooter() {
                 E
               </span>
               <span className="font-serif text-lg font-bold text-foreground">
-                Eagle Eye
+                {siteName}
               </span>
             </Link>
             <p className="mt-3 max-w-xs text-sm text-muted-foreground">
-              The official student publication of Colegio de los BaÃ±os,
-              reporting campus news since day one.
+              {siteTagline}
             </p>
             <div className="mt-4 flex items-center gap-3">
               {socialLinks.map(({ icon: Icon, href, label }) => (
@@ -101,21 +147,21 @@ export function SiteFooter() {
               <li className="flex items-center gap-2">
                 <Mail className="size-4 shrink-0" />
                 <a
-                  href="mailto:eagleeye@cdlb.edu.ph"
+                  href={`mailto:${contactEmail}`}
                   className="transition-colors hover:text-foreground"
                 >
-                  eagleeye@cdlb.edu.ph
+                  {contactEmail}
                 </a>
               </li>
-              <li>Colegio de los BaÃ±os</li>
-              <li>Los BaÃ±os, Laguna, Philippines</li>
+              <li>{schoolName}</li>
+              <li>{newsroomLocation}</li>
             </ul>
           </div>
         </div>
 
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t pt-6 text-xs text-muted-foreground sm:flex-row">
           <p>
-            &copy; {currentYear} Eagle Eye &mdash; CDLB Media Club. All rights
+            &copy; {currentYear} {siteName} &mdash; CDLB Media Club. All rights
             reserved.
           </p>
           <p>Built by student journalists, for students.</p>

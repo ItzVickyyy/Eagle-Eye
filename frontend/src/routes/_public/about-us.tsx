@@ -1,8 +1,11 @@
+import { useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { BookOpen, Camera, PenLine, Target } from "lucide-react"
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { ClubMembersService } from "@/client"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { getInitials } from "@/utils"
 
 export const Route = createFileRoute("/_public/about-us")({
   component: AboutPage,
@@ -38,16 +41,24 @@ const values = [
   },
 ]
 
-const team = [
-  { name: "Mari Santos", role: "Editor-in-Chief" },
-  { name: "JC Dela PeÃ±a", role: "Sports Editor" },
-  { name: "Alex Villanueva", role: "Arts Correspondent" },
-  { name: "Sam Ocampo", role: "Opinion Columnist" },
-  { name: "Kit Fernandez", role: "News Reporter" },
-  { name: "Ren Bautista", role: "Staff Writer" },
-]
-
 function AboutPage() {
+  const { data: membersRes } = useQuery({
+    queryKey: ["active-club-members"],
+    queryFn: () => ClubMembersService.membersReadActiveMembers(),
+  })
+
+  const members: any[] = (membersRes as any)?.data?.data || (membersRes as any)?.data || []
+  const advisers = members.filter(
+    (m: any) =>
+      m.position?.toLowerCase().includes("adviser") ||
+      m.position_title?.toLowerCase().includes("adviser"),
+  )
+  const studentOfficers = members.filter(
+    (m: any) =>
+      !m.position?.toLowerCase().includes("adviser") &&
+      !m.position_title?.toLowerCase().includes("adviser"),
+  )
+
   return (
     <div>
       <section className="border-b bg-muted/30">
@@ -56,31 +67,33 @@ function AboutPage() {
             About Eagle Eye
           </Badge>
           <h1 className="font-serif text-3xl font-bold tracking-tight text-foreground sm:text-5xl">
-            The student voice of Colegio de los BaÃ±os
+            The student voice of Colegio de Los Baños
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            Eagle Eye is the official, student-run news publication of CDLB â€”
+            Eagle Eye is the official, student-run news publication of CDLB —
             reporting campus news, academics, sports, and student life since our
-            founding.
+            founding on May 4, 2023.
           </p>
         </div>
       </section>
 
       <section className="mx-auto max-w-4xl px-4 py-14 sm:px-6 lg:px-8">
         <h2 className="font-serif text-2xl font-bold tracking-tight text-foreground">
-          Our Mission
+          Our Mission & History
         </h2>
-        <p className="mt-4 text-muted-foreground">
-          The CDLB Media Club exists to inform, engage, and represent our school
-          community through honest, well-researched student journalism. We train
-          the next generation of writers, photographers, and editors while
-          giving every student a window into campus life â€” from big wins on
-          the court to the quiet, everyday stories that make CDLB what it is.
+        <p className="mt-4 text-muted-foreground leading-relaxed">
+          The CDLB Media Club was established through the HUMSS Department after
+          delegates attended the prestigious Gandingan Awards. Recognizing the
+          need for a centralized, modern publication for Colegio de Los Baños,
+          the club partnered with organizations from the University of the
+          Philippines Los Baños (such as UPLB Jocks for broadcasting and UPLB
+          Times for journalism) to build high-standard media practices.
         </p>
-        <p className="mt-4 text-muted-foreground">
+        <p className="mt-4 text-muted-foreground leading-relaxed">
           Every article on Eagle Eye is written, edited, photographed, and laid
-          out entirely by CDLB students, with guidance from our faculty
-          moderator.
+          out entirely by CDLB students across our Editorial, Multimedia,
+          Broadcasting, and Social Media departments, with guidance from our
+          faculty advisers.
         </p>
       </section>
 
@@ -108,37 +121,97 @@ function AboutPage() {
         </div>
       </section>
 
+      {/* Meet the Team */}
       <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
         <h2 className="text-center font-serif text-2xl font-bold tracking-tight text-foreground">
-          Meet the Team
+          Meet the Staff & Advisers
         </h2>
         <p className="mx-auto mt-2 max-w-xl text-center text-muted-foreground">
-          The staff behind this year's issues of Eagle Eye.
+          The dedicated student journalists and mentors behind Eagle Eye.
         </p>
-        <div className="mt-10 grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
-          {team.map((member) => {
-            const initials = member.name
-              .split(" ")
-              .map((n) => n[0])
-              .join("")
-            return (
-              <div
-                key={member.name}
-                className="flex flex-col items-center text-center"
-              >
-                <Avatar className="size-16">
-                  <AvatarFallback className="text-base font-semibold">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-                <p className="mt-3 text-sm font-semibold text-foreground">
-                  {member.name}
-                </p>
-                <p className="text-xs text-muted-foreground">{member.role}</p>
-              </div>
-            )
-          })}
-        </div>
+
+        {advisers.length > 0 && (
+          <div className="mt-10">
+            <h3 className="text-center font-semibold text-xs uppercase tracking-wider text-primary mb-6">
+              Club Advisers
+            </h3>
+            <div className="flex flex-wrap justify-center gap-8">
+              {advisers.map((member: any) => {
+                const fullName = `${member.first_name} ${member.last_name}`
+                const initials = getInitials(fullName)
+                return (
+                  <div
+                    key={member.id}
+                    className="flex flex-col items-center text-center max-w-[160px]"
+                  >
+                    <Avatar className="size-20 border-2 border-primary/20">
+                      {member.photo_url && (
+                        <AvatarImage
+                          src={member.photo_url}
+                          alt={fullName}
+                          className="object-cover"
+                        />
+                      )}
+                      <AvatarFallback className="text-lg font-semibold bg-primary/10 text-primary">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <p className="mt-3 text-sm font-semibold text-foreground">
+                      {fullName}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {member.position_title || member.position || "Adviser"}
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {studentOfficers.length > 0 && (
+          <div className="mt-12">
+            <h3 className="text-center font-semibold text-xs uppercase tracking-wider text-primary mb-6">
+              Editorial & Production Board
+            </h3>
+            <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4 justify-items-center">
+              {studentOfficers.map((member: any) => {
+                const fullName = `${member.first_name} ${member.last_name}`
+                const initials = getInitials(fullName)
+                return (
+                  <div
+                    key={member.id}
+                    className="flex flex-col items-center text-center w-full max-w-[180px] p-4 rounded-xl border bg-card/60"
+                  >
+                    <Avatar className="size-16">
+                      {member.photo_url && (
+                        <AvatarImage
+                          src={member.photo_url}
+                          alt={fullName}
+                          className="object-cover"
+                        />
+                      )}
+                      <AvatarFallback className="text-base font-semibold bg-muted">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <p className="mt-3 text-sm font-semibold text-foreground">
+                      {fullName}
+                    </p>
+                    <p className="text-xs text-primary font-medium">
+                      {member.position_title || member.position}
+                    </p>
+                    {member.department && (
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {member.department}
+                      </p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </section>
     </div>
   )

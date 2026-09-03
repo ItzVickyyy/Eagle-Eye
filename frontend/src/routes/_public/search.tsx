@@ -1,12 +1,13 @@
+import { useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { Search as SearchIcon } from "lucide-react"
 import { useState } from "react"
 import { z } from "zod"
 
+import { ArticlesService } from "@/client"
 import { ArticleCard } from "@/components/Public/ArticleCard"
-import { EmptyState, SearchEmptyState } from "@/components/Public/States"
+import { EmptyState, LoadingState, SearchEmptyState } from "@/components/Public/States"
 import { Button } from "@/components/ui/button"
-import { searchArticles } from "@/data/mockNews"
 
 const searchParamsSchema = z.object({
   q: z.string().optional().catch(undefined),
@@ -31,7 +32,20 @@ function SearchResults() {
   const navigate = Route.useNavigate()
   const [draft, setDraft] = useState(q ?? "")
 
-  const results = q ? searchArticles(q, { pageSize: 24 }) : undefined
+  const { data: searchResults, isLoading } = useQuery({
+    queryKey: ["search-articles", q],
+    queryFn: () =>
+      ArticlesService.readArticles({
+        query: {
+          search: q?.trim(),
+          limit: 24,
+        },
+      }),
+    enabled: !!q && q.trim().length > 0,
+  })
+
+  const results: any[] = (searchResults as any)?.data?.data || (searchResults as any)?.data || []
+  const total: number = (searchResults as any)?.data?.count ?? (searchResults as any)?.count ?? 0
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,7 +59,7 @@ function SearchResults() {
         Search
       </h1>
       <p className="mt-2 text-muted-foreground">
-        Search Eagle Eye's archive by headline, topic, or author.
+        Search Eagle Eye's archive across headline, body text, and topics.
       </p>
 
       <form onSubmit={onSubmit} className="mt-6 flex gap-2">
@@ -54,7 +68,7 @@ function SearchResults() {
           <input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="Search articles, authors, or topics…"
+            placeholder="Search articles, authors, or topics..."
             aria-label="Search articles"
             className="h-11 w-full rounded-md border bg-background pl-9 pr-3 text-sm shadow-xs outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
           />
@@ -69,20 +83,21 @@ function SearchResults() {
           <EmptyState
             icon={<SearchIcon className="size-6" />}
             title="Start typing to search"
-            description="Try searching for a topic like “basketball,” “robotics,” or a staff writer's name."
+            description="Try searching for a topic like “championship”, “academics”, or “facilities”."
           />
         )}
 
-        {q && results && results.total === 0 && <SearchEmptyState query={q} />}
+        {q && isLoading && <LoadingState />}
 
-        {q && results && results.total > 0 && (
+        {q && !isLoading && total === 0 && <SearchEmptyState query={q} />}
+
+        {q && !isLoading && total > 0 && (
           <>
             <p className="mb-5 text-sm text-muted-foreground">
-              {results.total} {results.total === 1 ? "result" : "results"} for
-              &ldquo;{q}&rdquo;
+              {total} {total === 1 ? "result" : "results"} for &ldquo;{q}&rdquo;
             </p>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {results.items.map((article) => (
+              {results.map((article) => (
                 <ArticleCard key={article.id} article={article} />
               ))}
             </div>

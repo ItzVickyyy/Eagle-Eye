@@ -27,3 +27,35 @@ export const getInitials = (name: string): string => {
     .join("")
     .toUpperCase()
 }
+
+export function formatDate(dateString?: string | null): string {
+  if (!dateString) return "Recent"
+  try {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    })
+  } catch {
+    return dateString
+  }
+}
+
+export function formatShortDate(dateString?: string | null): string {
+  if (!dateString) return "Recent"
+  try {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })
+  } catch {
+    return dateString
+  }
+}
+
+export function calculateReadTime(content?: string | null): number {
+  if (!content) return 2
+  const words = content.replace(/<[^>]*>/g, " ").trim().split(/\s+/).length
+  return Math.max(1, Math.ceil(words / 200))
+}

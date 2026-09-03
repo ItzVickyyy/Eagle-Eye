@@ -238,7 +238,9 @@ class Article(ArticleBase, table=True):
     author_id: uuid.UUID = Field(
         foreign_key="user.id", nullable=False, ondelete="CASCADE"
     )
-    category_id: int | None = Field(default=None, foreign_key="category.id")
+    category_id: int | None = Field(
+        default=None, foreign_key="category.id", ondelete="SET NULL"
+    )
     date_published: datetime | None = Field(
         default=None, sa_type=DateTime(timezone=True)
     )

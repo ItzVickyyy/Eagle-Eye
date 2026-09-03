@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog"
 import { LoadingButton } from "@/components/ui/loading-button"
 import useCustomToast from "@/hooks/useCustomToast"
+import { sanitizeHtml } from "@/lib/sanitize"
 import { calculateReadTime, formatDate, getInitials } from "@/utils"
 
 export const Route = createFileRoute("/admin/review-queue")({
@@ -248,7 +249,9 @@ function ReviewQueue() {
               <div
                 className="prose-content space-y-4 text-sm leading-relaxed text-foreground border-y py-6"
                 dangerouslySetInnerHTML={{
-                  __html: selectedArticle.body || "<p>No content provided.</p>",
+                  __html:
+                    sanitizeHtml(selectedArticle.body) ||
+                    "<p>No content provided.</p>",
                 }}
               />
 

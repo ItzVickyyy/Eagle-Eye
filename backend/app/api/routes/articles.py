@@ -14,6 +14,7 @@ from app.api.deps import (
     is_admin_or_above,
     is_super_admin,
 )
+from app.core.sanitizer import sanitize_html
 from app.models import (
     Article,
     ArticleCreate,
@@ -275,7 +276,7 @@ def create_article(
         slug=slug,
         excerpt=article_in.excerpt,
         cover_image_url=article_in.cover_image_url,
-        body=article_in.body,
+        body=sanitize_html(article_in.body),
         category_id=article_in.category_id,
         author_id=current_user.id,
         status=desired_status,
@@ -319,6 +320,9 @@ def update_article(
 
     # If contributor is editing a published article, they can't change it directly to published
     update_dict = article_in.model_dump(exclude_unset=True)
+
+    if "body" in update_dict and update_dict["body"] is not None:
+        update_dict["body"] = sanitize_html(update_dict["body"])
 
     if "status" in update_dict:
         new_status = update_dict["status"]

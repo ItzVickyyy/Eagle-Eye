@@ -1,7 +1,7 @@
 # Eagle Eye — CDLB Media Club News Website
 ## System Specification & Rebuild Plan (v5)
 
-> Based on the original Grade 12 Practical Research (Dumagco, Reboton, Salen — "Development of News Website for the Schools Publication of Colegio de Los Baños"). This is a personal rebuild project by the original project developer/author (Reboton, Justin & Salen, Vic John), using the old system as a reference and improving it with a modern technology stack and expanded features.
+> Based on the original Grade 12 Practical Research (Dumagco, Reboton, Salen — "Development of News Website for the Schools Publication of Colegio de Los Baños"). This is a personal rebuild project by the original project developer/author, using the old system as a reference and improving it with a modern technology stack and expanded features.
 
 ---
 
@@ -11,7 +11,7 @@
 |---|---|---|
 | Name | Eagle Eye | Eagle Eye |
 | Organization | CDLB Media Club | CDLB Media Club |
-| Hosting | Local server | Cloud hosting with a public URL |
+| Hosting | Local server / LAN only | Cloud hosting with a public URL |
 | Stack | HTML, CSS, JS, PHP, MySQL, VS Code | React + FastAPI + PostgreSQL |
 | Auth | 2 hardcoded shared accounts | Per-user accounts, secure password hashing, roles |
 | Articles | Headline, author, category, date, up to eight paragraph fields | Rich article editor, structured content, drafts, review, publishing |
@@ -32,7 +32,9 @@ Eagle Eye is a personal rebuild of the earlier CDLB Media Club news website. The
 
 This is **not being treated as a formal capstone development process**. The system can be designed and implemented iteratively with AI assistance. The initial design can be generic as long as it is clean, functional, responsive, and easy to refine after seeing the working application.
 
-## 1.2 Scope & Rebuild Principle
+## 1.2 V5 Scope & Rebuild Principle
+
+Version 5 makes one priority explicit:
 
 > **Eagle Eye is a functional rebuild first and a technology migration second.**
 
@@ -80,17 +82,25 @@ The preferred implementation order is:
 
 Infrastructure choices such as Docker Compose support the development process but do not define the product's functional scope. Docker Compose remains the intended development environment; however, infrastructure setup should not cause application requirements to be invented, removed, or silently changed.
 
+### Email development dependency
+
+Mailpit is a **development email sandbox**, not an Eagle Eye product feature. It should be used when testing outbound email behavior without sending real email.
+
+It is not required for workflows that only save data to PostgreSQL. It becomes relevant when an implemented feature actually sends email, such as the Contact Us notification flow or future account/notification emails.
+
 ## 1.2 Legacy Project Reference — Media Club 2023
 
-The **Media-Club-2023** project is the primary visual and functional reference for the original Eagle Eye implementation. It was a PHP/MySQL website with separate public and administration areas.
-Repository: https://github.com/ItzVickyyy/Practical-Research-2
-Paper: (It is included in the repository)
+The uploaded **Media-Club-2023** project is the primary visual and functional reference for the original Eagle Eye implementation. It was a PHP/MySQL website with separate public and administration areas.
 
 ### Original purpose and club identity
 
 The original About Us content describes the CDLB Media Club as an organization established on **May 4, 2023**. It was founded through the HUMSS Department after members attended the Gandingan Awards and gained the idea to establish a media club. The 2023 project described the club as having **43 members and 4 advisers** at that time. This membership count is a historical snapshot and must not be treated as the current membership count.
 
 The original site described the club's purpose as keeping students, faculty, personnel, and people interested in Colegio de Los Baños updated about current events within the school and, at times, activities outside the school. Its materials included **articles, videos, and photo galleries**.
+
+The project also recorded collaboration with organizations from the University of the Philippines Los Baños:
+- **UPLB Jocks** — training related to broadcasting
+- **UPLB Times** — training related to journalism
 
 These details should be retained as historical/reference content where appropriate, but editable through the new CMS rather than permanently hardcoded.
 
@@ -163,7 +173,7 @@ The rebuild should preserve the useful intent of these functions while replacing
 
 The following capabilities are confirmed legacy concepts that the rebuild must account for:
 
-| Legacy capability | Requirement | Modern Eagle Eye implementation |
+| Legacy capability | V5 requirement | Modern Eagle Eye implementation |
 |---|---|---|
 | Administrator login | **MUST** | Per-user authentication with secure password hashing |
 | Administrator control panel | **MUST** | Role-aware dashboard |
@@ -380,12 +390,51 @@ The system should follow a separation-of-concerns approach:
 
 ## 4. User Roles & Permissions (Redesigned)
 
+### 4.1 Club / Organizational Roles
+
+These roles define **club and content authority**. They form the application's normal RBAC hierarchy.
+
 | Role | Description | Permissions |
 |---|---|---|
-| **Super Admin** | Club adviser(s) / highest-trust administrator | Full system access; manage users/roles, members, categories/tags, site settings, analytics, articles, media, and archives |
+| **Super Admin** | Club adviser(s) / highest-trust club administrator | Full club/content administration; manage users/club roles, members, categories/tags, site settings, analytics, articles, media, and archives |
 | **Admin (Editor)** | Club officers / editorial staff | Manage articles and editorial workflow; create/edit/delete articles as authorized; upload media; approve/reject/publish submissions; view article statistics |
 | **Contributor** | Regular club members/writers | Create and edit their own drafts; upload permitted media; submit articles for review; cannot publish directly |
 | **Guest/Reader** | Public visitor | Browse, search, read published content, use contact form, and use enabled engagement features |
+
+### 4.2 System-Level Role: Developer
+
+**Developer is a separate system-level access concept, not a higher or lower position in the Club RBAC hierarchy.**
+
+The Developer role exists for trusted technical maintainers of Eagle Eye. It is intentionally separated from club/content authority so that technical access does not automatically imply authority over club operations.
+
+| Role | Description | Initial Scope |
+|---|---|---|
+| **Developer** | Trusted technical maintainer(s) of the Eagle Eye application | Access to developer/system tools such as system health, application logs, maintenance mode, feature flags, diagnostics, and other technical tooling approved by the project |
+
+#### Developer boundaries
+
+- **MUST:** Developer access be enforced by the backend.
+- **MUST:** Developer be treated separately from Super Admin, Admin, Contributor, and Guest/Reader.
+- **MUST:** Developer not automatically inherit club/content permissions.
+- **MUST:** Developer not be presented as part of the normal club-role hierarchy.
+- **MUST:** Sensitive developer actions be auditable through an application audit log when such tooling is implemented.
+- **SHOULD:** Raw database access, deployment controls, production secrets, and infrastructure administration remain outside the Eagle Eye UI unless there is a later, explicit requirement to expose a safe subset.
+- **SHOULD:** Developer tools start small and expand only when a concrete maintenance/debugging need exists.
+- **DEFERRED:** A full developer operations dashboard is not required for the MVP.
+
+Examples of possible developer tools:
+
+- System health / service status
+- Application and error logs
+- Database connectivity diagnostics
+- Maintenance mode
+- Feature flags
+- Cache clearing / search reindexing
+- Background-job monitoring if async jobs are introduced
+- Database backup/restore controls, if later justified
+- Safe diagnostics for troubleshooting
+
+> **Important:** "Developer" means technical/system trust, while "Super Admin" means organizational/club trust. Neither role should be interpreted as simply being "above" the other.
 
 ### RBAC rules
 
@@ -393,11 +442,13 @@ The system should follow a separation-of-concerns approach:
 - **MUST:** A user must never gain additional permissions merely by manually changing a URL or API request.
 - **MUST:** Contributors cannot publish their own articles directly.
 - **MUST:** Publishing/review actions must be limited to Admin/Super Admin roles.
-- **MUST:** User/role administration must be restricted to Super Admin.
+- **MUST:** User/club-role administration must be restricted to Super Admin.
+- **MUST:** Developer permissions must be checked independently from club-role permissions.
 - **MUST:** Sensitive account operations require authentication and appropriate ownership/role checks.
 - **SHOULD:** Destructive operations should use confirmation and/or soft-delete/archive behavior where appropriate.
+- **SHOULD:** Developer actions that change system state should be recorded in an audit trail.
 
-This fixes the "2 shared passwords" problem and adds a realistic editorial workflow (draft → review → publish), which makes the publishing process more controlled and maintainable.
+This fixes the "2 shared passwords" problem, preserves Super Admin as the highest club authority for the Club Adviser(s), and introduces a separate technical trust boundary for developers.
 
 ---
 
@@ -463,7 +514,28 @@ This fixes the "2 shared passwords" problem and adds a realistic editorial workf
 - Archive/unarchive old articles
 - Expanded site administration
 
-### 5.5 System-Wide / Non-Functional
+### 5.5 Developer (System-Level)
+
+**MUST**
+- Access only developer/system tools explicitly granted to the role
+- View system/application health and diagnostics when implemented
+- View relevant application/error logs when implemented
+- Use maintenance mode and feature flags when implemented
+
+**SHOULD**
+- Access safe database connectivity diagnostics
+- Access cache/search maintenance tools
+- Access background-job monitoring if such jobs are introduced
+- Have sensitive developer actions recorded in an audit log
+
+**DEFERRED**
+- Full developer operations dashboard
+- In-app production deployment controls
+- Raw database administration through the UI
+- Production secret/environment-value management through the UI
+- Backup/restore controls unless there is a concrete operational requirement
+
+### 5.6 System-Wide / Non-Functional
 - Mobile-responsive design (breakpoints tested on phone/tablet/desktop)
 - Proper hosting with HTTPS
 - Input validation and sanitization (XSS/SQL injection prevention — big upgrade from raw PHP string queries)
@@ -513,7 +585,7 @@ A legacy capability must be explicitly marked **preserved**, **modernized**, **i
 ## 6. Data Model (Draft ERD Summary)
 
 **users**
-- id, first_name, last_name, email, password_hash, role (super_admin/admin/contributor), profile_picture, department, position_title, created_at
+- id, first_name, last_name, email, password_hash, club_role (super_admin/admin/contributor), system_access (developer or none; implementation may use a dedicated flag/relationship), profile_picture, department, position_title, created_at
 
 **articles**
 - id, headline, slug, author_id (FK → users), category_id (FK), cover_image_url, body (rich text/JSON or markdown), status (draft/pending/published/archived), date_published, views_count, created_at, updated_at
@@ -569,7 +641,7 @@ Eagle Eye (root)
 │   ├── Email link
 │   └── Contact form (new)
 │
-├── /login (Contributor/Admin/Super Admin — single login, role-based redirect)
+├── /login (Contributor/Admin/Super Admin/Developer — single login; club-role and system-access-aware redirect)
 │
 ├── /dashboard (role-aware, shown after login)
 │   ├── /dashboard/articles                → list own or all articles (role-dependent)
@@ -581,7 +653,8 @@ Eagle Eye (root)
 │   ├── /dashboard/users                    → (Super Admin) manage accounts & roles
 │   ├── /dashboard/settings                 → (Super Admin) site settings, logo, socials
 │   ├── /dashboard/analytics                → (Super Admin/Admin) views & stats
-│   └── /dashboard/account/change-password  → (all roles) change own password (Old/New/Repeat)
+│   ├── /dashboard/developer                 → (Developer) system health, logs, diagnostics, and approved developer tools
+│   └── /dashboard/account/change-password  → (all authenticated roles) change own password (Old/New/Repeat)
 │
 └── /404 (Not Found)
 ```
@@ -594,6 +667,12 @@ Eagle Eye (root)
 
 **Super Admin flow:**
 `Login → Dashboard → Manage Users / Members / Categories / Settings / Analytics → Logout`
+
+**Developer flow:**
+`Login → Developer Dashboard → System Health / Logs / Diagnostics / Approved Developer Tools → Logout`
+
+**Important:** A Developer session does not automatically become a Super Admin session. If a technical maintainer also needs to test or perform club-administration workflows, that access should be deliberately granted through the normal club RBAC model rather than silently inherited.
+
 
 ---
 
@@ -720,6 +799,7 @@ Before declaring the rebuild "feature complete", perform a legacy-to-new review.
 - [ ] Article creation, editing, deletion, and publication are implemented.
 - [ ] Administrative authentication is replaced with per-user authentication.
 - [ ] Legacy administrator capabilities are mapped to Super Admin/Admin permissions.
+- [ ] Developer access is documented separately from club RBAC and does not accidentally expand club/content permissions.
 - [ ] About Us/member management is implemented as editable data.
 - [ ] Password-change behavior is implemented securely.
 - [ ] Image/media handling is implemented reliably.
@@ -754,8 +834,10 @@ Before feature development begins:
 - [ ] Replace generic template entities/features with Eagle Eye domain models
 - [ ] Configure PostgreSQL and SQLModel
 - [ ] Configure JWT authentication and secure password hashing
-- [ ] Implement Super Admin / Admin / Contributor authorization
+- [ ] Implement Super Admin / Admin / Contributor club authorization
+- [ ] Implement separate Developer system-level authorization without automatically granting club/content permissions
 - [ ] Configure Docker Compose for local development
+- [ ] Keep Developer/system-level access separate from Club RBAC
 - [ ] Keep PostgreSQL as the primary application database in the development environment
 - [ ] Use Mailpit when testing outbound email without sending real messages
 - [ ] Establish frontend-to-backend API communication

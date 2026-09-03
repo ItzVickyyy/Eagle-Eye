@@ -196,7 +196,7 @@ function Members() {
       const res: any = await MediaService.uploadFile({
         body: { file },
       })
-      const url = res?.data?.url || res?.url
+      const url = res?.data?.file_url || res?.file_url
       if (url) {
         setPhotoUrl(url)
         showSuccessToast("Photo uploaded!")

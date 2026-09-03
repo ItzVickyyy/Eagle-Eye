@@ -162,7 +162,7 @@ function NewArticle() {
       const res: any = await MediaService.uploadFile({
         body: { file },
       })
-      const uploadedUrl = res?.data?.url || res?.url
+      const uploadedUrl = res?.data?.file_url || res?.file_url
       if (uploadedUrl) {
         setCoverImageUrl(uploadedUrl)
         showSuccessToast("Cover image uploaded!")

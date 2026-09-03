@@ -16,11 +16,16 @@ depends_on = None
 
 
 def upgrade() -> None:
+    userrole_enum = sa.Enum(
+        "super_admin", "admin", "contributor", name="userrole"
+    )
+    userrole_enum.create(op.get_bind(), checkfirst=True)
+
     op.add_column(
         "user",
         sa.Column(
             "role",
-            sa.Enum("super_admin", "admin", "contributor", name="userrole"),
+            userrole_enum,
             nullable=False,
             server_default="contributor",
         ),
@@ -172,6 +177,6 @@ def downgrade() -> None:
     op.drop_column("user", "position_title")
     op.drop_column("user", "department")
     op.drop_column("user", "role")
-    op.execute("DROP TYPE IF EXISTS userrole")
+    sa.Enum(name="userrole").drop(op.get_bind(), checkfirst=True)
     op.execute("DROP TYPE IF EXISTS articlestatus")
     op.execute("DROP TYPE IF EXISTS contactmessagestatus")

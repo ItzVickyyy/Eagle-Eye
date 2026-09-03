@@ -1,9 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { Mail, MapPin, Send } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
+import { ContactService } from "@/client"
 import {
   Form,
   FormControl,
@@ -26,7 +28,7 @@ export const Route = createFileRoute("/_public/contact-us")({
 
 const contactSchema = z.object({
   name: z.string().min(2, { message: "Please enter your name" }),
-  email: z.email({ message: "Invalid email address" }),
+  email: z.string().email({ message: "Invalid email address" }),
   subject: z.string().min(3, { message: "Please add a short subject" }),
   message: z
     .string()
@@ -36,23 +38,27 @@ const contactSchema = z.object({
 type ContactFormData = z.infer<typeof contactSchema>
 
 function ContactPage() {
-  const { showSuccessToast } = useCustomToast()
+  const { showSuccessToast, showErrorToast } = useCustomToast()
   const form = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
     mode: "onBlur",
     defaultValues: { name: "", email: "", subject: "", message: "" },
   })
 
-  // NOTE: There is no `/contact` submission endpoint on the backend yet.
-  // Rather than fake a network call, this simply confirms the message was
-  // validated and points the person to email in the meantime.
-  // TODO(api): replace with a real mutation once ContactService exists,
-  // e.g. ContactService.sendMessage({ body: data }).
-  const onSubmit = (_data: ContactFormData) => {
-    showSuccessToast(
-      "Thanks! Our contact form isn't wired up to email yet â€” please reach us directly at eagleeye@cdlb.edu.ph in the meantime.",
-    )
-    form.reset()
+  const contactMutation = useMutation({
+    mutationFn: (data: ContactFormData) =>
+      ContactService.submitContactForm({ body: data }),
+    onSuccess: (res: any) => {
+      showSuccessToast(res?.data?.message || res?.message || "Your message has been sent successfully!")
+      form.reset()
+    },
+    onError: (err: any) => {
+      showErrorToast(err.message || "Failed to send message. Please try again.")
+    },
+  })
+
+  const onSubmit = (data: ContactFormData) => {
+    contactMutation.mutate(data)
   }
 
   return (
@@ -77,10 +83,10 @@ function ContactPage() {
                 <div>
                   <p className="font-medium text-foreground">Email</p>
                   <a
-                    href="mailto:eagleeye@cdlb.edu.ph"
+                    href="mailto:mediaclub@cdlb.edu.ph"
                     className="text-muted-foreground hover:text-foreground"
                   >
-                    eagleeye@cdlb.edu.ph
+                    mediaclub@cdlb.edu.ph
                   </a>
                 </div>
               </li>
@@ -89,16 +95,16 @@ function ContactPage() {
                 <div>
                   <p className="font-medium text-foreground">Media Club Room</p>
                   <p className="text-muted-foreground">
-                    Colegio de los BaÃ±os
+                    Colegio de Los Baños
                     <br />
-                    Los BaÃ±os, Laguna, Philippines
+                    Los Baños, Laguna, Philippines
                   </p>
                 </div>
               </li>
             </ul>
             <p className="mt-6 text-xs text-muted-foreground">
-              Have a story tip? Include as much detail as you can â€” dates,
-              names, and where it happened help us follow up faster.
+              Have a story tip? Include as much detail as you can — dates,
+              names, and location help our reporters investigate faster.
             </p>
           </div>
         </div>
@@ -150,7 +156,7 @@ function ContactPage() {
                     <FormLabel>Subject</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Story tip, correction, etc."
+                        placeholder="Story tip, correction, inquiry..."
                         {...field}
                       />
                     </FormControl>
@@ -167,7 +173,7 @@ function ContactPage() {
                     <FormLabel>Message</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Tell us moreâ€¦"
+                        placeholder="Tell us more details..."
                         rows={5}
                         {...field}
                       />
@@ -179,23 +185,12 @@ function ContactPage() {
 
               <LoadingButton
                 type="submit"
-                loading={form.formState.isSubmitting}
+                loading={contactMutation.isPending}
                 className="gap-1.5"
               >
                 <Send className="size-4" />
                 Send Message
               </LoadingButton>
-              <p className="text-xs text-muted-foreground">
-                This form isn't connected to email yet â€” for now, reach us
-                directly at{" "}
-                <a
-                  href="mailto:eagleeye@cdlb.edu.ph"
-                  className="underline underline-offset-2 hover:text-foreground"
-                >
-                  eagleeye@cdlb.edu.ph
-                </a>
-                .
-              </p>
             </form>
           </Form>
         </div>

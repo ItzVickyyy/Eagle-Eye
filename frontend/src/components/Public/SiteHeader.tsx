@@ -1,7 +1,9 @@
+import { useQuery } from "@tanstack/react-query"
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router"
 import { Menu, Search, X } from "lucide-react"
 import { useState } from "react"
 
+import { CategoriesService } from "@/client"
 import { Appearance } from "@/components/Common/Appearance"
 import { Button } from "@/components/ui/button"
 import {
@@ -12,7 +14,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { categories } from "@/data/mockNews"
 import { cn } from "@/lib/utils"
 
 const primaryNav = [
@@ -26,12 +27,29 @@ export function SiteHeader() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const pathname = useRouterState({ select: (s) => s.location.pathname })
 
+  const { data: categoriesData } = useQuery({
+    queryKey: ["header-categories"],
+    queryFn: () => CategoriesService.readCategories({ query: { limit: 10 } }),
+  })
+
+  const fallbackCategories = [
+    { name: "News", slug: "news" },
+    { name: "Academics", slug: "academics" },
+    { name: "Sports", slug: "sports" },
+    { name: "Events", slug: "events" },
+  ]
+
+  const categories: Array<{ name: string; slug: string }> =
+    (categoriesData as any)?.data?.data ||
+    (categoriesData as any)?.data ||
+    fallbackCategories
+
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       {/* Utility bar */}
       <div className="hidden border-b border-border/60 bg-muted/40 sm:block">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-1.5 text-xs text-muted-foreground sm:px-6 lg:px-8">
-          <p>Colegio de los BaÃƒÂ±os Media Club</p>
+          <p>Colegio de Los Baños Media Club</p>
           <p>{todayLabel()}</p>
         </div>
       </div>
@@ -199,7 +217,7 @@ function SearchButton() {
           onBlur={() => {
             if (!value) setOpen(false)
           }}
-          placeholder="Search articlesÃ¢â‚¬Â¦"
+          placeholder="Search articles..."
           className="h-9 w-36 rounded-md border bg-background px-3 text-sm shadow-xs outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 sm:w-52"
         />
         <Button type="submit" size="icon" variant="ghost" aria-label="Search">

@@ -30,8 +30,19 @@ class ArticleStatus(str, Enum):
     archived = "archived"
 
 
+class CommentStatus(str, Enum):
+    pending = "pending"
+    approved = "approved"
+    spam = "spam"
+
+
+class ContactMessageStatus(str, Enum):
+    new = "new"
+    read = "read"
+
+
 # ---------------------------------------------------------------------------
-# User
+# User Models
 # ---------------------------------------------------------------------------
 
 
@@ -104,7 +115,7 @@ class UsersPublic(SQLModel):
 
 
 # ---------------------------------------------------------------------------
-# Category
+# Category Models
 # ---------------------------------------------------------------------------
 
 
@@ -125,7 +136,7 @@ class CategoryUpdate(SQLModel):
 
 
 class Category(CategoryBase, table=True):
-    id: int = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     articles: list["Article"] = Relationship(back_populates="category")
 
 
@@ -139,27 +150,7 @@ class CategoriesPublic(SQLModel):
 
 
 # ---------------------------------------------------------------------------
-# Tag
-# ---------------------------------------------------------------------------
-
-
-class TagBase(SQLModel):
-    name: str = Field(max_length=100, unique=True, index=True)
-
-
-class Tag(TagBase, table=True):
-    id: int = Field(default=None, primary_key=True)
-    articles: list["Article"] = Relationship(
-        back_populates="tags", link_model="ArticleTag"
-    )
-
-
-class TagPublic(TagBase):
-    id: int
-
-
-# ---------------------------------------------------------------------------
-# ArticleTag (junction)
+# ArticleTag Junction Model
 # ---------------------------------------------------------------------------
 
 
@@ -173,7 +164,40 @@ class ArticleTag(SQLModel, table=True):
 
 
 # ---------------------------------------------------------------------------
-# Article
+# Tag Models
+# ---------------------------------------------------------------------------
+
+
+class TagBase(SQLModel):
+    name: str = Field(max_length=100, unique=True, index=True)
+
+
+class TagCreate(TagBase):
+    pass
+
+
+class TagUpdate(SQLModel):
+    name: str | None = Field(default=None, max_length=100)
+
+
+class Tag(TagBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    articles: list["Article"] = Relationship(
+        back_populates="tags", link_model=ArticleTag
+    )
+
+
+class TagPublic(TagBase):
+    id: int
+
+
+class TagsPublic(SQLModel):
+    data: list[TagPublic]
+    count: int
+
+
+# ---------------------------------------------------------------------------
+# Article Models
 # ---------------------------------------------------------------------------
 
 
@@ -234,6 +258,9 @@ class Article(ArticleBase, table=True):
     media: list["Media"] = Relationship(
         back_populates="article", cascade_delete=True
     )
+    comments: list["Comment"] = Relationship(
+        back_populates="article", cascade_delete=True
+    )
 
 
 class ArticlePublic(ArticleBase):
@@ -246,19 +273,29 @@ class ArticlePublic(ArticleBase):
     updated_at: datetime | None = None
 
 
+class ArticleDetailPublic(ArticlePublic):
+    author: UserPublic | None = None
+    category: CategoryPublic | None = None
+    tags: list[TagPublic] = Field(default_factory=list)
+
+
 class ArticlesPublic(SQLModel):
     data: list[ArticlePublic]
     count: int
 
 
 # ---------------------------------------------------------------------------
-# Media
+# Media Models
 # ---------------------------------------------------------------------------
 
 
 class MediaBase(SQLModel):
     file_url: str = Field(max_length=2048)
     file_type: str = Field(max_length=50)
+
+
+class MediaCreate(MediaBase):
+    article_id: uuid.UUID | None = None
 
 
 class Media(MediaBase, table=True):
@@ -282,8 +319,55 @@ class MediaPublic(MediaBase):
     created_at: datetime | None = None
 
 
+class MediasPublic(SQLModel):
+    data: list[MediaPublic]
+    count: int
+
+
 # ---------------------------------------------------------------------------
-# ClubMember
+# Comment Models
+# ---------------------------------------------------------------------------
+
+
+class CommentBase(SQLModel):
+    guest_name: str = Field(max_length=150)
+    guest_email: EmailStr = Field(max_length=255)
+    body: str = Field(sa_type=Text)
+
+
+class CommentCreate(CommentBase):
+    article_id: uuid.UUID
+
+
+class CommentUpdate(SQLModel):
+    status: CommentStatus
+
+
+class Comment(CommentBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    article_id: uuid.UUID = Field(foreign_key="article.id", ondelete="CASCADE")
+    status: CommentStatus = Field(default=CommentStatus.pending)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    article: Article | None = Relationship(back_populates="comments")
+
+
+class CommentPublic(CommentBase):
+    id: int
+    article_id: uuid.UUID
+    status: CommentStatus
+    created_at: datetime | None = None
+
+
+class CommentsPublic(SQLModel):
+    data: list[CommentPublic]
+    count: int
+
+
+# ---------------------------------------------------------------------------
+# ClubMember Models
 # ---------------------------------------------------------------------------
 
 
@@ -316,7 +400,7 @@ class ClubMemberUpdate(SQLModel):
 
 
 class ClubMember(ClubMemberBase, table=True):
-    id: int = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
@@ -334,13 +418,8 @@ class ClubMembersPublic(SQLModel):
 
 
 # ---------------------------------------------------------------------------
-# ContactMessage
+# ContactMessage Models
 # ---------------------------------------------------------------------------
-
-
-class ContactMessageStatus(str, Enum):
-    new = "new"
-    read = "read"
 
 
 class ContactMessageCreate(SQLModel):
@@ -351,7 +430,7 @@ class ContactMessageCreate(SQLModel):
 
 
 class ContactMessage(SQLModel, table=True):
-    id: int = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     name: str = Field(max_length=255)
     email: str = Field(max_length=255)
     subject: str | None = Field(default=None, max_length=500)
@@ -373,23 +452,40 @@ class ContactMessagePublic(SQLModel):
     sent_at: datetime | None = None
 
 
+class ContactMessagesPublic(SQLModel):
+    data: list[ContactMessagePublic]
+    count: int
+
+
 # ---------------------------------------------------------------------------
-# SiteSetting
+# SiteSetting Models
 # ---------------------------------------------------------------------------
 
 
-class SiteSetting(SQLModel, table=True):
+class SiteSettingBase(SQLModel):
     key: str = Field(max_length=100, primary_key=True)
     value: str | None = Field(default=None, sa_type=Text)
 
 
-class SiteSettingPublic(SQLModel):
-    key: str
-    value: str | None = None
+class SiteSettingCreate(SiteSettingBase):
+    pass
+
+
+class SiteSetting(SiteSettingBase, table=True):
+    pass
+
+
+class SiteSettingPublic(SiteSettingBase):
+    pass
+
+
+class SiteSettingsPublic(SQLModel):
+    data: list[SiteSettingPublic]
+    count: int
 
 
 # ---------------------------------------------------------------------------
-# Shared / auth models
+# Shared / Auth Models
 # ---------------------------------------------------------------------------
 
 

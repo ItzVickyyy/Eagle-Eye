@@ -1,9 +1,11 @@
+import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { z } from "zod"
 
+import { ArticlesService, CategoriesService } from "@/client"
 import { ArticleCard } from "@/components/Public/ArticleCard"
-import { EmptyState } from "@/components/Public/States"
+import { EmptyState, LoadingState } from "@/components/Public/States"
 import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
 import {
@@ -11,7 +13,6 @@ import {
   PaginationContent,
   PaginationItem,
 } from "@/components/ui/pagination"
-import { categories, getArticleList, getCategoryBySlug } from "@/data/mockNews"
 import { cn } from "@/lib/utils"
 
 const newsSearchSchema = z.object({
@@ -22,36 +23,45 @@ const newsSearchSchema = z.object({
 export const Route = createFileRoute("/_public/news/")({
   component: NewsListing,
   validateSearch: newsSearchSchema,
-  head: ({ match }) => {
-    const category = getCategoryBySlug(match.search.category ?? "")
-    return {
-      meta: [
-        {
-          title: category ? `${category.name} - Eagle Eye` : "News - Eagle Eye",
-        },
-      ],
-    }
-  },
+  head: ({ match }) => ({
+    meta: [
+      {
+        title: match.search.category
+          ? `${match.search.category.toUpperCase()} - Eagle Eye`
+          : "News Archive - Eagle Eye",
+      },
+    ],
+  }),
 })
 
 const PAGE_SIZE = 9
 
 function NewsListing() {
   const { category: categorySlug, page = 1 } = Route.useSearch()
-  const activeCategory = categorySlug
-    ? getCategoryBySlug(categorySlug)
-    : undefined
 
-  const {
-    items,
-    total,
-    totalPages,
-    page: currentPage,
-  } = getArticleList({
-    category: categorySlug,
-    page,
-    pageSize: PAGE_SIZE,
+  const { data: categoriesRes } = useQuery({
+    queryKey: ["public-categories"],
+    queryFn: () => CategoriesService.readCategories({ query: { limit: 50 } }),
   })
+
+  const categories: any[] = (categoriesRes?.data as any)?.data || (categoriesRes as any)?.data || []
+  const activeCategory = categories.find((c) => c.slug === categorySlug)
+
+  const { data: articlesRes, isLoading } = useQuery({
+    queryKey: ["public-articles", categorySlug, page],
+    queryFn: () =>
+      ArticlesService.readArticles({
+        query: {
+          category_slug: categorySlug,
+          skip: (page - 1) * PAGE_SIZE,
+          limit: PAGE_SIZE,
+        },
+      }),
+  })
+
+  const articles: any[] = (articlesRes?.data as any)?.data || (articlesRes as any)?.data || []
+  const total = (articlesRes?.data as any)?.count ?? (articlesRes as any)?.count ?? 0
+  const totalPages = Math.ceil(total / PAGE_SIZE) || 1
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -63,9 +73,8 @@ function NewsListing() {
           {activeCategory ? activeCategory.name : "Latest News"}
         </h1>
         <p className="mt-2 max-w-2xl text-muted-foreground">
-          {activeCategory
-            ? activeCategory.description
-            : "Every story published by the Eagle Eye newsroom, most recent first."}
+          {activeCategory?.description ||
+            "Every story published by the Eagle Eye newsroom, most recent first."}
         </p>
       </div>
 
@@ -97,13 +106,9 @@ function NewsListing() {
         ))}
       </div>
 
-      {total > 0 && (
-        <p className="mb-4 text-sm text-muted-foreground">
-          Showing {items.length} of {total} {total === 1 ? "story" : "stories"}
-        </p>
-      )}
-
-      {items.length === 0 ? (
+      {isLoading ? (
+        <LoadingState />
+      ) : articles.length === 0 ? (
         <EmptyState
           title="No stories in this category yet"
           description="New articles are published regularly — check back soon or explore another category."
@@ -115,8 +120,11 @@ function NewsListing() {
         />
       ) : (
         <>
+          <p className="mb-4 text-sm text-muted-foreground">
+            Showing {articles.length} of {total} {total === 1 ? "story" : "stories"}
+          </p>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((article) => (
+            {articles.map((article) => (
               <ArticleCard key={article.id} article={article} />
             ))}
           </div>
@@ -130,14 +138,14 @@ function NewsListing() {
                       to="/news"
                       search={{
                         category: categorySlug,
-                        page: Math.max(1, currentPage - 1),
+                        page: Math.max(1, page - 1),
                       }}
                       aria-label="Go to previous page"
-                      aria-disabled={currentPage <= 1}
+                      aria-disabled={page <= 1}
                       className={cn(
                         buttonVariants({ variant: "ghost" }),
                         "gap-1 px-2.5",
-                        currentPage <= 1 && "pointer-events-none opacity-40",
+                        page <= 1 && "pointer-events-none opacity-40",
                       )}
                     >
                       <ChevronLeft className="size-4" />
@@ -146,7 +154,7 @@ function NewsListing() {
                   </PaginationItem>
                   {Array.from({ length: totalPages }).map((_, i) => {
                     const pageNum = i + 1
-                    const isActive = pageNum === currentPage
+                    const isActive = pageNum === page
                     return (
                       <PaginationItem key={pageNum}>
                         <Link
@@ -170,14 +178,14 @@ function NewsListing() {
                       to="/news"
                       search={{
                         category: categorySlug,
-                        page: Math.min(totalPages, currentPage + 1),
+                        page: Math.min(totalPages, page + 1),
                       }}
                       aria-label="Go to next page"
-                      aria-disabled={currentPage >= totalPages}
+                      aria-disabled={page >= totalPages}
                       className={cn(
                         buttonVariants({ variant: "ghost" }),
                         "gap-1 px-2.5",
-                        currentPage >= totalPages &&
+                        page >= totalPages &&
                           "pointer-events-none opacity-40",
                       )}
                     >

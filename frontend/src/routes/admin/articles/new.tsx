@@ -17,6 +17,7 @@ import {
   type ArticleStatus,
   CategoriesService,
   MediaService,
+  TagsService,
 } from "@/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -37,7 +38,7 @@ import useCustomToast from "@/hooks/useCustomToast"
 import { sanitizeHtml } from "@/lib/sanitize"
 
 const searchSchema = z.object({
-  editId: z.number().optional().catch(undefined),
+  editId: z.string().optional().catch(undefined),
 })
 
 export const Route = createFileRoute("/admin/articles/new")({
@@ -78,6 +79,15 @@ function NewArticle() {
   const categories: any[] =
     (categoriesRes?.data as any)?.data || (categoriesRes as any)?.data || []
 
+  // Fetch tags
+  const { data: tagsRes } = useQuery({
+    queryKey: ["admin-tags"],
+    queryFn: () => TagsService.readTags({ query: { limit: 100 } }),
+  })
+
+  const availableTags: any[] =
+    (tagsRes?.data as any)?.data || (tagsRes as any)?.data || []
+
   // If editing, fetch article
   const { data: existingArticleRes } = useQuery({
     queryKey: ["article-edit", editId],
@@ -96,8 +106,10 @@ function NewArticle() {
       setBody(article.body || "")
       setCategoryId(article.category_id || undefined)
       setCoverImageUrl(article.cover_image_url || "")
-      if (article.tags) {
+      if (article.tags && Array.isArray(article.tags)) {
         setTagsInput(article.tags.map((t: any) => t.name).join(", "))
+      } else {
+        setTagsInput("")
       }
     }
   }, [existingArticleRes])
@@ -110,6 +122,34 @@ function NewArticle() {
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)/g, "")
 
+      const rawTagNames = tagsInput
+        .split(",")
+        .map((t) => t.trim().replace(/^#/, ""))
+        .filter(Boolean)
+
+      const tagIds: number[] = []
+      for (const name of rawTagNames) {
+        const found = availableTags.find(
+          (t: any) => t.name.toLowerCase() === name.toLowerCase()
+        )
+        if (found) {
+          tagIds.push(found.id)
+        } else {
+          try {
+            const res: any = await TagsService.createTag({
+              body: { name },
+            })
+            const createdTag = res?.data || res
+            if (createdTag?.id) {
+              tagIds.push(createdTag.id)
+            }
+          } catch {
+            // ignore
+          }
+        }
+      }
+      const uniqueTagIds = Array.from(new Set(tagIds))
+
       if (editId) {
         return await ArticlesService.updateArticle({
           path: { id: String(editId) },
@@ -121,6 +161,7 @@ function NewArticle() {
             category_id: categoryId,
             cover_image_url: coverImageUrl.trim() || undefined,
             status: targetStatus,
+            tag_ids: uniqueTagIds,
           },
         })
       } else {
@@ -133,6 +174,7 @@ function NewArticle() {
             category_id: categoryId,
             cover_image_url: coverImageUrl.trim() || undefined,
             status: targetStatus,
+            tag_ids: uniqueTagIds,
           },
         })
       }
@@ -362,6 +404,36 @@ function NewArticle() {
                         #{tag}
                       </Badge>
                     ))}
+                </div>
+              )}
+              {availableTags.length > 0 && (
+                <div className="flex flex-col gap-1 mt-1">
+                  <span className="text-[11px] text-muted-foreground">Available tags (click to add):</span>
+                  <div className="flex flex-wrap gap-1">
+                    {availableTags.map((t: any) => (
+                      <Badge
+                        key={t.id}
+                        variant="outline"
+                        className="cursor-pointer text-[10px] hover:bg-secondary transition-colors"
+                        onClick={() => {
+                          const current = tagsInput
+                            .split(",")
+                            .map((tag) => tag.trim().replace(/^#/, ""))
+                            .filter(Boolean)
+                          if (
+                            !current.some(
+                              (tag) => tag.toLowerCase() === t.name.toLowerCase()
+                            )
+                          ) {
+                            const updated = [...current, t.name].join(", ")
+                            setTagsInput(updated)
+                          }
+                        }}
+                      >
+                        +{t.name}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

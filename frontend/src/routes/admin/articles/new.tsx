@@ -34,6 +34,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
+import { sanitizeHtml } from "@/lib/sanitize"
 
 const searchSchema = z.object({
   editId: z.number().optional().catch(undefined),
@@ -305,7 +306,7 @@ function NewArticle() {
                   className="prose-content space-y-4 text-base leading-relaxed text-foreground"
                   dangerouslySetInnerHTML={{
                     __html:
-                      body.trim() ||
+                      sanitizeHtml(body.trim()) ||
                       "<p class='text-muted-foreground italic'>Nothing to preview yet.</p>",
                   }}
                 />

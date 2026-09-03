@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import useCustomToast from "@/hooks/useCustomToast"
+import { sanitizeHtml } from "@/lib/sanitize"
 import { calculateReadTime, formatDate, getInitials } from "@/utils"
 
 export const Route = createFileRoute("/_public/news/$slug")({
@@ -207,7 +208,9 @@ function ArticleDetail() {
       <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
         <div
           className="prose-content space-y-5 text-base leading-relaxed text-foreground/90 sm:text-lg"
-          dangerouslySetInnerHTML={{ __html: article.body || "<p>No content.</p>" }}
+          dangerouslySetInnerHTML={{
+            __html: sanitizeHtml(article.body) || "<p>No content.</p>",
+          }}
         />
 
         {article.tags && article.tags.length > 0 && (

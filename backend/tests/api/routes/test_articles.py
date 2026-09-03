@@ -134,3 +134,32 @@ def test_get_article_by_slug_and_increment_views(
     r2 = client.get(f"{settings.API_V1_STR}/articles/slug/view-count-test-article")
     assert r2.status_code == 200
     assert r2.json()["views_count"] == 2
+
+
+def test_create_article_sanitizes_xss_body(
+    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+) -> None:
+    malicious_body = (
+        "<script>alert('XSS')</script>"
+        "<p>Safe text with <strong>bold</strong>.</p>"
+        "<img src=x onerror=alert(1)>"
+        "<a href='javascript:alert(2)'>Click</a>"
+    )
+    data = {
+        "headline": "XSS Sanitization Test Article",
+        "slug": "xss-sanitization-test-article",
+        "body": malicious_body,
+        "status": "published",
+    }
+    r = client.post(
+        f"{settings.API_V1_STR}/articles/",
+        headers=superuser_token_headers,
+        json=data,
+    )
+    assert r.status_code == 200
+    created = r.json()
+    assert "<script>" not in created["body"]
+    assert "onerror" not in created["body"]
+    assert "javascript:" not in created["body"]
+    assert "<p>Safe text with <strong>bold</strong>.</p>" in created["body"]
+

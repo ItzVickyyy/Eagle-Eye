@@ -30,7 +30,7 @@ export const Route = createFileRoute("/admin/users")({
   head: () => ({
     meta: [
       {
-        title: "Admin - FastAPI Template",
+        title: "Users — Eagle Eye",
       },
     ],
   }),
@@ -63,7 +63,7 @@ function Admin() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Users</h1>
           <p className="text-muted-foreground">
-            Manage user accounts and permissions
+            Manage staff accounts and role assignments
           </p>
         </div>
         <AddUser />

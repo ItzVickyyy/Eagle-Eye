@@ -27,7 +27,7 @@ export function SiteFooter() {
               </span>
             </Link>
             <p className="mt-3 max-w-xs text-sm text-muted-foreground">
-              The official student publication of Colegio de los Baños,
+              The official student publication of Colegio de los BaÃ±os,
               reporting campus news since day one.
             </p>
             <div className="mt-4 flex items-center gap-3">
@@ -68,7 +68,7 @@ export function SiteFooter() {
             <ul className="mt-3 space-y-2">
               <li>
                 <Link
-                  to="/about"
+                  to="/about-us"
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   About Us
@@ -76,7 +76,7 @@ export function SiteFooter() {
               </li>
               <li>
                 <Link
-                  to="/contact"
+                  to="/contact-us"
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Contact Us
@@ -107,8 +107,8 @@ export function SiteFooter() {
                   eagleeye@cdlb.edu.ph
                 </a>
               </li>
-              <li>Colegio de los Baños</li>
-              <li>Los Baños, Laguna, Philippines</li>
+              <li>Colegio de los BaÃ±os</li>
+              <li>Los BaÃ±os, Laguna, Philippines</li>
             </ul>
           </div>
         </div>

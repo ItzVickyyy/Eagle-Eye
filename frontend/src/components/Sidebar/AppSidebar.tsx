@@ -1,28 +1,97 @@
-import { Briefcase, Home, Users } from "lucide-react"
-
+import { Link as RouterLink, useRouterState } from "@tanstack/react-router"
+import {
+  BarChart2,
+  FileText,
+  Home,
+  Layers,
+  ListChecks,
+  Settings,
+  Users,
+} from "lucide-react"
 import { SidebarAppearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import useAuth from "@/hooks/useAuth"
-import { type Item, Main } from "./Main"
 import { User } from "./User"
 
-const baseItems: Item[] = [
-  { icon: Home, title: "Dashboard", path: "/admin" },
-  { icon: Briefcase, title: "Items", path: "/admin/items" },
+interface NavItem {
+  icon: React.ElementType
+  title: string
+  path: string
+}
+
+const editorItems: NavItem[] = [
+  { icon: FileText, title: "Articles", path: "/admin/articles" },
+  { icon: ListChecks, title: "Review Queue", path: "/admin/review-queue" },
 ]
+
+const superAdminItems: NavItem[] = [
+  { icon: Layers, title: "Categories", path: "/admin/categories" },
+  { icon: Users, title: "Members", path: "/admin/members" },
+  { icon: Users, title: "Users", path: "/admin/users" },
+  { icon: BarChart2, title: "Analytics", path: "/admin/analytics" },
+  { icon: Settings, title: "Site Settings", path: "/admin/site-settings" },
+]
+
+function NavGroup({ label, items }: { label?: string; items: NavItem[] }) {
+  const { isMobile, setOpenMobile } = useSidebar()
+  const router = useRouterState()
+  const currentPath = router.location.pathname
+
+  return (
+    <SidebarGroup>
+      {label && <SidebarGroupLabel>{label}</SidebarGroupLabel>}
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {items.map((item) => {
+            const isActive =
+              item.path === "/admin"
+                ? currentPath === "/admin"
+                : currentPath.startsWith(item.path)
+            return (
+              <SidebarMenuItem key={item.path}>
+                <SidebarMenuButton
+                  tooltip={item.title}
+                  isActive={isActive}
+                  asChild
+                >
+                  <RouterLink
+                    to={item.path}
+                    onClick={() => {
+                      if (isMobile) setOpenMobile(false)
+                    }}
+                  >
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </RouterLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+          })}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  )
+}
 
 export function AppSidebar() {
   const { user: currentUser } = useAuth()
 
-  const items = currentUser?.is_superuser
-    ? [...baseItems, { icon: Users, title: "Admin", path: "/admin/users" }]
-    : baseItems
+  const dashboardItems: NavItem[] = [
+    { icon: Home, title: "Dashboard", path: "/admin" },
+  ]
 
   return (
     <Sidebar collapsible="icon">
@@ -30,7 +99,11 @@ export function AppSidebar() {
         <Logo variant="responsive" to="/admin" />
       </SidebarHeader>
       <SidebarContent>
-        <Main items={items} />
+        <NavGroup items={dashboardItems} />
+        <NavGroup label="Content" items={editorItems} />
+        {currentUser?.is_superuser && (
+          <NavGroup label="Administration" items={superAdminItems} />
+        )}
       </SidebarContent>
       <SidebarFooter>
         <SidebarAppearance />

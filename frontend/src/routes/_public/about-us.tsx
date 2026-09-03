@@ -4,10 +4,10 @@ import { BookOpen, Camera, PenLine, Target } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 
-export const Route = createFileRoute("/_public/about")({
+export const Route = createFileRoute("/_public/about-us")({
   component: AboutPage,
   head: () => ({
-    meta: [{ title: "About Us - Eagle Eye" }],
+    meta: [{ title: "About Us — Eagle Eye" }],
   }),
 })
 
@@ -40,7 +40,7 @@ const values = [
 
 const team = [
   { name: "Mari Santos", role: "Editor-in-Chief" },
-  { name: "JC Dela Peña", role: "Sports Editor" },
+  { name: "JC Dela PeÃ±a", role: "Sports Editor" },
   { name: "Alex Villanueva", role: "Arts Correspondent" },
   { name: "Sam Ocampo", role: "Opinion Columnist" },
   { name: "Kit Fernandez", role: "News Reporter" },
@@ -56,10 +56,10 @@ function AboutPage() {
             About Eagle Eye
           </Badge>
           <h1 className="font-serif text-3xl font-bold tracking-tight text-foreground sm:text-5xl">
-            The student voice of Colegio de los Baños
+            The student voice of Colegio de los BaÃ±os
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            Eagle Eye is the official, student-run news publication of CDLB —
+            Eagle Eye is the official, student-run news publication of CDLB â€”
             reporting campus news, academics, sports, and student life since our
             founding.
           </p>
@@ -74,8 +74,8 @@ function AboutPage() {
           The CDLB Media Club exists to inform, engage, and represent our school
           community through honest, well-researched student journalism. We train
           the next generation of writers, photographers, and editors while
-          giving every student a window into campus life — from big wins on the
-          court to the quiet, everyday stories that make CDLB what it is.
+          giving every student a window into campus life â€” from big wins on
+          the court to the quiet, everyday stories that make CDLB what it is.
         </p>
         <p className="mt-4 text-muted-foreground">
           Every article on Eagle Eye is written, edited, photographed, and laid

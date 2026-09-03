@@ -16,15 +16,21 @@ import { Route as RecoverPasswordRouteImport } from './routes/recover-password'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as PublicIndexRouteImport } from './routes/_public/index'
-import { Route as PublicAboutRouteImport } from './routes/_public/about'
-import { Route as PublicContactRouteImport } from './routes/_public/contact'
+import { Route as PublicAboutUsRouteImport } from './routes/_public/about-us'
+import { Route as PublicContactUsRouteImport } from './routes/_public/contact-us'
 import { Route as PublicSearchRouteImport } from './routes/_public/search'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as AdminItemsRouteImport } from './routes/admin/items'
+import { Route as AdminAnalyticsRouteImport } from './routes/admin/analytics'
+import { Route as AdminArticlesRouteImport } from './routes/admin/articles'
+import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
+import { Route as AdminMembersRouteImport } from './routes/admin/members'
+import { Route as AdminReviewQueueRouteImport } from './routes/admin/review-queue'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as AdminSiteSettingsRouteImport } from './routes/admin/site-settings'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as PublicNewsIndexRouteImport } from './routes/_public/news/index'
 import { Route as PublicNewsSlugRouteImport } from './routes/_public/news/$slug'
+import { Route as AdminArticlesNewRouteImport } from './routes/admin/articles/new'
 
 const PublicRoute = PublicRouteImport.update({
   id: '/_public',
@@ -60,14 +66,14 @@ const PublicIndexRoute = PublicIndexRouteImport.update({
   path: '/',
   getParentRoute: () => PublicRoute,
 } as any)
-const PublicAboutRoute = PublicAboutRouteImport.update({
-  id: '/about',
-  path: '/about',
+const PublicAboutUsRoute = PublicAboutUsRouteImport.update({
+  id: '/about-us',
+  path: '/about-us',
   getParentRoute: () => PublicRoute,
 } as any)
-const PublicContactRoute = PublicContactRouteImport.update({
-  id: '/contact',
-  path: '/contact',
+const PublicContactUsRoute = PublicContactUsRouteImport.update({
+  id: '/contact-us',
+  path: '/contact-us',
   getParentRoute: () => PublicRoute,
 } as any)
 const PublicSearchRoute = PublicSearchRouteImport.update({
@@ -80,14 +86,39 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminItemsRoute = AdminItemsRouteImport.update({
-  id: '/items',
-  path: '/items',
+const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminArticlesRoute = AdminArticlesRouteImport.update({
+  id: '/articles',
+  path: '/articles',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMembersRoute = AdminMembersRouteImport.update({
+  id: '/members',
+  path: '/members',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminReviewQueueRoute = AdminReviewQueueRouteImport.update({
+  id: '/review-queue',
+  path: '/review-queue',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSiteSettingsRoute = AdminSiteSettingsRouteImport.update({
+  id: '/site-settings',
+  path: '/site-settings',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
@@ -105,6 +136,11 @@ const PublicNewsSlugRoute = PublicNewsSlugRouteImport.update({
   path: '/news/$slug',
   getParentRoute: () => PublicRoute,
 } as any)
+const AdminArticlesNewRoute = AdminArticlesNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AdminArticlesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof PublicIndexRoute
@@ -113,14 +149,20 @@ export interface FileRoutesByFullPath {
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
-  '/about': typeof PublicAboutRoute
-  '/contact': typeof PublicContactRoute
+  '/about-us': typeof PublicAboutUsRoute
+  '/contact-us': typeof PublicContactUsRoute
   '/search': typeof PublicSearchRoute
-  '/admin/items': typeof AdminItemsRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/articles': typeof AdminArticlesRouteWithChildren
+  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/members': typeof AdminMembersRoute
+  '/admin/review-queue': typeof AdminReviewQueueRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/site-settings': typeof AdminSiteSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
   '/news/$slug': typeof PublicNewsSlugRoute
+  '/admin/articles/new': typeof AdminArticlesNewRoute
   '/news/': typeof PublicNewsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -128,15 +170,21 @@ export interface FileRoutesByTo {
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
-  '/about': typeof PublicAboutRoute
-  '/contact': typeof PublicContactRoute
+  '/about-us': typeof PublicAboutUsRoute
+  '/contact-us': typeof PublicContactUsRoute
   '/search': typeof PublicSearchRoute
-  '/admin/items': typeof AdminItemsRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/articles': typeof AdminArticlesRouteWithChildren
+  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/members': typeof AdminMembersRoute
+  '/admin/review-queue': typeof AdminReviewQueueRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/site-settings': typeof AdminSiteSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/': typeof PublicIndexRoute
   '/admin': typeof AdminIndexRoute
   '/news/$slug': typeof PublicNewsSlugRoute
+  '/admin/articles/new': typeof AdminArticlesNewRoute
   '/news': typeof PublicNewsIndexRoute
 }
 export interface FileRoutesById {
@@ -147,15 +195,21 @@ export interface FileRoutesById {
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
-  '/_public/about': typeof PublicAboutRoute
-  '/_public/contact': typeof PublicContactRoute
+  '/_public/about-us': typeof PublicAboutUsRoute
+  '/_public/contact-us': typeof PublicContactUsRoute
   '/_public/search': typeof PublicSearchRoute
-  '/admin/items': typeof AdminItemsRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/articles': typeof AdminArticlesRouteWithChildren
+  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/members': typeof AdminMembersRoute
+  '/admin/review-queue': typeof AdminReviewQueueRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/site-settings': typeof AdminSiteSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/_public/': typeof PublicIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/_public/news/$slug': typeof PublicNewsSlugRoute
+  '/admin/articles/new': typeof AdminArticlesNewRoute
   '/_public/news/': typeof PublicNewsIndexRoute
 }
 export interface FileRouteTypes {
@@ -167,14 +221,20 @@ export interface FileRouteTypes {
     | '/recover-password'
     | '/reset-password'
     | '/signup'
-    | '/about'
-    | '/contact'
+    | '/about-us'
+    | '/contact-us'
     | '/search'
-    | '/admin/items'
+    | '/admin/analytics'
+    | '/admin/articles'
+    | '/admin/categories'
+    | '/admin/members'
+    | '/admin/review-queue'
     | '/admin/settings'
+    | '/admin/site-settings'
     | '/admin/users'
     | '/admin/'
     | '/news/$slug'
+    | '/admin/articles/new'
     | '/news/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -182,15 +242,21 @@ export interface FileRouteTypes {
     | '/recover-password'
     | '/reset-password'
     | '/signup'
-    | '/about'
-    | '/contact'
+    | '/about-us'
+    | '/contact-us'
     | '/search'
-    | '/admin/items'
+    | '/admin/analytics'
+    | '/admin/articles'
+    | '/admin/categories'
+    | '/admin/members'
+    | '/admin/review-queue'
     | '/admin/settings'
+    | '/admin/site-settings'
     | '/admin/users'
     | '/'
     | '/admin'
     | '/news/$slug'
+    | '/admin/articles/new'
     | '/news'
   id:
     | '__root__'
@@ -200,15 +266,21 @@ export interface FileRouteTypes {
     | '/recover-password'
     | '/reset-password'
     | '/signup'
-    | '/_public/about'
-    | '/_public/contact'
+    | '/_public/about-us'
+    | '/_public/contact-us'
     | '/_public/search'
-    | '/admin/items'
+    | '/admin/analytics'
+    | '/admin/articles'
+    | '/admin/categories'
+    | '/admin/members'
+    | '/admin/review-queue'
     | '/admin/settings'
+    | '/admin/site-settings'
     | '/admin/users'
     | '/_public/'
     | '/admin/'
     | '/_public/news/$slug'
+    | '/admin/articles/new'
     | '/_public/news/'
   fileRoutesById: FileRoutesById
 }
@@ -272,18 +344,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicIndexRouteImport
       parentRoute: typeof PublicRoute
     }
-    '/_public/about': {
-      id: '/_public/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof PublicAboutRouteImport
+    '/_public/about-us': {
+      id: '/_public/about-us'
+      path: '/about-us'
+      fullPath: '/about-us'
+      preLoaderRoute: typeof PublicAboutUsRouteImport
       parentRoute: typeof PublicRoute
     }
-    '/_public/contact': {
-      id: '/_public/contact'
-      path: '/contact'
-      fullPath: '/contact'
-      preLoaderRoute: typeof PublicContactRouteImport
+    '/_public/contact-us': {
+      id: '/_public/contact-us'
+      path: '/contact-us'
+      fullPath: '/contact-us'
+      preLoaderRoute: typeof PublicContactUsRouteImport
       parentRoute: typeof PublicRoute
     }
     '/_public/search': {
@@ -300,11 +372,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/items': {
-      id: '/admin/items'
-      path: '/items'
-      fullPath: '/admin/items'
-      preLoaderRoute: typeof AdminItemsRouteImport
+    '/admin/analytics': {
+      id: '/admin/analytics'
+      path: '/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AdminAnalyticsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/articles': {
+      id: '/admin/articles'
+      path: '/articles'
+      fullPath: '/admin/articles'
+      preLoaderRoute: typeof AdminArticlesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/categories': {
+      id: '/admin/categories'
+      path: '/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AdminCategoriesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/members': {
+      id: '/admin/members'
+      path: '/members'
+      fullPath: '/admin/members'
+      preLoaderRoute: typeof AdminMembersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/review-queue': {
+      id: '/admin/review-queue'
+      path: '/review-queue'
+      fullPath: '/admin/review-queue'
+      preLoaderRoute: typeof AdminReviewQueueRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/settings': {
@@ -312,6 +412,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/admin/settings'
       preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/site-settings': {
+      id: '/admin/site-settings'
+      path: '/site-settings'
+      fullPath: '/admin/site-settings'
+      preLoaderRoute: typeof AdminSiteSettingsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/users': {
@@ -335,12 +442,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicNewsSlugRouteImport
       parentRoute: typeof PublicRoute
     }
+    '/admin/articles/new': {
+      id: '/admin/articles/new'
+      path: '/new'
+      fullPath: '/admin/articles/new'
+      preLoaderRoute: typeof AdminArticlesNewRouteImport
+      parentRoute: typeof AdminArticlesRoute
+    }
   }
 }
 
 interface PublicRouteChildren {
-  PublicAboutRoute: typeof PublicAboutRoute
-  PublicContactRoute: typeof PublicContactRoute
+  PublicAboutUsRoute: typeof PublicAboutUsRoute
+  PublicContactUsRoute: typeof PublicContactUsRoute
   PublicSearchRoute: typeof PublicSearchRoute
   PublicIndexRoute: typeof PublicIndexRoute
   PublicNewsSlugRoute: typeof PublicNewsSlugRoute
@@ -348,8 +462,8 @@ interface PublicRouteChildren {
 }
 
 const PublicRouteChildren: PublicRouteChildren = {
-  PublicAboutRoute: PublicAboutRoute,
-  PublicContactRoute: PublicContactRoute,
+  PublicAboutUsRoute: PublicAboutUsRoute,
+  PublicContactUsRoute: PublicContactUsRoute,
   PublicSearchRoute: PublicSearchRoute,
   PublicIndexRoute: PublicIndexRoute,
   PublicNewsSlugRoute: PublicNewsSlugRoute,
@@ -359,16 +473,38 @@ const PublicRouteChildren: PublicRouteChildren = {
 const PublicRouteWithChildren =
   PublicRoute._addFileChildren(PublicRouteChildren)
 
+interface AdminArticlesRouteChildren {
+  AdminArticlesNewRoute: typeof AdminArticlesNewRoute
+}
+
+const AdminArticlesRouteChildren: AdminArticlesRouteChildren = {
+  AdminArticlesNewRoute: AdminArticlesNewRoute,
+}
+
+const AdminArticlesRouteWithChildren = AdminArticlesRoute._addFileChildren(
+  AdminArticlesRouteChildren,
+)
+
 interface AdminRouteChildren {
-  AdminItemsRoute: typeof AdminItemsRoute
+  AdminAnalyticsRoute: typeof AdminAnalyticsRoute
+  AdminArticlesRoute: typeof AdminArticlesRouteWithChildren
+  AdminCategoriesRoute: typeof AdminCategoriesRoute
+  AdminMembersRoute: typeof AdminMembersRoute
+  AdminReviewQueueRoute: typeof AdminReviewQueueRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminSiteSettingsRoute: typeof AdminSiteSettingsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
-  AdminItemsRoute: AdminItemsRoute,
+  AdminAnalyticsRoute: AdminAnalyticsRoute,
+  AdminArticlesRoute: AdminArticlesRouteWithChildren,
+  AdminCategoriesRoute: AdminCategoriesRoute,
+  AdminMembersRoute: AdminMembersRoute,
+  AdminReviewQueueRoute: AdminReviewQueueRoute,
   AdminSettingsRoute: AdminSettingsRoute,
+  AdminSiteSettingsRoute: AdminSiteSettingsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

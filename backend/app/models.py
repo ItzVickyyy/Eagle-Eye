@@ -1,8 +1,10 @@
 import uuid
 from datetime import UTC, datetime
+from enum import Enum
+from typing import Optional
 
 from pydantic import EmailStr
-from sqlalchemy import DateTime
+from sqlalchemy import DateTime, Text
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -10,15 +12,39 @@ def get_datetime_utc() -> datetime:
     return datetime.now(UTC)
 
 
-# Shared properties
+# ---------------------------------------------------------------------------
+# Enums
+# ---------------------------------------------------------------------------
+
+
+class UserRole(str, Enum):
+    super_admin = "super_admin"
+    admin = "admin"
+    contributor = "contributor"
+
+
+class ArticleStatus(str, Enum):
+    draft = "draft"
+    pending = "pending"
+    published = "published"
+    archived = "archived"
+
+
+# ---------------------------------------------------------------------------
+# User
+# ---------------------------------------------------------------------------
+
+
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     is_active: bool = True
     is_superuser: bool = False
     full_name: str | None = Field(default=None, max_length=255)
+    role: UserRole = Field(default=UserRole.contributor)
+    department: str | None = Field(default=None, max_length=255)
+    position_title: str | None = Field(default=None, max_length=255)
 
 
-# Properties to receive via API on creation
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=128)
 
@@ -29,18 +55,22 @@ class UserRegister(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
 
 
-# Properties to receive via API on update, all are optional
 class UserUpdate(SQLModel):
     email: EmailStr | None = Field(default=None, max_length=255)
     is_active: bool | None = None
     is_superuser: bool | None = None
     full_name: str | None = Field(default=None, max_length=255)
     password: str | None = Field(default=None, min_length=8, max_length=128)
+    role: UserRole | None = None
+    department: str | None = Field(default=None, max_length=255)
+    position_title: str | None = Field(default=None, max_length=255)
 
 
 class UserUpdateMe(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
+    department: str | None = Field(default=None, max_length=255)
+    position_title: str | None = Field(default=None, max_length=255)
 
 
 class UpdatePassword(SQLModel):
@@ -48,7 +78,6 @@ class UpdatePassword(SQLModel):
     new_password: str = Field(min_length=8, max_length=128)
 
 
-# Database model, database table inferred from class name
 class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
@@ -56,10 +85,14 @@ class User(UserBase, table=True):
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
-    items: list[Item] = Relationship(back_populates="owner", cascade_delete=True)
+    articles: list["Article"] = Relationship(
+        back_populates="author", cascade_delete=True
+    )
+    media: list["Media"] = Relationship(
+        back_populates="uploaded_by_user", cascade_delete=True
+    )
 
 
-# Properties to return via API, id is always required
 class UserPublic(UserBase):
     id: uuid.UUID
     created_at: datetime | None = None
@@ -70,60 +103,305 @@ class UsersPublic(SQLModel):
     count: int
 
 
-# Shared properties
-class ItemBase(SQLModel):
-    title: str = Field(min_length=1, max_length=255)
-    description: str | None = Field(default=None, max_length=255)
+# ---------------------------------------------------------------------------
+# Category
+# ---------------------------------------------------------------------------
 
 
-# Properties to receive on item creation
-class ItemCreate(ItemBase):
+class CategoryBase(SQLModel):
+    name: str = Field(max_length=100)
+    slug: str = Field(max_length=100, unique=True, index=True)
+    description: str | None = Field(default=None, max_length=500)
+
+
+class CategoryCreate(CategoryBase):
     pass
 
 
-# Properties to receive on item update
-class ItemUpdate(SQLModel):
-    title: str | None = Field(default=None, min_length=1, max_length=255)
-    description: str | None = Field(default=None, max_length=255)
+class CategoryUpdate(SQLModel):
+    name: str | None = Field(default=None, max_length=100)
+    slug: str | None = Field(default=None, max_length=100)
+    description: str | None = Field(default=None, max_length=500)
 
 
-# Database model, database table inferred from class name
-class Item(ItemBase, table=True):
+class Category(CategoryBase, table=True):
+    id: int = Field(default=None, primary_key=True)
+    articles: list["Article"] = Relationship(back_populates="category")
+
+
+class CategoryPublic(CategoryBase):
+    id: int
+
+
+class CategoriesPublic(SQLModel):
+    data: list[CategoryPublic]
+    count: int
+
+
+# ---------------------------------------------------------------------------
+# Tag
+# ---------------------------------------------------------------------------
+
+
+class TagBase(SQLModel):
+    name: str = Field(max_length=100, unique=True, index=True)
+
+
+class Tag(TagBase, table=True):
+    id: int = Field(default=None, primary_key=True)
+    articles: list["Article"] = Relationship(
+        back_populates="tags", link_model="ArticleTag"
+    )
+
+
+class TagPublic(TagBase):
+    id: int
+
+
+# ---------------------------------------------------------------------------
+# ArticleTag (junction)
+# ---------------------------------------------------------------------------
+
+
+class ArticleTag(SQLModel, table=True):
+    article_id: uuid.UUID = Field(
+        foreign_key="article.id", primary_key=True, ondelete="CASCADE"
+    )
+    tag_id: int = Field(
+        foreign_key="tag.id", primary_key=True, ondelete="CASCADE"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Article
+# ---------------------------------------------------------------------------
+
+
+class ArticleBase(SQLModel):
+    headline: str = Field(max_length=500)
+    slug: str = Field(max_length=550, unique=True, index=True)
+    excerpt: str | None = Field(default=None, max_length=1000)
+    cover_image_url: str | None = Field(default=None, max_length=2048)
+    status: ArticleStatus = Field(default=ArticleStatus.draft)
+    views_count: int = Field(default=0)
+
+
+class ArticleCreate(SQLModel):
+    headline: str = Field(max_length=500)
+    slug: str = Field(max_length=550)
+    excerpt: str | None = Field(default=None, max_length=1000)
+    cover_image_url: str | None = Field(default=None, max_length=2048)
+    body: str | None = None
+    category_id: int | None = None
+    status: ArticleStatus = Field(default=ArticleStatus.draft)
+    tag_ids: list[int] = Field(default_factory=list)
+
+
+class ArticleUpdate(SQLModel):
+    headline: str | None = Field(default=None, max_length=500)
+    slug: str | None = Field(default=None, max_length=550)
+    excerpt: str | None = Field(default=None, max_length=1000)
+    cover_image_url: str | None = Field(default=None, max_length=2048)
+    body: str | None = None
+    category_id: int | None = None
+    status: ArticleStatus | None = None
+    tag_ids: list[int] | None = None
+
+
+class Article(ArticleBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    body: Optional[str] = Field(default=None, sa_type=Text)
+    author_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE"
+    )
+    category_id: int | None = Field(default=None, foreign_key="category.id")
+    date_published: datetime | None = Field(
+        default=None, sa_type=DateTime(timezone=True)
+    )
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
-    owner_id: uuid.UUID = Field(
-        foreign_key="user.id", nullable=False, ondelete="CASCADE"
+    updated_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
     )
-    owner: User | None = Relationship(back_populates="items")
+    author: User | None = Relationship(back_populates="articles")
+    category: Category | None = Relationship(back_populates="articles")
+    tags: list[Tag] = Relationship(
+        back_populates="articles", link_model=ArticleTag
+    )
+    media: list["Media"] = Relationship(
+        back_populates="article", cascade_delete=True
+    )
 
 
-# Properties to return via API, id is always required
-class ItemPublic(ItemBase):
+class ArticlePublic(ArticleBase):
     id: uuid.UUID
-    owner_id: uuid.UUID
+    body: str | None = None
+    author_id: uuid.UUID
+    category_id: int | None = None
+    date_published: datetime | None = None
     created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
-class ItemsPublic(SQLModel):
-    data: list[ItemPublic]
+class ArticlesPublic(SQLModel):
+    data: list[ArticlePublic]
     count: int
 
 
-# Generic message
+# ---------------------------------------------------------------------------
+# Media
+# ---------------------------------------------------------------------------
+
+
+class MediaBase(SQLModel):
+    file_url: str = Field(max_length=2048)
+    file_type: str = Field(max_length=50)
+
+
+class Media(MediaBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    article_id: uuid.UUID | None = Field(
+        default=None, foreign_key="article.id", ondelete="SET NULL"
+    )
+    uploaded_by: uuid.UUID = Field(foreign_key="user.id", ondelete="CASCADE")
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    article: Article | None = Relationship(back_populates="media")
+    uploaded_by_user: User | None = Relationship(back_populates="media")
+
+
+class MediaPublic(MediaBase):
+    id: uuid.UUID
+    article_id: uuid.UUID | None = None
+    uploaded_by: uuid.UUID
+    created_at: datetime | None = None
+
+
+# ---------------------------------------------------------------------------
+# ClubMember
+# ---------------------------------------------------------------------------
+
+
+class ClubMemberBase(SQLModel):
+    first_name: str = Field(max_length=100)
+    last_name: str = Field(max_length=100)
+    position: str | None = Field(default=None, max_length=100)
+    position_title: str | None = Field(default=None, max_length=255)
+    department: str | None = Field(default=None, max_length=100)
+    photo_url: str | None = Field(default=None, max_length=2048)
+    is_officer: bool = Field(default=False)
+    is_active: bool = Field(default=True)
+    sort_order: int = Field(default=0)
+
+
+class ClubMemberCreate(ClubMemberBase):
+    pass
+
+
+class ClubMemberUpdate(SQLModel):
+    first_name: str | None = Field(default=None, max_length=100)
+    last_name: str | None = Field(default=None, max_length=100)
+    position: str | None = Field(default=None, max_length=100)
+    position_title: str | None = Field(default=None, max_length=255)
+    department: str | None = Field(default=None, max_length=100)
+    photo_url: str | None = Field(default=None, max_length=2048)
+    is_officer: bool | None = None
+    is_active: bool | None = None
+    sort_order: int | None = None
+
+
+class ClubMember(ClubMemberBase, table=True):
+    id: int = Field(default=None, primary_key=True)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class ClubMemberPublic(ClubMemberBase):
+    id: int
+    created_at: datetime | None = None
+
+
+class ClubMembersPublic(SQLModel):
+    data: list[ClubMemberPublic]
+    count: int
+
+
+# ---------------------------------------------------------------------------
+# ContactMessage
+# ---------------------------------------------------------------------------
+
+
+class ContactMessageStatus(str, Enum):
+    new = "new"
+    read = "read"
+
+
+class ContactMessageCreate(SQLModel):
+    name: str = Field(max_length=255)
+    email: EmailStr = Field(max_length=255)
+    subject: str | None = Field(default=None, max_length=500)
+    message: str
+
+
+class ContactMessage(SQLModel, table=True):
+    id: int = Field(default=None, primary_key=True)
+    name: str = Field(max_length=255)
+    email: str = Field(max_length=255)
+    subject: str | None = Field(default=None, max_length=500)
+    message: str = Field(sa_type=Text)
+    status: ContactMessageStatus = Field(default=ContactMessageStatus.new)
+    sent_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class ContactMessagePublic(SQLModel):
+    id: int
+    name: str
+    email: str
+    subject: str | None = None
+    message: str
+    status: ContactMessageStatus
+    sent_at: datetime | None = None
+
+
+# ---------------------------------------------------------------------------
+# SiteSetting
+# ---------------------------------------------------------------------------
+
+
+class SiteSetting(SQLModel, table=True):
+    key: str = Field(max_length=100, primary_key=True)
+    value: str | None = Field(default=None, sa_type=Text)
+
+
+class SiteSettingPublic(SQLModel):
+    key: str
+    value: str | None = None
+
+
+# ---------------------------------------------------------------------------
+# Shared / auth models
+# ---------------------------------------------------------------------------
+
+
 class Message(SQLModel):
     message: str
 
 
-# JSON payload containing access token
 class Token(SQLModel):
     access_token: str
     token_type: str = "bearer"
 
 
-# Contents of JWT token
 class TokenPayload(SQLModel):
     sub: str | None = None
 

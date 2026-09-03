@@ -7,9 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import useAuth from "@/hooks/useAuth"
 
 const tabsConfig = [
-  { value: "my-profile", title: "My profile", component: UserInformation },
+  { value: "my-profile", title: "My Profile", component: UserInformation },
   { value: "password", title: "Password", component: ChangePassword },
-  { value: "danger-zone", title: "Danger zone", component: DeleteAccount },
+  { value: "danger-zone", title: "Danger Zone", component: DeleteAccount },
 ]
 
 export const Route = createFileRoute("/admin/settings")({
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/admin/settings")({
   head: () => ({
     meta: [
       {
-        title: "Settings - FastAPI Template",
+        title: "Account Settings — Eagle Eye",
       },
     ],
   }),
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/admin/settings")({
 function UserSettings() {
   const { user: currentUser } = useAuth()
   const finalTabs = currentUser?.is_superuser
-    ? tabsConfig.slice(0, 3)
+    ? tabsConfig.slice(0, 2)
     : tabsConfig
 
   if (!currentUser) {
@@ -36,9 +36,9 @@ function UserSettings() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">User Settings</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Account Settings</h1>
         <p className="text-muted-foreground">
-          Manage your account settings and preferences
+          Manage your profile and account preferences
         </p>
       </div>
 

@@ -1,7 +1,7 @@
 # Eagle Eye — CDLB Media Club News Website
-## System Specification & Rebuild Plan (v4)
+## System Specification & Rebuild Plan (v5)
 
-> Based on the original Grade 12 Practical Research (Dumagco, Reboton, Salen — "Development of News Website for the Schools Publication of Colegio de Los Baños"). This is a personal rebuild project by the original project developer/author, using the old system as a reference and improving it with a modern technology stack and expanded features.
+> Based on the original Grade 12 Practical Research (Dumagco, Reboton, Salen — "Development of News Website for the Schools Publication of Colegio de Los Baños"). This is a personal rebuild project by the original project developer/author (Reboton, Justin & Salen, Vic John), using the old system as a reference and improving it with a modern technology stack and expanded features.
 
 ---
 
@@ -11,7 +11,7 @@
 |---|---|---|
 | Name | Eagle Eye | Eagle Eye |
 | Organization | CDLB Media Club | CDLB Media Club |
-| Hosting | Local server / LAN only | Cloud hosting with a public URL |
+| Hosting | Local server | Cloud hosting with a public URL |
 | Stack | HTML, CSS, JS, PHP, MySQL, VS Code | React + FastAPI + PostgreSQL |
 | Auth | 2 hardcoded shared accounts | Per-user accounts, secure password hashing, roles |
 | Articles | Headline, author, category, date, up to eight paragraph fields | Rich article editor, structured content, drafts, review, publishing |
@@ -32,19 +32,65 @@ Eagle Eye is a personal rebuild of the earlier CDLB Media Club news website. The
 
 This is **not being treated as a formal capstone development process**. The system can be designed and implemented iteratively with AI assistance. The initial design can be generic as long as it is clean, functional, responsive, and easy to refine after seeing the working application.
 
+## 1.2 Scope & Rebuild Principle
+
+> **Eagle Eye is a functional rebuild first and a technology migration second.**
+
+The 2023 `Practical-Research-2` / Media Club website is the legacy functional reference. The new Eagle Eye application must preserve the useful capabilities and user-facing workflows of the old system while replacing its implementation with the new stack.
+
+The rebuild must **not** mechanically port the old PHP/MySQL implementation. Instead, each legacy capability should be translated into an equivalent or improved modern implementation.
+
+### Functional parity rule
+
+For every legacy capability, the development process must answer:
+
+1. What could the old system do?
+2. Does Eagle Eye still need to do it?
+3. If yes, is it already implemented?
+4. If not, what is the modern implementation?
+5. Was any difference intentionally introduced by the new specification?
+
+A feature must not be considered complete merely because a similarly named page or database table exists. Its actual user workflow, permissions, persistence, validation, and resulting state must work.
+
+### Scope classifications
+
+Features in this specification use these classifications:
+
+- **MUST** — required for the core Eagle Eye rebuild and functional parity.
+- **SHOULD** — important improvement or expected production capability, but may follow the core rebuild.
+- **OPTIONAL** — useful enhancement that must not block completion of the core system.
+- **DEFERRED** — intentionally postponed until a later implementation phase.
+
+### Development priority
+
+The preferred implementation order is:
+
+```text
+1. Legacy functional audit / requirements confirmation
+2. Core database + authentication + RBAC
+3. Public article/news experience
+4. Article CRUD + editorial workflow
+5. Legacy administration capabilities
+6. Media and About Us/member management
+7. Contact and communication features
+8. Engagement and analytics improvements
+9. Automated testing
+10. Deployment / production hardening
+```
+
+Infrastructure choices such as Docker Compose support the development process but do not define the product's functional scope. Docker Compose remains the intended development environment; however, infrastructure setup should not cause application requirements to be invented, removed, or silently changed.
+
 ## 1.2 Legacy Project Reference — Media Club 2023
 
-The uploaded **Media-Club-2023** project is the primary visual and functional reference for the original Eagle Eye implementation. It was a PHP/MySQL website with separate public and administration areas.
+The **Media-Club-2023** project is the primary visual and functional reference for the original Eagle Eye implementation. It was a PHP/MySQL website with separate public and administration areas.
+Repository: https://github.com/ItzVickyyy/Practical-Research-2
+Paper: (It is included in the repository)
 
 ### Original purpose and club identity
 
 The original About Us content describes the CDLB Media Club as an organization established on **May 4, 2023**. It was founded through the HUMSS Department after members attended the Gandingan Awards and gained the idea to establish a media club. The 2023 project described the club as having **43 members and 4 advisers** at that time. This membership count is a historical snapshot and must not be treated as the current membership count.
 
 The original site described the club's purpose as keeping students, faculty, personnel, and people interested in Colegio de Los Baños updated about current events within the school and, at times, activities outside the school. Its materials included **articles, videos, and photo galleries**.
-
-The project also recorded collaboration with organizations from the University of the Philippines Los Baños:
-- **UPLB Jocks** — training related to broadcasting
-- **UPLB Times** — training related to journalism
 
 These details should be retained as historical/reference content where appropriate, but editable through the new CMS rather than permanently hardcoded.
 
@@ -112,6 +158,48 @@ The old administration area included:
 - Password-change-related screens
 
 The rebuild should preserve the useful intent of these functions while replacing the shared-account and hardcoded-content approach with proper authentication, permissions, validation, and CMS workflows.
+
+### 1.2.1 Legacy Capability Baseline
+
+The following capabilities are confirmed legacy concepts that the rebuild must account for:
+
+| Legacy capability | Requirement | Modern Eagle Eye implementation |
+|---|---|---|
+| Administrator login | **MUST** | Per-user authentication with secure password hashing |
+| Administrator control panel | **MUST** | Role-aware dashboard |
+| Create article | **MUST** | Article create form + API + PostgreSQL |
+| Edit article | **MUST** | Authorized article update workflow |
+| Delete article | **MUST** | Authorized delete operation with appropriate safeguards |
+| Image upload | **MUST** | Managed media upload/storage |
+| About Us/member management | **MUST** | `club_members` CMS |
+| Profile/archive views | **MUST account for** | Modern dashboard/account/archive equivalents |
+| Password-change functionality | **MUST** | Old/New/Repeat password verification |
+| Public News / Academics / Sports / Events | **MUST** | Database-driven category pages |
+| Search | **MUST** | Search across supported article metadata/content |
+| Contact Us | **MUST** | Public contact page + persisted submissions |
+| Article/video/photo content concepts | **MUST account for** | Structured articles + managed media |
+
+This table is a **functional baseline**, not a claim that every legacy implementation detail should be preserved. The new system should improve security, usability, responsiveness, maintainability, and editorial control.
+
+### 1.2.2 CRUD & Workflow Baseline
+
+CRUD must be treated as an explicit functional requirement rather than an assumed implementation detail.
+
+| Domain | Create | Read | Update | Delete | Special workflow |
+|---|:---:|:---:|:---:|:---:|---|
+| Users | ✓ | ✓ | ✓ | ✓/deactivate | RBAC |
+| Articles | ✓ | ✓ | ✓ | ✓ | Draft → Pending → Published → Archived |
+| Categories | ✓ | ✓ | ✓ | ✓ | Admin-controlled |
+| Tags | ✓ | ✓ | ✓ | ✓ | Article association |
+| Media | ✓ | ✓ | — | ✓ | Upload/storage ownership |
+| Club Members | ✓ | ✓ | ✓ | ✓ | Active/archive state |
+| Comments | ✓ | ✓ | —* | ✓ | Moderation/approval |
+| Contact Messages | ✓ | ✓ | status | —/archive | New → Read |
+| Site Settings | ✓ | ✓ | ✓ | — | Super Admin |
+
+`*` Comment editing is not required unless explicitly enabled by the final implementation decision.
+
+Every CRUD operation must enforce authentication/authorization where appropriate, validate input, persist correctly, and return the correct resulting state to the frontend.
 
 ### Original organizational structure
 
@@ -294,10 +382,20 @@ The system should follow a separation-of-concerns approach:
 
 | Role | Description | Permissions |
 |---|---|---|
-| **Super Admin** | Club adviser(s) | Everything Admin can do + manage admin accounts, manage "About Us"/members, manage categories, view analytics, archive articles |
-| **Admin (Editor)** | Club officers | Create/edit/delete their own articles, submit for review, upload media |
-| **Contributor** *(new)* | Regular club members/writers | Create/edit own drafts only; cannot publish directly (goes to review queue) |
-| **Guest/Reader** | Public visitor | Browse, search, read, comment (optional), contact form, subscribe to newsletter (optional) |
+| **Super Admin** | Club adviser(s) / highest-trust administrator | Full system access; manage users/roles, members, categories/tags, site settings, analytics, articles, media, and archives |
+| **Admin (Editor)** | Club officers / editorial staff | Manage articles and editorial workflow; create/edit/delete articles as authorized; upload media; approve/reject/publish submissions; view article statistics |
+| **Contributor** | Regular club members/writers | Create and edit their own drafts; upload permitted media; submit articles for review; cannot publish directly |
+| **Guest/Reader** | Public visitor | Browse, search, read published content, use contact form, and use enabled engagement features |
+
+### RBAC rules
+
+- **MUST:** Authorization must be enforced by the backend, not only hidden frontend buttons/routes.
+- **MUST:** A user must never gain additional permissions merely by manually changing a URL or API request.
+- **MUST:** Contributors cannot publish their own articles directly.
+- **MUST:** Publishing/review actions must be limited to Admin/Super Admin roles.
+- **MUST:** User/role administration must be restricted to Super Admin.
+- **MUST:** Sensitive account operations require authentication and appropriate ownership/role checks.
+- **SHOULD:** Destructive operations should use confirmation and/or soft-delete/archive behavior where appropriate.
 
 This fixes the "2 shared passwords" problem and adds a realistic editorial workflow (draft → review → publish), which makes the publishing process more controlled and maintainable.
 
@@ -306,40 +404,64 @@ This fixes the "2 shared passwords" problem and adds a realistic editorial workf
 ## 5. Core Features List
 
 ### 5.1 Public-Facing (Guest)
+
+**MUST**
 - Home page with featured/latest articles
 - Category browsing (News, Academics, Sports, Events — configurable)
-- Full-text search (headline, author, category, date, and now **body content**)
-- Article detail page (headline, author, date, category, cover image, body, related articles)
-- About Us page (club history, officers, advisers — dynamically pulled from DB, not hardcoded)
-- Contact Us page (Facebook, Email, and a working contact form that emails the club)
-- Responsive navigation (hamburger menu on mobile)
-- **New:** Tag-based filtering (in addition to category)
-- **New:** Pagination or infinite scroll for article lists
-- **New:** Reading time estimate
-- **New:** Social share buttons
-- **New (optional):** Comment section (with moderation) or reactions (like/heart)
-- **New (optional):** Dark mode toggle
+- Search across supported article metadata and body content
+- Article detail page (headline, author, date, category, cover image, body)
+- About Us page with dynamically managed club information and members
+- Contact Us page with working contact information and persisted contact form submissions
+- Responsive navigation and public pages
+
+**SHOULD**
+- Related articles
+- Tag-based filtering
+- Pagination or infinite scroll
+- Reading-time estimate
+- Social sharing
+- Comment section with moderation
+
+**OPTIONAL**
+- Reactions
+- Newsletter subscription
+- Dark mode
 
 ### 5.2 Contributor
-- Dashboard showing their own drafts/submissions and statuses
-- Rich text editor (not just plain paragraph boxes) — e.g., TipTap, Quill, or a Markdown editor
-- Image/video upload with preview, drag-and-drop
-- Save as Draft / Submit for Review
+
+**MUST**
+- Dashboard showing own drafts/submissions and statuses
+- Rich article editor
+- Create/edit own drafts
+- Save as Draft
+- Submit for Review
+- Authorized media upload
 
 ### 5.3 Admin (Editor)
-- Everything Contributor has
-- Approve/reject/publish submitted articles
-- Edit/delete any article
-- Manage categories and tags
-- View basic stats per article (views)
+
+**MUST**
+- Everything Contributor can do
+- Review submitted articles
+- Approve/reject submissions
+- Publish approved articles
+- Edit/delete articles as authorized
+- Manage categories/tags
+- View article statistics
 
 ### 5.4 Super Admin
-- Everything Admin has
-- Manage user accounts (create/deactivate/change roles) — replacing the old "change admin password" screen
-- Manage "About Us" content (officers, advisers, members) via CMS-style UI (already existed in v1 — keep and improve)
-- Manage site settings (site name, logo, social links)
-- View website analytics dashboard (page views, top articles) — via Google Analytics embed or custom logging
+
+**MUST**
+- Everything Admin can do
+- Create/deactivate users
+- Manage roles
+- Manage About Us / officers / members
+- Manage categories/tags
+- Manage site settings
+
+**SHOULD**
+- Analytics dashboard
 - Archive/unarchive old articles
+- Expanded site administration
 
 ### 5.5 System-Wide / Non-Functional
 - Mobile-responsive design (breakpoints tested on phone/tablet/desktop)
@@ -351,6 +473,42 @@ This fixes the "2 shared passwords" problem and adds a realistic editorial workf
 - Accessibility basics (alt text on images, sufficient color contrast, keyboard navigation) — ties back to your original "Accessibility and Inclusivity" literature review section
 
 ---
+
+## 5.6 Functional Acceptance Criteria
+
+The rebuild is considered functionally complete for a core feature only when the full workflow works, not merely when the UI exists.
+
+### Authentication / RBAC
+- A valid user can log in and receive an authenticated session/token.
+- Invalid credentials are rejected.
+- Each role is redirected to the appropriate authorized area.
+- Unauthorized API requests are rejected by the backend.
+
+### Article workflow
+- An authorized writer can create a draft.
+- A writer can edit their permitted draft.
+- A writer can submit the draft for review.
+- The article becomes `pending`.
+- An authorized editor can approve/reject it.
+- Approval results in `published`.
+- Published content becomes visible to guests.
+- Archived content is removed from normal published listings.
+
+### CRUD integrity
+- Create operations persist records.
+- Read operations return the persisted records.
+- Update operations persist changed values.
+- Delete/archive operations produce the intended final state.
+- Refreshing the browser does not revert successful database changes.
+
+### Public content
+- Guests can browse published articles.
+- Search returns matching published content.
+- Article URLs remain stable through slugs.
+- Category pages reflect database state rather than hardcoded mock data.
+
+### Legacy parity
+A legacy capability must be explicitly marked **preserved**, **modernized**, **intentionally removed**, or **deferred** before being considered out of scope.
 
 ## 6. Data Model (Draft ERD Summary)
 
@@ -445,18 +603,24 @@ This project does not require a formal capstone-style development phase structur
 
 Recommended build order:
 
-1. **Initialize the project**
+1. **Audit and lock the functional scope**
+   - Use the 2023 project as the legacy functional reference.
+   - Inventory its public, administrative, CRUD, authentication, RBAC, media, member-management, search, and communication capabilities.
+   - Mark each capability as preserved, modernized, intentionally removed, or deferred.
+   - Do not begin removing legacy functionality merely because it is inconvenient to reproduce.
+
+2. **Initialize the project**
    - Create the Eagle Eye repository from the official FastAPI template.
    - Rename/configure the project for Eagle Eye.
    - Confirm the template runs locally before major customization.
 
-2. **Establish the Eagle Eye foundation**
+3. **Establish the Eagle Eye foundation**
    - Configure PostgreSQL.
    - Define Eagle Eye database models.
    - Set up authentication and role-based authorization.
    - Remove or replace generic template example entities that are not needed.
 
-3. **Build the public website**
+4. **Build the public website**
    - Home
    - News/category pages
    - Article detail pages
@@ -465,7 +629,7 @@ Recommended build order:
    - Contact Us
    - Responsive navigation
 
-4. **Build the article system**
+5. **Build the article system**
    - Article CRUD
    - Categories
    - Tags
@@ -474,21 +638,21 @@ Recommended build order:
    - Related articles
    - Reading-time estimate
 
-5. **Build media handling**
+6. **Build media handling**
    - Image upload
    - Video upload where appropriate
    - Media preview
    - Cover images
    - Media library/storage integration
 
-6. **Build the contributor/editor dashboard**
+7. **Build the contributor/editor dashboard**
    - Create/edit drafts
    - Submit for review
    - Review queue
    - Approve/reject/publish
    - Manage articles
 
-7. **Build Super Admin features**
+8. **Build Super Admin features**
    - User/account management
    - Role management
    - Club members/officers
@@ -497,13 +661,13 @@ Recommended build order:
    - Analytics
    - Archive management
 
-8. **Add optional engagement features**
+9. **Add optional engagement features**
    - Comments with moderation or reactions
    - Newsletter subscription
    - Social sharing
    - Dark mode
 
-9. **Test continuously**
+10. **Test continuously**
    - Test the backend APIs.
    - Test authentication and permissions.
    - Test article workflows.
@@ -511,7 +675,7 @@ Recommended build order:
    - Test responsive behavior on 320px, 375px, 425px, tablet, and desktop widths.
    - Use automated tests where practical.
 
-10. **Deploy when the core system is stable**
+11. **Deploy when the core system is stable**
    - Configure production environment variables.
    - Configure production database.
    - Configure media storage.
@@ -545,6 +709,42 @@ Use the 2023 project as a reference, not as the codebase to mechanically port.
 
 This mapping is intended to prevent accidental loss of the original project's useful concepts while avoiding the technical limitations of the old implementation.
 
+## 8.2 V5 Legacy Parity Gate
+
+Before declaring the rebuild "feature complete", perform a legacy-to-new review.
+
+### Required review
+
+- [ ] Public navigation from the 2023 system has a deliberate modern equivalent.
+- [ ] Legacy article categories are preserved or deliberately replaced by a documented decision.
+- [ ] Article creation, editing, deletion, and publication are implemented.
+- [ ] Administrative authentication is replaced with per-user authentication.
+- [ ] Legacy administrator capabilities are mapped to Super Admin/Admin permissions.
+- [ ] About Us/member management is implemented as editable data.
+- [ ] Password-change behavior is implemented securely.
+- [ ] Image/media handling is implemented reliably.
+- [ ] Search behavior is implemented against real database content.
+- [ ] Contact functionality is implemented and its persistence is verified.
+- [ ] Any legacy capability intentionally not rebuilt has an explicit reason.
+- [ ] No mock-only behavior remains in a feature marked as complete.
+
+### Important distinction
+
+A **technology difference is not a functional loss**.
+
+For example:
+
+```text
+PHP page          → React route + FastAPI API
+MySQL table       → PostgreSQL model
+Shared account    → Individual RBAC account
+8 paragraph cols  → Structured rich-text body
+Local image file  → Managed media storage
+Direct publish    → Editorial review workflow
+```
+
+These are valid modernization changes as long as the resulting system preserves or improves the underlying user capability.
+
 ## 9. Technical Foundation Checklist
 
 Before feature development begins:
@@ -556,6 +756,8 @@ Before feature development begins:
 - [ ] Configure JWT authentication and secure password hashing
 - [ ] Implement Super Admin / Admin / Contributor authorization
 - [ ] Configure Docker Compose for local development
+- [ ] Keep PostgreSQL as the primary application database in the development environment
+- [ ] Use Mailpit when testing outbound email without sending real messages
 - [ ] Establish frontend-to-backend API communication
 - [ ] Configure environment variables and keep secrets out of source control
 - [ ] Establish automated backend and end-to-end testing
@@ -574,3 +776,23 @@ Before feature development begins:
 - [ ] Working image/video upload (fixes original unsolved limitation)
 - [ ] Analytics dashboard (new)
 - [ ] Comments or reactions (new, optional)
+
+
+---
+
+## 11. Version 5 Change Notes
+
+Version 5 clarifies the rebuild around **functional parity with the 2023 project**.
+
+Major changes from v4:
+
+1. **Legacy functionality is now an explicit scope baseline.**
+2. **CRUD is explicitly defined as a functional requirement** across the main domains.
+3. **RBAC rules are explicit**, including backend enforcement and role boundaries.
+4. **MUST / SHOULD / OPTIONAL classifications** distinguish core rebuild requirements from enhancements.
+5. **Functional acceptance criteria** define when a feature is actually working.
+6. **Legacy parity is a development gate** so functionality is not accidentally lost during modernization.
+7. **Docker Compose remains the intended development environment**, but it is treated as infrastructure rather than product functionality.
+8. **Mailpit is clarified as a development email sandbox**: useful for outbound-email testing, but not required for database-only workflows.
+9. **Development order now begins with a functional audit** before major feature implementation.
+10. The specification continues to favor a modern React + FastAPI + PostgreSQL implementation while preserving the useful behavior and identity of the original Eagle Eye project.

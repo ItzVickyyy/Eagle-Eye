@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, redirect } from "@tanstack/react-router"
 import {
   Edit,
   FolderTree,
@@ -10,7 +10,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 
-import { CategoriesService, TagsService } from "@/client"
+import { CategoriesService, TagsService, UsersService } from "@/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -37,6 +37,18 @@ import useCustomToast from "@/hooks/useCustomToast"
 
 export const Route = createFileRoute("/admin/categories")({
   component: Categories,
+  beforeLoad: async () => {
+    const { data: user } = await UsersService.readUserMe()
+    const isStaffAdmin =
+      user.is_superuser ||
+      user.role === "super_admin" ||
+      user.role === "admin"
+    if (!isStaffAdmin) {
+      throw redirect({
+        to: "/admin",
+      })
+    }
+  },
   head: () => ({
     meta: [{ title: "Categories & Tags — Eagle Eye" }],
   }),

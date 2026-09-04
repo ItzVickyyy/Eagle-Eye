@@ -6,7 +6,7 @@ from typing import Any
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from sqlmodel import col, func, select
 
-from app.api.deps import AdminUser, CurrentUser, SessionDep
+from app.api.deps import AdminUser, CurrentUser, SessionDep, is_admin_or_above
 from app.models import (
     Media,
     MediaCreate,
@@ -103,14 +103,20 @@ def delete_media(
     *,
     session: SessionDep,
     id: uuid.UUID,
-    current_user: AdminUser,
+    current_user: CurrentUser,
 ) -> Message:
     """
-    Delete media record (Admin / Super Admin).
+    Delete media record.
+    Uploader can delete their own media. Admin / Super Admin can delete any media.
     """
     media = session.get(Media, id)
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
+    if not is_admin_or_above(current_user) and media.uploaded_by != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to delete this media item",
+        )
     session.delete(media)
     session.commit()
     return Message(message="Media deleted successfully")

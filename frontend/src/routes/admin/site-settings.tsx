@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, redirect } from "@tanstack/react-router"
 import {
   Globe,
   Mail,
@@ -11,7 +11,7 @@ import {
 } from "lucide-react"
 import { useEffect, useState } from "react"
 
-import { SettingsService } from "@/client"
+import { SettingsService, UsersService } from "@/client"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -27,6 +27,15 @@ import useCustomToast from "@/hooks/useCustomToast"
 
 export const Route = createFileRoute("/admin/site-settings")({
   component: SiteSettings,
+  beforeLoad: async () => {
+    const { data: user } = await UsersService.readUserMe()
+    const isSuperAdmin = user.is_superuser || user.role === "super_admin"
+    if (!isSuperAdmin) {
+      throw redirect({
+        to: "/admin",
+      })
+    }
+  },
   head: () => ({
     meta: [{ title: "Site Settings — Eagle Eye" }],
   }),

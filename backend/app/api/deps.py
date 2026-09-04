@@ -101,6 +101,10 @@ def is_admin_or_above(user: User) -> bool:
     )
 
 
+def is_developer(user: User) -> bool:
+    return bool(user.is_developer)
+
+
 def get_current_active_superuser(current_user: CurrentUser) -> User:
     if not (current_user.is_superuser or current_user.role == UserRole.super_admin):
         raise HTTPException(
@@ -117,5 +121,15 @@ def get_current_admin(current_user: CurrentUser) -> User:
     return current_user
 
 
+def get_current_developer(current_user: CurrentUser) -> User:
+    if not is_developer(current_user):
+        raise HTTPException(
+            status_code=403,
+            detail="The user doesn't have enough privileges (Developer access required)",
+        )
+    return current_user
+
+
 AdminUser = Annotated[User, Depends(get_current_admin)]
 SuperAdminUser = Annotated[User, Depends(get_current_active_superuser)]
+DeveloperUser = Annotated[User, Depends(get_current_developer)]

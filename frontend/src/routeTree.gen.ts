@@ -25,6 +25,7 @@ import { Route as AdminArticlesRouteImport } from './routes/admin/articles'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
 import { Route as AdminCommentsRouteImport } from './routes/admin/comments'
 import { Route as AdminContactRouteImport } from './routes/admin/contact'
+import { Route as AdminDeveloperRouteImport } from './routes/admin/developer'
 import { Route as AdminMembersRouteImport } from './routes/admin/members'
 import { Route as AdminReviewQueueRouteImport } from './routes/admin/review-queue'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
@@ -113,6 +114,11 @@ const AdminContactRoute = AdminContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminDeveloperRoute = AdminDeveloperRouteImport.update({
+  id: '/developer',
+  path: '/developer',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminMembersRoute = AdminMembersRouteImport.update({
   id: '/members',
   path: '/members',
@@ -169,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/comments': typeof AdminCommentsRoute
   '/admin/contact': typeof AdminContactRoute
+  '/admin/developer': typeof AdminDeveloperRoute
   '/admin/members': typeof AdminMembersRoute
   '/admin/review-queue': typeof AdminReviewQueueRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -192,6 +199,7 @@ export interface FileRoutesByTo {
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/comments': typeof AdminCommentsRoute
   '/admin/contact': typeof AdminContactRoute
+  '/admin/developer': typeof AdminDeveloperRoute
   '/admin/members': typeof AdminMembersRoute
   '/admin/review-queue': typeof AdminReviewQueueRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -219,6 +227,7 @@ export interface FileRoutesById {
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/comments': typeof AdminCommentsRoute
   '/admin/contact': typeof AdminContactRoute
+  '/admin/developer': typeof AdminDeveloperRoute
   '/admin/members': typeof AdminMembersRoute
   '/admin/review-queue': typeof AdminReviewQueueRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -247,6 +256,7 @@ export interface FileRouteTypes {
     | '/admin/categories'
     | '/admin/comments'
     | '/admin/contact'
+    | '/admin/developer'
     | '/admin/members'
     | '/admin/review-queue'
     | '/admin/settings'
@@ -270,6 +280,7 @@ export interface FileRouteTypes {
     | '/admin/categories'
     | '/admin/comments'
     | '/admin/contact'
+    | '/admin/developer'
     | '/admin/members'
     | '/admin/review-queue'
     | '/admin/settings'
@@ -296,6 +307,7 @@ export interface FileRouteTypes {
     | '/admin/categories'
     | '/admin/comments'
     | '/admin/contact'
+    | '/admin/developer'
     | '/admin/members'
     | '/admin/review-queue'
     | '/admin/settings'
@@ -431,6 +443,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminContactRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/developer': {
+      id: '/admin/developer'
+      path: '/developer'
+      fullPath: '/admin/developer'
+      preLoaderRoute: typeof AdminDeveloperRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/members': {
       id: '/admin/members'
       path: '/members'
@@ -529,6 +548,7 @@ interface AdminRouteChildren {
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminCommentsRoute: typeof AdminCommentsRoute
   AdminContactRoute: typeof AdminContactRoute
+  AdminDeveloperRoute: typeof AdminDeveloperRoute
   AdminMembersRoute: typeof AdminMembersRoute
   AdminReviewQueueRoute: typeof AdminReviewQueueRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
@@ -543,6 +563,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminCommentsRoute: AdminCommentsRoute,
   AdminContactRoute: AdminContactRoute,
+  AdminDeveloperRoute: AdminDeveloperRoute,
   AdminMembersRoute: AdminMembersRoute,
   AdminReviewQueueRoute: AdminReviewQueueRoute,
   AdminSettingsRoute: AdminSettingsRoute,

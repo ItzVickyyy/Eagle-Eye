@@ -7,6 +7,7 @@ from app.api.routes import (
     club_members,
     comments,
     contact,
+    developer,
     login,
     media,
     private,
@@ -26,6 +27,7 @@ api_router.include_router(tags.router)
 api_router.include_router(comments.router)
 api_router.include_router(club_members.router)
 api_router.include_router(contact.router)
+api_router.include_router(developer.router)
 api_router.include_router(site_settings.router)
 api_router.include_router(media.router)
 api_router.include_router(analytics.router)

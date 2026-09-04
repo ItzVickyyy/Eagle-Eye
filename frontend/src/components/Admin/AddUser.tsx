@@ -37,12 +37,12 @@ const formSchema = z
     full_name: z.string().optional(),
     password: z
       .string()
-      .min(1, { message: "Password is required" })
       .min(8, { message: "Password must be at least 8 characters" }),
     confirm_password: z
       .string()
       .min(1, { message: "Please confirm your password" }),
     is_superuser: z.boolean(),
+    is_developer: z.boolean(),
     is_active: z.boolean(),
   })
   .refine((data) => data.password === data.confirm_password, {
@@ -67,7 +67,8 @@ const AddUser = () => {
       password: "",
       confirm_password: "",
       is_superuser: false,
-      is_active: false,
+      is_developer: false,
+      is_active: true,
     },
   })
 
@@ -196,6 +197,22 @@ const AddUser = () => {
                       />
                     </FormControl>
                     <FormLabel className="font-normal">Is superuser?</FormLabel>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="is_developer"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormLabel className="font-normal">Developer system access?</FormLabel>
                   </FormItem>
                 )}
               />

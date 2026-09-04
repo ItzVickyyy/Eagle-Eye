@@ -2,7 +2,7 @@
 
 import { type Client, formDataBodySerializer, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { analyticsGetAnalyticsOverviewData, analyticsGetAnalyticsOverviewResponses, articlesCreateArticleData, articlesCreateArticleErrors, articlesCreateArticleResponses, articlesDeleteArticleData, articlesDeleteArticleErrors, articlesDeleteArticleResponses, articlesGetArticleByIdData, articlesGetArticleByIdErrors, articlesGetArticleByIdResponses, articlesGetArticleBySlugData, articlesGetArticleBySlugErrors, articlesGetArticleBySlugResponses, articlesGetReviewQueueData, articlesGetReviewQueueErrors, articlesGetReviewQueueResponses, articlesReadArticlesData, articlesReadArticlesErrors, articlesReadArticlesResponses, articlesUpdateArticleData, articlesUpdateArticleErrors, articlesUpdateArticleResponses, categoriesCreateCategoryData, categoriesCreateCategoryErrors, categoriesCreateCategoryResponses, categoriesDeleteCategoryData, categoriesDeleteCategoryErrors, categoriesDeleteCategoryResponses, categoriesReadCategoriesData, categoriesReadCategoriesErrors, categoriesReadCategoriesResponses, categoriesReadCategoryData, categoriesReadCategoryErrors, categoriesReadCategoryResponses, categoriesUpdateCategoryData, categoriesUpdateCategoryErrors, categoriesUpdateCategoryResponses, clubMembersCreateClubMemberData, clubMembersCreateClubMemberErrors, clubMembersCreateClubMemberResponses, clubMembersDeleteClubMemberData, clubMembersDeleteClubMemberErrors, clubMembersDeleteClubMemberResponses, clubMembersReadActiveMembersData, clubMembersReadActiveMembersResponses, clubMembersReadAllMembersData, clubMembersReadAllMembersErrors, clubMembersReadAllMembersResponses, clubMembersUpdateClubMemberData, clubMembersUpdateClubMemberErrors, clubMembersUpdateClubMemberResponses, commentsCreateCommentData, commentsCreateCommentErrors, commentsCreateCommentResponses, commentsDeleteCommentData, commentsDeleteCommentErrors, commentsDeleteCommentResponses, commentsGetAllCommentsData, commentsGetAllCommentsErrors, commentsGetAllCommentsResponses, commentsGetArticleCommentsData, commentsGetArticleCommentsErrors, commentsGetArticleCommentsResponses, commentsUpdateCommentStatusData, commentsUpdateCommentStatusErrors, commentsUpdateCommentStatusResponses, contactDeleteContactMessageData, contactDeleteContactMessageErrors, contactDeleteContactMessageResponses, contactGetContactMessageData, contactGetContactMessageErrors, contactGetContactMessageResponses, contactMarkMessageReadData, contactMarkMessageReadErrors, contactMarkMessageReadResponses, contactMarkMessageUnreadData, contactMarkMessageUnreadErrors, contactMarkMessageUnreadResponses, contactReadContactMessagesData, contactReadContactMessagesErrors, contactReadContactMessagesResponses, contactSubmitContactFormData, contactSubmitContactFormErrors, contactSubmitContactFormResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, mediaDeleteMediaData, mediaDeleteMediaErrors, mediaDeleteMediaResponses, mediaReadMediaItemsData, mediaReadMediaItemsErrors, mediaReadMediaItemsResponses, mediaRegisterMediaData, mediaRegisterMediaErrors, mediaRegisterMediaResponses, mediaUploadFileData, mediaUploadFileErrors, mediaUploadFileResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, settingsDeleteSiteSettingData, settingsDeleteSiteSettingErrors, settingsDeleteSiteSettingResponses, settingsGetSiteSettingData, settingsGetSiteSettingErrors, settingsGetSiteSettingResponses, settingsGetSiteSettingsData, settingsGetSiteSettingsResponses, settingsSetSiteSettingData, settingsSetSiteSettingErrors, settingsSetSiteSettingResponses, tagsCreateTagData, tagsCreateTagErrors, tagsCreateTagResponses, tagsDeleteTagData, tagsDeleteTagErrors, tagsDeleteTagResponses, tagsReadTagsData, tagsReadTagsErrors, tagsReadTagsResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses } from './types.gen';
+import type { analyticsGetAnalyticsOverviewData, analyticsGetAnalyticsOverviewResponses, articlesCreateArticleData, articlesCreateArticleErrors, articlesCreateArticleResponses, articlesDeleteArticleData, articlesDeleteArticleErrors, articlesDeleteArticleResponses, articlesGetArticleByIdData, articlesGetArticleByIdErrors, articlesGetArticleByIdResponses, articlesGetArticleBySlugData, articlesGetArticleBySlugErrors, articlesGetArticleBySlugResponses, articlesGetReviewQueueData, articlesGetReviewQueueErrors, articlesGetReviewQueueResponses, articlesReadArticlesData, articlesReadArticlesErrors, articlesReadArticlesResponses, articlesUpdateArticleData, articlesUpdateArticleErrors, articlesUpdateArticleResponses, categoriesCreateCategoryData, categoriesCreateCategoryErrors, categoriesCreateCategoryResponses, categoriesDeleteCategoryData, categoriesDeleteCategoryErrors, categoriesDeleteCategoryResponses, categoriesReadCategoriesData, categoriesReadCategoriesErrors, categoriesReadCategoriesResponses, categoriesReadCategoryData, categoriesReadCategoryErrors, categoriesReadCategoryResponses, categoriesUpdateCategoryData, categoriesUpdateCategoryErrors, categoriesUpdateCategoryResponses, clubMembersCreateClubMemberData, clubMembersCreateClubMemberErrors, clubMembersCreateClubMemberResponses, clubMembersDeleteClubMemberData, clubMembersDeleteClubMemberErrors, clubMembersDeleteClubMemberResponses, clubMembersReadActiveMembersData, clubMembersReadActiveMembersResponses, clubMembersReadAllMembersData, clubMembersReadAllMembersErrors, clubMembersReadAllMembersResponses, clubMembersUpdateClubMemberData, clubMembersUpdateClubMemberErrors, clubMembersUpdateClubMemberResponses, commentsCreateCommentData, commentsCreateCommentErrors, commentsCreateCommentResponses, commentsDeleteCommentData, commentsDeleteCommentErrors, commentsDeleteCommentResponses, commentsGetAllCommentsData, commentsGetAllCommentsErrors, commentsGetAllCommentsResponses, commentsGetArticleCommentsData, commentsGetArticleCommentsErrors, commentsGetArticleCommentsResponses, commentsUpdateCommentStatusData, commentsUpdateCommentStatusErrors, commentsUpdateCommentStatusResponses, contactDeleteContactMessageData, contactDeleteContactMessageErrors, contactDeleteContactMessageResponses, contactGetContactMessageData, contactGetContactMessageErrors, contactGetContactMessageResponses, contactMarkMessageReadData, contactMarkMessageReadErrors, contactMarkMessageReadResponses, contactMarkMessageUnreadData, contactMarkMessageUnreadErrors, contactMarkMessageUnreadResponses, contactReadContactMessagesData, contactReadContactMessagesErrors, contactReadContactMessagesResponses, contactSubmitContactFormData, contactSubmitContactFormErrors, contactSubmitContactFormResponses, developerGetFeatureFlagsData, developerGetFeatureFlagsResponses, developerGetSystemDiagnosticsData, developerGetSystemDiagnosticsResponses, developerGetSystemHealthData, developerGetSystemHealthResponses, developerGetSystemLogsData, developerGetSystemLogsResponses, developerUpdateFeatureFlagsData, developerUpdateFeatureFlagsErrors, developerUpdateFeatureFlagsResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, mediaDeleteMediaData, mediaDeleteMediaErrors, mediaDeleteMediaResponses, mediaReadMediaItemsData, mediaReadMediaItemsErrors, mediaReadMediaItemsResponses, mediaRegisterMediaData, mediaRegisterMediaErrors, mediaRegisterMediaResponses, mediaUploadFileData, mediaUploadFileErrors, mediaUploadFileResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, settingsDeleteSiteSettingData, settingsDeleteSiteSettingErrors, settingsDeleteSiteSettingResponses, settingsGetSiteSettingData, settingsGetSiteSettingErrors, settingsGetSiteSettingResponses, settingsGetSiteSettingsData, settingsGetSiteSettingsResponses, settingsSetSiteSettingData, settingsSetSiteSettingErrors, settingsSetSiteSettingResponses, tagsCreateTagData, tagsCreateTagErrors, tagsCreateTagResponses, tagsDeleteTagData, tagsDeleteTagErrors, tagsDeleteTagResponses, tagsReadTagsData, tagsReadTagsErrors, tagsReadTagsResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -739,6 +739,82 @@ export class ContactService {
             responseType: 'json',
             security: [{ scheme: 'bearer', type: 'http' }],
             url: '/api/v1/contact/{id}/mark-unread',
+            ...options
+        });
+    }
+}
+
+export class DeveloperService {
+    /**
+     * Get System Health
+     *
+     * Get backend system health and database connectivity latency (Developer only).
+     */
+    public static getSystemHealth<ThrowOnError extends boolean = true>(options?: Options<developerGetSystemHealthData, ThrowOnError>) {
+        return (options?.client ?? client).get<developerGetSystemHealthResponses, unknown, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/developer/health',
+            ...options
+        });
+    }
+    
+    /**
+     * Get System Diagnostics
+     *
+     * Get aggregated system diagnostics and entity metrics (Developer only).
+     */
+    public static getSystemDiagnostics<ThrowOnError extends boolean = true>(options?: Options<developerGetSystemDiagnosticsData, ThrowOnError>) {
+        return (options?.client ?? client).get<developerGetSystemDiagnosticsResponses, unknown, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/developer/diagnostics',
+            ...options
+        });
+    }
+    
+    /**
+     * Get Feature Flags
+     *
+     * Retrieve application-level technical feature flags and maintenance state (Developer only).
+     */
+    public static getFeatureFlags<ThrowOnError extends boolean = true>(options?: Options<developerGetFeatureFlagsData, ThrowOnError>) {
+        return (options?.client ?? client).get<developerGetFeatureFlagsResponses, unknown, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/developer/feature-flags',
+            ...options
+        });
+    }
+    
+    /**
+     * Update Feature Flags
+     *
+     * Update application-level technical feature flags and maintenance state (Developer only).
+     */
+    public static updateFeatureFlags<ThrowOnError extends boolean = true>(options: Options<developerUpdateFeatureFlagsData, ThrowOnError>) {
+        return (options.client ?? client).patch<developerUpdateFeatureFlagsResponses, developerUpdateFeatureFlagsErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/developer/feature-flags',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    /**
+     * Get System Logs
+     *
+     * Retrieve recent diagnostic system event logs (Developer only).
+     */
+    public static getSystemLogs<ThrowOnError extends boolean = true>(options?: Options<developerGetSystemLogsData, ThrowOnError>) {
+        return (options?.client ?? client).get<developerGetSystemLogsResponses, unknown, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/developer/logs',
             ...options
         });
     }

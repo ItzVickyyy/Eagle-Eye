@@ -1,12 +1,13 @@
 import os
 import uuid
-from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from sqlmodel import col, func, select
 
 from app.api.deps import AdminUser, CurrentUser, SessionDep, is_admin_or_above
+from app.core.config import settings
+from app.core.storage import get_storage
 from app.models import (
     Media,
     MediaCreate,
@@ -17,8 +18,7 @@ from app.models import (
 
 router = APIRouter(prefix="/media", tags=["media"])
 
-UPLOAD_DIR = Path("uploads").resolve()
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+storage = get_storage(settings.MEDIA_STORAGE_BACKEND, settings.MEDIA_STORAGE_LOCAL_DIR)
 
 MAX_UPLOAD_BYTES = 15 * 1024 * 1024  # 15 MB
 
@@ -109,14 +109,11 @@ async def upload_file(
     ext = raw_ext if raw_ext in valid_extensions else valid_extensions[0]
 
     unique_filename = f"{uuid.uuid4().hex}{ext}"
-    target_path = (UPLOAD_DIR / unique_filename).resolve()
 
-    if not target_path.is_relative_to(UPLOAD_DIR):
-        raise HTTPException(status_code=400, detail="Invalid target filename.")
+    # The storage key is server-generated. The active backend keeps physical
+    # persistence and URL generation behind this security boundary.
+    file_url = storage.save(unique_filename, content)
 
-    target_path.write_bytes(content)
-
-    file_url = f"/uploads/{unique_filename}"
     file_type = "image" if content_type.startswith("image") else "video"
 
     media = Media(
@@ -149,6 +146,7 @@ def delete_media(
             status_code=403,
             detail="Not authorized to delete this media item",
         )
+    storage.delete(media.file_url)
     session.delete(media)
     session.commit()
     return Message(message="Media deleted successfully")

@@ -54,6 +54,13 @@ class Settings(BaseSettings):
             self.EMAILS_FROM_NAME = self.PROJECT_NAME
         return self
 
+    # Media storage
+    # - "local" uses the local filesystem at MEDIA_STORAGE_LOCAL_DIR.
+    # A future production/object-storage backend can be selected here without
+    # changing the media router.
+    MEDIA_STORAGE_BACKEND: Literal["local"] = "local"
+    MEDIA_STORAGE_LOCAL_DIR: str = "uploads"
+
     EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
 
     @computed_field  # type: ignore[prop-decorator]

@@ -511,3 +511,34 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=128)
+
+
+# ---------------------------------------------------------------------------
+# Developer Audit Log (persistent audit/event trail)
+# ---------------------------------------------------------------------------
+
+
+class AuditLog(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+        index=True,
+    )
+    # Stable event/action name, e.g. "user.role_changed".
+    event: str = Field(max_length=100, index=True)
+    # INFO / WARN / ERROR severity.
+    severity: str = Field(default="INFO", max_length=10)
+    # Classification namespace, e.g. "auth", "user", "article", "media",
+    # "developer", "system". Mirrors the Developer UI "component" column.
+    component: str = Field(default="system", max_length=50)
+    actor_user_id: uuid.UUID | None = None
+    actor_email: str | None = Field(default=None, max_length=255)
+    actor_role: str | None = Field(default=None, max_length=50)
+    actor_is_developer: bool = False
+    # Target entity type + safe id when relevant.
+    target_type: str | None = Field(default=None, max_length=50)
+    target_id: str | None = Field(default=None, max_length=64)
+    success: bool = True
+    # Public, redacted human-readable summary. Never contains secrets.
+    message: str = Field(max_length=2048)

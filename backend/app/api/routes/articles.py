@@ -14,6 +14,7 @@ from app.api.deps import (
     is_admin_or_above,
     is_super_admin,
 )
+from app.core.audit import write_audit_log
 from app.core.sanitizer import sanitize_html
 from app.models import (
     Article,
@@ -309,6 +310,17 @@ def create_article(
             session.add(ArticleTag(article_id=article.id, tag_id=tid))
         session.commit()
 
+    write_audit_log(
+        session=session,
+        event="article.created",
+        component="article",
+        actor=current_user,
+        target_type="article",
+        target_id=str(article.id),
+        success=True,
+        message=f"Article created (status={desired_status.value})",
+    )
+    session.commit()
     return article
 
 
@@ -380,11 +392,25 @@ def update_article(
         for tid in unique_tag_ids:
             session.add(ArticleTag(article_id=article.id, tag_id=tid))
 
+    prev_status = article.status.value
     article.updated_at = datetime.now(UTC)
     article.sqlmodel_update(update_dict)
     session.add(article)
     session.commit()
     session.refresh(article)
+
+    if "status" in update_dict and update_dict["status"].value != prev_status:
+        write_audit_log(
+            session=session,
+            event="article.status_changed",
+            component="article",
+            actor=current_user,
+            target_type="article",
+            target_id=str(article.id),
+            success=True,
+            message=f"Article status changed to {update_dict['status'].value}",
+        )
+        session.commit()
     return article
 
 
@@ -410,6 +436,16 @@ def delete_article(
                 detail="Contributors can only delete their own unpublished drafts",
             )
 
+    write_audit_log(
+        session=session,
+        event="article.deleted",
+        component="article",
+        actor=current_user,
+        target_type="article",
+        target_id=str(article.id),
+        success=True,
+        message=f"Article deleted ({article.headline})",
+    )
     session.delete(article)
     session.commit()
     return Message(message="Article deleted successfully")

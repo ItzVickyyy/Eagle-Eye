@@ -10,9 +10,11 @@ from pydantic import BaseModel
 from sqlmodel import func, select, text
 
 from app.api.deps import DeveloperUser, SessionDep
+from app.core.audit import write_audit_log
 from app.core.config import settings
 from app.models import (
     Article,
+    AuditLog,
     Category,
     ClubMember,
     Comment,
@@ -74,6 +76,11 @@ class SystemLogEntry(BaseModel):
     level: str
     component: str
     message: str
+    # Optional enriched fields surfaced from the audit trail.
+    event: str | None = None
+    actor: str | None = None
+    target: str | None = None
+    success: bool | None = None
 
 
 class SystemLogsResponse(BaseModel):
@@ -204,6 +211,16 @@ def update_feature_flags(
 
     session.commit()
 
+    write_audit_log(
+        session=session,
+        event="developer.feature_flags_updated",
+        component="developer",
+        actor=current_user,
+        success=True,
+        message="Developer feature flags updated",
+    )
+    session.commit()
+
     return FeatureFlags(
         maintenance_mode=_get_flag(session, "dev_maintenance_mode", False),
         public_comments_enabled=_get_flag(session, "dev_public_comments_enabled", True),
@@ -218,30 +235,37 @@ def get_system_logs(
     current_user: DeveloperUser,
 ) -> Any:
     """
-    Retrieve recent diagnostic system event logs (Developer only).
+    Retrieve recent audit/application event logs (Developer only).
+
+    Returns real persisted events from the audit trail. An empty list is a
+    valid state: this endpoint does not fabricate sample activity.
     """
-    now = datetime.now(UTC)
-    sample_logs = [
-        SystemLogEntry(
-            id="log-001",
-            timestamp=now,
-            level="INFO",
-            component="FastAPI.App",
-            message="Application router initialized; all service handlers active",
-        ),
-        SystemLogEntry(
-            id="log-002",
-            timestamp=now,
-            level="INFO",
-            component="Database.Engine",
-            message=f"Database pool status healthy on {session.bind.dialect.name if session.bind else 'default'}",
-        ),
-        SystemLogEntry(
-            id="log-003",
-            timestamp=now,
-            level="INFO",
-            component="Auth.DeveloperLayer",
-            message=f"Developer access authenticated for session {current_user.email}",
-        ),
-    ]
-    return SystemLogsResponse(data=sample_logs, count=len(sample_logs))
+    entries = session.exec(
+        select(AuditLog)
+        .order_by(AuditLog.created_at.desc(), AuditLog.id.desc())
+        .limit(200)
+    ).all()
+
+    if entries:
+        data = [
+            SystemLogEntry(
+                id=entry.id.hex,
+                timestamp=entry.created_at,
+                level=entry.severity,
+                component=entry.component,
+                message=entry.message,
+                event=entry.event,
+                actor=entry.actor_email or "system",
+                target=(
+                    f"{entry.target_type}:{entry.target_id}"
+                    if entry.target_type
+                    else None
+                ),
+                success=entry.success,
+            )
+            for entry in entries
+        ]
+    else:
+        data = []
+
+    return SystemLogsResponse(data=data, count=len(data))

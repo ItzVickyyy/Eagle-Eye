@@ -6,6 +6,7 @@ from fastapi import APIRouter, File, HTTPException, UploadFile
 from sqlmodel import col, func, select
 
 from app.api.deps import AdminUser, CurrentUser, SessionDep, is_admin_or_above
+from app.core.audit import write_audit_log
 from app.core.config import settings
 from app.core.storage import get_storage
 from app.models import (
@@ -124,6 +125,17 @@ async def upload_file(
     session.add(media)
     session.commit()
     session.refresh(media)
+    write_audit_log(
+        session=session,
+        event="media.uploaded",
+        component="media",
+        actor=current_user,
+        target_type="media",
+        target_id=str(media.id),
+        success=True,
+        message=f"Media uploaded (type={file_type})",
+    )
+    session.commit()
     return media
 
 
@@ -147,6 +159,16 @@ def delete_media(
             detail="Not authorized to delete this media item",
         )
     storage.delete(media.file_url)
+    write_audit_log(
+        session=session,
+        event="media.deleted",
+        component="media",
+        actor=current_user,
+        target_type="media",
+        target_id=str(media.id),
+        success=True,
+        message="Media deleted",
+    )
     session.delete(media)
     session.commit()
     return Message(message="Media deleted successfully")

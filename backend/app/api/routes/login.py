@@ -8,6 +8,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app import crud
 from app.api.deps import CurrentUser, SessionDep, get_current_active_superuser
 from app.core import security
+from app.core.audit import write_audit_log
 from app.core.config import settings
 from app.core.rate_limit import (
     login_rate_limiter,
@@ -39,10 +40,37 @@ def login_access_token(
         session=session, email=form_data.username, password=form_data.password
     )
     if not user:
+        write_audit_log(
+            session=session,
+            event="auth.login_failed",
+            component="auth",
+            severity="WARN",
+            message="Login failed (incorrect email or password)",
+            success=False,
+        )
+        session.commit()
         raise HTTPException(status_code=400, detail="Incorrect email or password")
     elif not user.is_active:
+        write_audit_log(
+            session=session,
+            event="auth.login_failed",
+            component="auth",
+            severity="WARN",
+            message="Login failed (inactive user)",
+            success=False,
+        )
+        session.commit()
         raise HTTPException(status_code=400, detail="Inactive user")
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    write_audit_log(
+        session=session,
+        event="auth.login",
+        component="auth",
+        actor=user,
+        success=True,
+        message="Successful login",
+    )
+    session.commit()
     return Token(
         access_token=security.create_access_token(
             user.id, expires_delta=access_token_expires

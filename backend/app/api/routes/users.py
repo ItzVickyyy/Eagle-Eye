@@ -11,6 +11,7 @@ from app.api.deps import (
     get_current_active_superuser,
     is_super_admin,
 )
+from app.core.audit import write_audit_log
 from app.core.config import settings
 from app.core.rate_limit import signup_rate_limiter
 from app.core.security import get_password_hash, verify_password
@@ -55,7 +56,9 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
 @router.post(
     "/", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic
 )
-def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
+def create_user(
+    *, session: SessionDep, user_in: UserCreate, current_user: CurrentUser
+) -> Any:
     """
     Create new user.
     """
@@ -67,6 +70,17 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
         )
 
     user = crud.create_user(session=session, user_create=user_in)
+    write_audit_log(
+        session=session,
+        event="user.created",
+        component="user",
+        actor=current_user,
+        target_type="user",
+        target_id=str(user.id),
+        success=True,
+        message=f"Created user {user.email}",
+    )
+    session.commit()
     if settings.emails_enabled and user_in.email:
         email_data = generate_new_account_email(
             email_to=user_in.email, username=user_in.email, password=user_in.password
@@ -161,6 +175,16 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
         )
     user_create = UserCreate.model_validate(user_in)
     user = crud.create_user(session=session, user_create=user_create)
+    write_audit_log(
+        session=session,
+        event="user.created",
+        component="user",
+        target_type="user",
+        target_id=str(user.id),
+        success=True,
+        message=f"New user registered {user.email}",
+    )
+    session.commit()
     return user
 
 
@@ -194,6 +218,7 @@ def update_user(
     session: SessionDep,
     user_id: uuid.UUID,
     user_in: UserUpdate,
+    current_user: CurrentUser,
 ) -> Any:
     """
     Update a user.
@@ -212,7 +237,32 @@ def update_user(
                 status_code=409, detail="User with this email already exists"
             )
 
+    pending = user_in.model_dump(exclude_unset=True)
+    event: str | None = None
+    if "role" in pending and pending["role"] != db_user.role:
+        event = "user.role_changed"
+    elif "is_developer" in pending and pending["is_developer"] != db_user.is_developer:
+        event = (
+            "user.developer_access_granted"
+            if pending["is_developer"]
+            else "user.developer_access_revoked"
+        )
+    elif "is_active" in pending and pending["is_active"] != db_user.is_active:
+        event = "user.activated" if pending["is_active"] else "user.deactivated"
+
     db_user = crud.update_user(session=session, db_user=db_user, user_in=user_in)
+    if event:
+        write_audit_log(
+            session=session,
+            event=event,
+            component="user",
+            actor=current_user,
+            target_type="user",
+            target_id=str(db_user.id),
+            success=True,
+            message=f"Changed user {db_user.email} ({event})",
+        )
+        session.commit()
     return db_user
 
 
@@ -230,6 +280,16 @@ def delete_user(
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
+    write_audit_log(
+        session=session,
+        event="user.deleted",
+        component="user",
+        actor=current_user,
+        target_type="user",
+        target_id=str(user.id),
+        success=True,
+        message=f"Deleted user {user.email}",
+    )
     session.delete(user)
     session.commit()
     return Message(message="User deleted successfully")

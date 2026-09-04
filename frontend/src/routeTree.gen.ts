@@ -33,6 +33,7 @@ import { Route as AdminSiteSettingsRouteImport } from './routes/admin/site-setti
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as PublicNewsIndexRouteImport } from './routes/_public/news/index'
 import { Route as PublicNewsSlugRouteImport } from './routes/_public/news/$slug'
+import { Route as AdminArticlesIndexRouteImport } from './routes/admin/articles/index'
 import { Route as AdminArticlesNewRouteImport } from './routes/admin/articles/new'
 
 const PublicRoute = PublicRouteImport.update({
@@ -154,6 +155,11 @@ const PublicNewsSlugRoute = PublicNewsSlugRouteImport.update({
   path: '/news/$slug',
   getParentRoute: () => PublicRoute,
 } as any)
+const AdminArticlesIndexRoute = AdminArticlesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminArticlesRoute,
+} as any)
 const AdminArticlesNewRoute = AdminArticlesNewRouteImport.update({
   id: '/new',
   path: '/new',
@@ -185,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/news/$slug': typeof PublicNewsSlugRoute
   '/admin/articles/new': typeof AdminArticlesNewRoute
   '/news/': typeof PublicNewsIndexRoute
+  '/admin/articles/': typeof AdminArticlesIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -195,7 +202,6 @@ export interface FileRoutesByTo {
   '/contact-us': typeof PublicContactUsRoute
   '/search': typeof PublicSearchRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
-  '/admin/articles': typeof AdminArticlesRouteWithChildren
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/comments': typeof AdminCommentsRoute
   '/admin/contact': typeof AdminContactRoute
@@ -210,6 +216,7 @@ export interface FileRoutesByTo {
   '/news/$slug': typeof PublicNewsSlugRoute
   '/admin/articles/new': typeof AdminArticlesNewRoute
   '/news': typeof PublicNewsIndexRoute
+  '/admin/articles': typeof AdminArticlesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -238,6 +245,7 @@ export interface FileRoutesById {
   '/_public/news/$slug': typeof PublicNewsSlugRoute
   '/admin/articles/new': typeof AdminArticlesNewRoute
   '/_public/news/': typeof PublicNewsIndexRoute
+  '/admin/articles/': typeof AdminArticlesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -266,6 +274,7 @@ export interface FileRouteTypes {
     | '/news/$slug'
     | '/admin/articles/new'
     | '/news/'
+    | '/admin/articles/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -276,7 +285,6 @@ export interface FileRouteTypes {
     | '/contact-us'
     | '/search'
     | '/admin/analytics'
-    | '/admin/articles'
     | '/admin/categories'
     | '/admin/comments'
     | '/admin/contact'
@@ -291,6 +299,7 @@ export interface FileRouteTypes {
     | '/news/$slug'
     | '/admin/articles/new'
     | '/news'
+    | '/admin/articles'
   id:
     | '__root__'
     | '/_public'
@@ -318,6 +327,7 @@ export interface FileRouteTypes {
     | '/_public/news/$slug'
     | '/admin/articles/new'
     | '/_public/news/'
+    | '/admin/articles/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -499,6 +509,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicNewsSlugRouteImport
       parentRoute: typeof PublicRoute
     }
+    '/admin/articles/': {
+      id: '/admin/articles/'
+      path: '/'
+      fullPath: '/admin/articles/'
+      preLoaderRoute: typeof AdminArticlesIndexRouteImport
+      parentRoute: typeof AdminArticlesRoute
+    }
     '/admin/articles/new': {
       id: '/admin/articles/new'
       path: '/new'
@@ -532,10 +549,12 @@ const PublicRouteWithChildren =
 
 interface AdminArticlesRouteChildren {
   AdminArticlesNewRoute: typeof AdminArticlesNewRoute
+  AdminArticlesIndexRoute: typeof AdminArticlesIndexRoute
 }
 
 const AdminArticlesRouteChildren: AdminArticlesRouteChildren = {
   AdminArticlesNewRoute: AdminArticlesNewRoute,
+  AdminArticlesIndexRoute: AdminArticlesIndexRoute,
 }
 
 const AdminArticlesRouteWithChildren = AdminArticlesRoute._addFileChildren(

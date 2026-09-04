@@ -9,6 +9,7 @@ from app.api.deps import (
     CurrentUser,
     SessionDep,
     get_current_active_superuser,
+    is_super_admin,
 )
 from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
@@ -133,7 +134,7 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
     """
     Delete own user.
     """
-    if current_user.is_superuser:
+    if is_super_admin(current_user):
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
@@ -168,7 +169,7 @@ def read_user_by_id(
     user = session.get(User, user_id)
     if user == current_user:
         return user
-    if not current_user.is_superuser:
+    if not is_super_admin(current_user):
         raise HTTPException(
             status_code=403,
             detail="The user doesn't have enough privileges",

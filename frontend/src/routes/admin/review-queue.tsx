@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, Link, redirect } from "@tanstack/react-router"
 import {
   CalendarDays,
   CheckCircle,
@@ -11,7 +11,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 
-import { ArticlesService } from "@/client"
+import { ArticlesService, UsersService } from "@/client"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -29,6 +29,18 @@ import { calculateReadTime, formatDate, getInitials } from "@/utils"
 
 export const Route = createFileRoute("/admin/review-queue")({
   component: ReviewQueue,
+  beforeLoad: async () => {
+    const { data: user } = await UsersService.readUserMe()
+    const isStaffAdmin =
+      user.is_superuser ||
+      user.role === "super_admin" ||
+      user.role === "admin"
+    if (!isStaffAdmin) {
+      throw redirect({
+        to: "/admin",
+      })
+    }
+  },
   head: () => ({
     meta: [{ title: "Review Queue — Eagle Eye" }],
   }),

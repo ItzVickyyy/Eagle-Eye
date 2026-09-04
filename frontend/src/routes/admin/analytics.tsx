@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, Link, redirect } from "@tanstack/react-router"
 import {
   Clock,
   Eye,
@@ -8,7 +8,7 @@ import {
   TrendingUp,
 } from "lucide-react"
 
-import { AnalyticsService } from "@/client"
+import { AnalyticsService, UsersService } from "@/client"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -29,8 +29,24 @@ import { formatDate } from "@/utils"
 
 export const Route = createFileRoute("/admin/analytics")({
   component: Analytics,
+  beforeLoad: async () => {
+    const { data: user } = await UsersService.readUserMe()
+    const isStaffAdmin =
+      user.is_superuser ||
+      user.role === "super_admin" ||
+      user.role === "admin"
+    if (!isStaffAdmin) {
+      throw redirect({
+        to: "/admin",
+      })
+    }
+  },
   head: () => ({
-    meta: [{ title: "Analytics — Eagle Eye" }],
+    meta: [
+      {
+        title: "Analytics — Eagle Eye",
+      },
+    ],
   }),
 })
 

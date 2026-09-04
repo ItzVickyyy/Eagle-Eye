@@ -35,9 +35,14 @@ interface NavItem {
   path: string
 }
 
-const editorItems: NavItem[] = [
+const contentItems: NavItem[] = [
   { icon: FileText, title: "Articles", path: "/admin/articles" },
+]
+
+const editorialItems: NavItem[] = [
   { icon: ListChecks, title: "Review Queue", path: "/admin/review-queue" },
+  { icon: Layers, title: "Categories & Tags", path: "/admin/categories" },
+  { icon: BarChart2, title: "Analytics", path: "/admin/analytics" },
 ]
 
 const moderationItems: NavItem[] = [
@@ -50,10 +55,8 @@ const developerItems: NavItem[] = [
 ]
 
 const superAdminItems: NavItem[] = [
-  { icon: Layers, title: "Categories", path: "/admin/categories" },
   { icon: Users, title: "Members", path: "/admin/members" },
   { icon: Users, title: "Users", path: "/admin/users" },
-  { icon: BarChart2, title: "Analytics", path: "/admin/analytics" },
   { icon: Settings, title: "Site Settings", path: "/admin/site-settings" },
 ]
 
@@ -106,6 +109,10 @@ export function AppSidebar() {
     currentUser?.role === "super_admin" ||
     currentUser?.role === "admin"
 
+  const isSuperAdmin =
+    currentUser?.is_superuser ||
+    currentUser?.role === "super_admin"
+
   const dashboardItems: NavItem[] = [
     { icon: Home, title: "Dashboard", path: "/admin" },
   ]
@@ -117,14 +124,17 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <NavGroup items={dashboardItems} />
-        <NavGroup label="Content" items={editorItems} />
+        <NavGroup label="Content" items={contentItems} />
         {isStaffAdmin && (
-          <NavGroup label="Moderation & Inbox" items={moderationItems} />
+          <>
+            <NavGroup label="Editorial & Management" items={editorialItems} />
+            <NavGroup label="Moderation & Inbox" items={moderationItems} />
+          </>
         )}
         {currentUser?.is_developer && (
           <NavGroup label="Developer" items={developerItems} />
         )}
-        {currentUser?.is_superuser && (
+        {isSuperAdmin && (
           <NavGroup label="Administration" items={superAdminItems} />
         )}
       </SidebarContent>

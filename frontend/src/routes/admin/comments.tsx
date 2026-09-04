@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, Link, redirect } from "@tanstack/react-router"
 import {
   AlertTriangle,
   CheckCircle2,
@@ -11,7 +11,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 
-import { CommentsService, type CommentStatus } from "@/client"
+import { CommentsService, type CommentStatus, UsersService } from "@/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -39,8 +39,24 @@ import { formatDate } from "@/utils"
 
 export const Route = createFileRoute("/admin/comments")({
   component: CommentsModeration,
+  beforeLoad: async () => {
+    const { data: user } = await UsersService.readUserMe()
+    const isStaffAdmin =
+      user.is_superuser ||
+      user.role === "super_admin" ||
+      user.role === "admin"
+    if (!isStaffAdmin) {
+      throw redirect({
+        to: "/admin",
+      })
+    }
+  },
   head: () => ({
-    meta: [{ title: "Comments Moderation — Eagle Eye" }],
+    meta: [
+      {
+        title: "Comments Moderation — Eagle Eye",
+      },
+    ],
   }),
 })
 

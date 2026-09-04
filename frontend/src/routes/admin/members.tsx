@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, redirect } from "@tanstack/react-router"
 import {
   Edit,
   PlusCircle,
@@ -11,7 +11,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 
-import { ClubMembersService, MediaService } from "@/client"
+import { ClubMembersService, MediaService, UsersService } from "@/client"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -40,8 +40,21 @@ import { getInitials } from "@/utils"
 
 export const Route = createFileRoute("/admin/members")({
   component: Members,
+  beforeLoad: async () => {
+    const { data: user } = await UsersService.readUserMe()
+    const isSuperAdmin = user.is_superuser || user.role === "super_admin"
+    if (!isSuperAdmin) {
+      throw redirect({
+        to: "/admin",
+      })
+    }
+  },
   head: () => ({
-    meta: [{ title: "Club Members — Eagle Eye" }],
+    meta: [
+      {
+        title: "Members — Eagle Eye",
+      },
+    ],
   }),
 })
 

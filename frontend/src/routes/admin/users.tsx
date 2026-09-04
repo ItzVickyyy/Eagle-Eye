@@ -21,7 +21,8 @@ export const Route = createFileRoute("/admin/users")({
   component: Admin,
   beforeLoad: async () => {
     const { data: user } = await UsersService.readUserMe()
-    if (!user.is_superuser) {
+    const isSuperAdmin = user.is_superuser || user.role === "super_admin"
+    if (!isSuperAdmin) {
       throw redirect({
         to: "/admin",
       })

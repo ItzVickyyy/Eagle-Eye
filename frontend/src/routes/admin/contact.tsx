@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, redirect } from "@tanstack/react-router"
 import {
   Eye,
   Inbox,
@@ -12,7 +12,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 
-import { ContactService, type ContactMessageStatus } from "@/client"
+import { ContactService, type ContactMessageStatus, UsersService } from "@/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -40,8 +40,24 @@ import { formatDate } from "@/utils"
 
 export const Route = createFileRoute("/admin/contact")({
   component: ContactInbox,
+  beforeLoad: async () => {
+    const { data: user } = await UsersService.readUserMe()
+    const isStaffAdmin =
+      user.is_superuser ||
+      user.role === "super_admin" ||
+      user.role === "admin"
+    if (!isStaffAdmin) {
+      throw redirect({
+        to: "/admin",
+      })
+    }
+  },
   head: () => ({
-    meta: [{ title: "Contact Inbox — Eagle Eye" }],
+    meta: [
+      {
+        title: "Contact Inbox — Eagle Eye",
+      },
+    ],
   }),
 })
 

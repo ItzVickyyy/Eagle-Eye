@@ -56,6 +56,9 @@ export function formatShortDate(dateString?: string | null): string {
 
 export function calculateReadTime(content?: string | null): number {
   if (!content) return 2
-  const words = content.replace(/<[^>]*>/g, " ").trim().split(/\s+/).length
+  const words = content
+    .replace(/<[^>]*>/g, " ")
+    .trim()
+    .split(/\s+/).length
   return Math.max(1, Math.ceil(words / 200))
 }

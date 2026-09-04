@@ -12,6 +12,7 @@ from app.api.deps import (
     is_super_admin,
 )
 from app.core.config import settings
+from app.core.rate_limit import signup_rate_limiter
 from app.core.security import get_password_hash, verify_password
 from app.models import (
     Message,
@@ -143,7 +144,11 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
     return Message(message="User deleted successfully")
 
 
-@router.post("/signup", response_model=UserPublic)
+@router.post(
+    "/signup",
+    response_model=UserPublic,
+    dependencies=[Depends(signup_rate_limiter)],
+)
 def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     """
     Create new user without the need to be logged in.

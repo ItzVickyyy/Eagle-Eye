@@ -122,8 +122,8 @@ class UsersPublic(SQLModel):
 
 
 class CategoryBase(SQLModel):
-    name: str = Field(max_length=100)
-    slug: str = Field(max_length=100, unique=True, index=True)
+    name: str = Field(min_length=1, max_length=100)
+    slug: str = Field(min_length=1, max_length=100, unique=True, index=True)
     description: str | None = Field(default=None, max_length=500)
 
 
@@ -132,8 +132,8 @@ class CategoryCreate(CategoryBase):
 
 
 class CategoryUpdate(SQLModel):
-    name: str | None = Field(default=None, max_length=100)
-    slug: str | None = Field(default=None, max_length=100)
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    slug: str | None = Field(default=None, min_length=1, max_length=100)
     description: str | None = Field(default=None, max_length=500)
 
 
@@ -171,7 +171,7 @@ class ArticleTag(SQLModel, table=True):
 
 
 class TagBase(SQLModel):
-    name: str = Field(max_length=100, unique=True, index=True)
+    name: str = Field(min_length=1, max_length=100, unique=True, index=True)
 
 
 class TagCreate(TagBase):
@@ -179,7 +179,7 @@ class TagCreate(TagBase):
 
 
 class TagUpdate(SQLModel):
-    name: str | None = Field(default=None, max_length=100)
+    name: str | None = Field(default=None, min_length=1, max_length=100)
 
 
 class Tag(TagBase, table=True):
@@ -204,8 +204,8 @@ class TagsPublic(SQLModel):
 
 
 class ArticleBase(SQLModel):
-    headline: str = Field(max_length=500)
-    slug: str = Field(max_length=550, unique=True, index=True)
+    headline: str = Field(min_length=1, max_length=500)
+    slug: str = Field(min_length=1, max_length=550, unique=True, index=True)
     excerpt: str | None = Field(default=None, max_length=1000)
     cover_image_url: str | None = Field(default=None, max_length=2048)
     status: ArticleStatus = Field(default=ArticleStatus.draft)
@@ -213,7 +213,7 @@ class ArticleBase(SQLModel):
 
 
 class ArticleCreate(SQLModel):
-    headline: str = Field(max_length=500)
+    headline: str = Field(min_length=1, max_length=500)
     slug: str = Field(max_length=550)
     excerpt: str | None = Field(default=None, max_length=1000)
     cover_image_url: str | None = Field(default=None, max_length=2048)
@@ -224,8 +224,8 @@ class ArticleCreate(SQLModel):
 
 
 class ArticleUpdate(SQLModel):
-    headline: str | None = Field(default=None, max_length=500)
-    slug: str | None = Field(default=None, max_length=550)
+    headline: str | None = Field(default=None, min_length=1, max_length=500)
+    slug: str | None = Field(default=None, min_length=1, max_length=550)
     excerpt: str | None = Field(default=None, max_length=1000)
     cover_image_url: str | None = Field(default=None, max_length=2048)
     body: str | None = None
@@ -334,9 +334,9 @@ class MediasPublic(SQLModel):
 
 
 class CommentBase(SQLModel):
-    guest_name: str = Field(max_length=150)
+    guest_name: str = Field(min_length=1, max_length=150)
     guest_email: EmailStr = Field(max_length=255)
-    body: str = Field(sa_type=Text)
+    body: str = Field(min_length=1, max_length=5000, sa_type=Text)
 
 
 class CommentCreate(CommentBase):
@@ -378,8 +378,8 @@ class CommentsPublic(SQLModel):
 
 
 class ClubMemberBase(SQLModel):
-    first_name: str = Field(max_length=100)
-    last_name: str = Field(max_length=100)
+    first_name: str = Field(min_length=1, max_length=100)
+    last_name: str = Field(min_length=1, max_length=100)
     position: str | None = Field(default=None, max_length=100)
     position_title: str | None = Field(default=None, max_length=255)
     department: str | None = Field(default=None, max_length=100)
@@ -394,8 +394,8 @@ class ClubMemberCreate(ClubMemberBase):
 
 
 class ClubMemberUpdate(SQLModel):
-    first_name: str | None = Field(default=None, max_length=100)
-    last_name: str | None = Field(default=None, max_length=100)
+    first_name: str | None = Field(default=None, min_length=1, max_length=100)
+    last_name: str | None = Field(default=None, min_length=1, max_length=100)
     position: str | None = Field(default=None, max_length=100)
     position_title: str | None = Field(default=None, max_length=255)
     department: str | None = Field(default=None, max_length=100)
@@ -429,10 +429,10 @@ class ClubMembersPublic(SQLModel):
 
 
 class ContactMessageCreate(SQLModel):
-    name: str = Field(max_length=255)
+    name: str = Field(min_length=1, max_length=255)
     email: EmailStr = Field(max_length=255)
     subject: str | None = Field(default=None, max_length=500)
-    message: str
+    message: str = Field(min_length=1, max_length=10000)
 
 
 class ContactMessage(SQLModel, table=True):

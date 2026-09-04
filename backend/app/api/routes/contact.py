@@ -1,10 +1,11 @@
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import col, func, select
 
 from app.api.deps import AdminUser, SessionDep, SuperAdminUser
 from app.core.config import settings
+from app.core.rate_limit import contact_rate_limiter
 from app.models import (
     ContactMessage,
     ContactMessageCreate,
@@ -18,7 +19,11 @@ from app.utils import send_email
 router = APIRouter(prefix="/contact", tags=["contact"])
 
 
-@router.post("/", response_model=Message)
+@router.post(
+    "/",
+    response_model=Message,
+    dependencies=[Depends(contact_rate_limiter)],
+)
 def submit_contact_form(
     *,
     session: SessionDep,

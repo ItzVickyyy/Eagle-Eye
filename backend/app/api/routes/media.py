@@ -17,8 +17,19 @@ from app.models import (
 
 router = APIRouter(prefix="/media", tags=["media"])
 
-UPLOAD_DIR = Path("uploads")
+UPLOAD_DIR = Path("uploads").resolve()
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+MAX_UPLOAD_BYTES = 15 * 1024 * 1024  # 15 MB
+
+ALLOWED_MIME_TYPES: dict[str, list[str]] = {
+    "image/jpeg": [".jpg", ".jpeg"],
+    "image/png": [".png"],
+    "image/webp": [".webp"],
+    "image/gif": [".gif"],
+    "video/mp4": [".mp4"],
+    "video/webm": [".webm"],
+}
 
 
 @router.get("/", response_model=MediasPublic)
@@ -68,24 +79,45 @@ async def upload_file(
     current_user: CurrentUser,
 ) -> Any:
     """
-    Upload an image or video file.
+    Upload an image or video file with strict MIME and extension validation.
     """
     if not file.content_type:
         raise HTTPException(status_code=400, detail="Invalid file type")
 
-    allowed_types = ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm"]
-    if file.content_type not in allowed_types:
-        raise HTTPException(status_code=400, detail="File type not supported. Use JPG, PNG, WEBP, GIF, or MP4.")
-
-    ext = os.path.splitext(file.filename or "")[1] or ".jpg"
-    unique_filename = f"{uuid.uuid4()}{ext}"
-    target_path = UPLOAD_DIR / unique_filename
+    content_type = file.content_type.lower()
+    if content_type not in ALLOWED_MIME_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail="File type not supported. Use JPG, PNG, WEBP, GIF, or MP4.",
+        )
 
     content = await file.read()
+    if len(content) > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail="File size exceeds maximum allowed limit of 15MB.",
+        )
+    if len(content) == 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded file is empty.",
+        )
+
+    # Validate extension against allowed extensions for this MIME type
+    raw_ext = os.path.splitext(file.filename or "")[1].lower()
+    valid_extensions = ALLOWED_MIME_TYPES[content_type]
+    ext = raw_ext if raw_ext in valid_extensions else valid_extensions[0]
+
+    unique_filename = f"{uuid.uuid4().hex}{ext}"
+    target_path = (UPLOAD_DIR / unique_filename).resolve()
+
+    if not target_path.is_relative_to(UPLOAD_DIR):
+        raise HTTPException(status_code=400, detail="Invalid target filename.")
+
     target_path.write_bytes(content)
 
     file_url = f"/uploads/{unique_filename}"
-    file_type = "image" if file.content_type.startswith("image") else "video"
+    file_type = "image" if content_type.startswith("image") else "video"
 
     media = Media(
         file_url=file_url,

@@ -1,10 +1,11 @@
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import col, func, select
 
 from app.api.deps import AdminUser, SessionDep
+from app.core.rate_limit import comment_rate_limiter
 from app.models import (
     Article,
     Comment,
@@ -74,7 +75,11 @@ def get_all_comments(
     return CommentsPublic(data=comments_public, count=count)
 
 
-@router.post("/", response_model=CommentPublic)
+@router.post(
+    "/",
+    response_model=CommentPublic,
+    dependencies=[Depends(comment_rate_limiter)],
+)
 def create_comment(
     *,
     session: SessionDep,

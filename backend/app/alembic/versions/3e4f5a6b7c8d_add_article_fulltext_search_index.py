@@ -21,9 +21,15 @@ depends_on = None
 #
 # `regexp_replace` strips HTML markup from the sanitized article body at
 # index/search time only; the write-time sanitization pipeline is untouched.
+#
+# Note: `concat_ws` is marked STABLE by PostgreSQL and is therefore NOT
+# permitted in index expressions. We must use the IMMUTABLE `||` string
+# concatenation operator instead so the functional GIN index is accepted.
 DOC_EXPRESSION = sa.text(
-    "to_tsvector('english', concat_ws(' ', headline, "
-    "coalesce(excerpt, ''), regexp_replace(coalesce(body, ''), '<[^>]+>', '', 'g')))"
+    "to_tsvector('english', regexp_replace("
+    "coalesce(headline, '') || ' ' || "
+    "coalesce(excerpt, '') || ' ' || "
+    "coalesce(body, ''), '<[^>]+>', '', 'g'))"
 )
 
 

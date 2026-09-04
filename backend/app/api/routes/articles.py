@@ -51,12 +51,25 @@ def _fts_document() -> Any:
     tag-stripped body), so PostgreSQL can use the ``GIN`` index for lookups.
     HTML markup is removed at search/index time only; the write-time
     sanitization pipeline is untouched.
+
+    Uses the ``||`` operator (IMMUTABLE) rather than ``concat_ws`` (STABLE) so
+    the same expression is valid as both an index expression and a runtime
+    filter expression. The space separator is rendered as a typed SQL literal
+    so PostgreSQL constant-folds it identically to the migration's literal
+    ``' '`` and the planner matches the functional GIN index.
     """
-    return sa_func.concat_ws(
-        " ",
-        Article.headline,
-        sa_func.coalesce(Article.excerpt, ""),
-        sa_func.regexp_replace(sa_func.coalesce(Article.body, ""), "<[^>]+>", "", "g"),
+    from sqlalchemy import String, literal_column
+
+    space: Any = literal_column("' '", String)
+    return sa_func.regexp_replace(
+        sa_func.coalesce(Article.headline, "")
+        .op("||")(space)
+        .op("||")(sa_func.coalesce(Article.excerpt, ""))
+        .op("||")(space)
+        .op("||")(sa_func.coalesce(Article.body, "")),
+        "<[^>]+>",
+        "",
+        "g",
     )
 
 

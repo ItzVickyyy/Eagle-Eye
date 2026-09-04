@@ -19,6 +19,7 @@ import {
   MediaService,
   TagsService,
 } from "@/client"
+import { RichTextEditor } from "@/components/Admin/RichTextEditor"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -217,12 +218,24 @@ function NewArticle() {
     }
   }
 
+  const isBodyEmpty = (content: string) => {
+    const trimmed = content.trim()
+    if (!trimmed) return true
+    const stripped = trimmed
+      .replace(/<p><\/p>/gi, "")
+      .replace(/<p><br\s*\/?><\/p>/gi, "")
+      .replace(/<br\s*\/?>/gi, "")
+      .replace(/&nbsp;/gi, " ")
+      .trim()
+    return stripped.length === 0 && !trimmed.includes("<img")
+  }
+
   const handleSave = (status: ArticleStatus) => {
     if (!headline.trim()) {
       showErrorToast("Please enter an article headline")
       return
     }
-    if (!body.trim()) {
+    if (isBodyEmpty(body)) {
       showErrorToast("Please enter article content")
       return
     }
@@ -333,12 +346,11 @@ function NewArticle() {
             </div>
 
             <TabsContent value="write" className="m-0">
-              <Textarea
-                placeholder="Write your article body here... (Supports HTML formatting like <p>, <h3>, <blockquote>, <ul>, etc.)"
-                rows={16}
+              <RichTextEditor
                 value={body}
-                onChange={(e) => setBody(e.target.value)}
-                className="font-mono text-sm leading-relaxed"
+                onChange={setBody}
+                placeholder="Write your article body here... Add headings, quotes, lists, links, images, and rich formatting."
+                disabled={saveMutation.isPending}
               />
             </TabsContent>
 

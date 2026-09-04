@@ -64,7 +64,13 @@ def get_all_comments(
         select(func.count()).select_from(statement.subquery())
     ).one()
     comments = session.exec(statement.offset(skip).limit(limit)).all()
-    comments_public = [CommentPublic.model_validate(c) for c in comments]
+    comments_public = []
+    for c in comments:
+        cp = CommentPublic.model_validate(c)
+        if c.article:
+            cp.article_headline = c.article.headline
+            cp.article_slug = c.article.slug
+        comments_public.append(cp)
     return CommentsPublic(data=comments_public, count=count)
 
 

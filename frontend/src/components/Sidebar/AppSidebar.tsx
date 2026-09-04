@@ -3,8 +3,10 @@ import {
   BarChart2,
   FileText,
   Home,
+  Inbox,
   Layers,
   ListChecks,
+  MessageSquare,
   Settings,
   Users,
 } from "lucide-react"
@@ -35,6 +37,11 @@ interface NavItem {
 const editorItems: NavItem[] = [
   { icon: FileText, title: "Articles", path: "/admin/articles" },
   { icon: ListChecks, title: "Review Queue", path: "/admin/review-queue" },
+]
+
+const moderationItems: NavItem[] = [
+  { icon: MessageSquare, title: "Comments", path: "/admin/comments" },
+  { icon: Inbox, title: "Contact Inbox", path: "/admin/contact" },
 ]
 
 const superAdminItems: NavItem[] = [
@@ -89,6 +96,11 @@ function NavGroup({ label, items }: { label?: string; items: NavItem[] }) {
 export function AppSidebar() {
   const { user: currentUser } = useAuth()
 
+  const isStaffAdmin =
+    currentUser?.is_superuser ||
+    currentUser?.role === "super_admin" ||
+    currentUser?.role === "admin"
+
   const dashboardItems: NavItem[] = [
     { icon: Home, title: "Dashboard", path: "/admin" },
   ]
@@ -101,6 +113,9 @@ export function AppSidebar() {
       <SidebarContent>
         <NavGroup items={dashboardItems} />
         <NavGroup label="Content" items={editorItems} />
+        {isStaffAdmin && (
+          <NavGroup label="Moderation & Inbox" items={moderationItems} />
+        )}
         {currentUser?.is_superuser && (
           <NavGroup label="Administration" items={superAdminItems} />
         )}

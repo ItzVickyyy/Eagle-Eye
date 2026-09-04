@@ -23,6 +23,8 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin/analytics'
 import { Route as AdminArticlesRouteImport } from './routes/admin/articles'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
+import { Route as AdminCommentsRouteImport } from './routes/admin/comments'
+import { Route as AdminContactRouteImport } from './routes/admin/contact'
 import { Route as AdminMembersRouteImport } from './routes/admin/members'
 import { Route as AdminReviewQueueRouteImport } from './routes/admin/review-queue'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
@@ -101,6 +103,16 @@ const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
   path: '/categories',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCommentsRoute = AdminCommentsRouteImport.update({
+  id: '/comments',
+  path: '/comments',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminContactRoute = AdminContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminMembersRoute = AdminMembersRouteImport.update({
   id: '/members',
   path: '/members',
@@ -155,6 +167,8 @@ export interface FileRoutesByFullPath {
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/articles': typeof AdminArticlesRouteWithChildren
   '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/comments': typeof AdminCommentsRoute
+  '/admin/contact': typeof AdminContactRoute
   '/admin/members': typeof AdminMembersRoute
   '/admin/review-queue': typeof AdminReviewQueueRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -176,6 +190,8 @@ export interface FileRoutesByTo {
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/articles': typeof AdminArticlesRouteWithChildren
   '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/comments': typeof AdminCommentsRoute
+  '/admin/contact': typeof AdminContactRoute
   '/admin/members': typeof AdminMembersRoute
   '/admin/review-queue': typeof AdminReviewQueueRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -201,6 +217,8 @@ export interface FileRoutesById {
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/articles': typeof AdminArticlesRouteWithChildren
   '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/comments': typeof AdminCommentsRoute
+  '/admin/contact': typeof AdminContactRoute
   '/admin/members': typeof AdminMembersRoute
   '/admin/review-queue': typeof AdminReviewQueueRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -227,6 +245,8 @@ export interface FileRouteTypes {
     | '/admin/analytics'
     | '/admin/articles'
     | '/admin/categories'
+    | '/admin/comments'
+    | '/admin/contact'
     | '/admin/members'
     | '/admin/review-queue'
     | '/admin/settings'
@@ -248,6 +268,8 @@ export interface FileRouteTypes {
     | '/admin/analytics'
     | '/admin/articles'
     | '/admin/categories'
+    | '/admin/comments'
+    | '/admin/contact'
     | '/admin/members'
     | '/admin/review-queue'
     | '/admin/settings'
@@ -272,6 +294,8 @@ export interface FileRouteTypes {
     | '/admin/analytics'
     | '/admin/articles'
     | '/admin/categories'
+    | '/admin/comments'
+    | '/admin/contact'
     | '/admin/members'
     | '/admin/review-queue'
     | '/admin/settings'
@@ -393,6 +417,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCategoriesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/comments': {
+      id: '/admin/comments'
+      path: '/comments'
+      fullPath: '/admin/comments'
+      preLoaderRoute: typeof AdminCommentsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/contact': {
+      id: '/admin/contact'
+      path: '/contact'
+      fullPath: '/admin/contact'
+      preLoaderRoute: typeof AdminContactRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/members': {
       id: '/admin/members'
       path: '/members'
@@ -489,6 +527,8 @@ interface AdminRouteChildren {
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminArticlesRoute: typeof AdminArticlesRouteWithChildren
   AdminCategoriesRoute: typeof AdminCategoriesRoute
+  AdminCommentsRoute: typeof AdminCommentsRoute
+  AdminContactRoute: typeof AdminContactRoute
   AdminMembersRoute: typeof AdminMembersRoute
   AdminReviewQueueRoute: typeof AdminReviewQueueRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
@@ -501,6 +541,8 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminArticlesRoute: AdminArticlesRouteWithChildren,
   AdminCategoriesRoute: AdminCategoriesRoute,
+  AdminCommentsRoute: AdminCommentsRoute,
+  AdminContactRoute: AdminContactRoute,
   AdminMembersRoute: AdminMembersRoute,
   AdminReviewQueueRoute: AdminReviewQueueRoute,
   AdminSettingsRoute: AdminSettingsRoute,

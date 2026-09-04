@@ -2,7 +2,7 @@
 
 import { type Client, formDataBodySerializer, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { analyticsGetAnalyticsOverviewData, analyticsGetAnalyticsOverviewResponses, articlesCreateArticleData, articlesCreateArticleErrors, articlesCreateArticleResponses, articlesDeleteArticleData, articlesDeleteArticleErrors, articlesDeleteArticleResponses, articlesGetArticleByIdData, articlesGetArticleByIdErrors, articlesGetArticleByIdResponses, articlesGetArticleBySlugData, articlesGetArticleBySlugErrors, articlesGetArticleBySlugResponses, articlesGetReviewQueueData, articlesGetReviewQueueErrors, articlesGetReviewQueueResponses, articlesReadArticlesData, articlesReadArticlesErrors, articlesReadArticlesResponses, articlesUpdateArticleData, articlesUpdateArticleErrors, articlesUpdateArticleResponses, categoriesCreateCategoryData, categoriesCreateCategoryErrors, categoriesCreateCategoryResponses, categoriesDeleteCategoryData, categoriesDeleteCategoryErrors, categoriesDeleteCategoryResponses, categoriesReadCategoriesData, categoriesReadCategoriesErrors, categoriesReadCategoriesResponses, categoriesReadCategoryData, categoriesReadCategoryErrors, categoriesReadCategoryResponses, categoriesUpdateCategoryData, categoriesUpdateCategoryErrors, categoriesUpdateCategoryResponses, clubMembersCreateClubMemberData, clubMembersCreateClubMemberErrors, clubMembersCreateClubMemberResponses, clubMembersDeleteClubMemberData, clubMembersDeleteClubMemberErrors, clubMembersDeleteClubMemberResponses, clubMembersReadActiveMembersData, clubMembersReadActiveMembersResponses, clubMembersReadAllMembersData, clubMembersReadAllMembersErrors, clubMembersReadAllMembersResponses, clubMembersUpdateClubMemberData, clubMembersUpdateClubMemberErrors, clubMembersUpdateClubMemberResponses, commentsCreateCommentData, commentsCreateCommentErrors, commentsCreateCommentResponses, commentsDeleteCommentData, commentsDeleteCommentErrors, commentsDeleteCommentResponses, commentsGetAllCommentsData, commentsGetAllCommentsErrors, commentsGetAllCommentsResponses, commentsGetArticleCommentsData, commentsGetArticleCommentsErrors, commentsGetArticleCommentsResponses, commentsUpdateCommentStatusData, commentsUpdateCommentStatusErrors, commentsUpdateCommentStatusResponses, contactDeleteContactMessageData, contactDeleteContactMessageErrors, contactDeleteContactMessageResponses, contactMarkMessageReadData, contactMarkMessageReadErrors, contactMarkMessageReadResponses, contactReadContactMessagesData, contactReadContactMessagesErrors, contactReadContactMessagesResponses, contactSubmitContactFormData, contactSubmitContactFormErrors, contactSubmitContactFormResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, mediaDeleteMediaData, mediaDeleteMediaErrors, mediaDeleteMediaResponses, mediaReadMediaItemsData, mediaReadMediaItemsErrors, mediaReadMediaItemsResponses, mediaRegisterMediaData, mediaRegisterMediaErrors, mediaRegisterMediaResponses, mediaUploadFileData, mediaUploadFileErrors, mediaUploadFileResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, settingsDeleteSiteSettingData, settingsDeleteSiteSettingErrors, settingsDeleteSiteSettingResponses, settingsGetSiteSettingData, settingsGetSiteSettingErrors, settingsGetSiteSettingResponses, settingsGetSiteSettingsData, settingsGetSiteSettingsResponses, settingsSetSiteSettingData, settingsSetSiteSettingErrors, settingsSetSiteSettingResponses, tagsCreateTagData, tagsCreateTagErrors, tagsCreateTagResponses, tagsDeleteTagData, tagsDeleteTagErrors, tagsDeleteTagResponses, tagsReadTagsData, tagsReadTagsErrors, tagsReadTagsResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses } from './types.gen';
+import type { analyticsGetAnalyticsOverviewData, analyticsGetAnalyticsOverviewResponses, articlesCreateArticleData, articlesCreateArticleErrors, articlesCreateArticleResponses, articlesDeleteArticleData, articlesDeleteArticleErrors, articlesDeleteArticleResponses, articlesGetArticleByIdData, articlesGetArticleByIdErrors, articlesGetArticleByIdResponses, articlesGetArticleBySlugData, articlesGetArticleBySlugErrors, articlesGetArticleBySlugResponses, articlesGetReviewQueueData, articlesGetReviewQueueErrors, articlesGetReviewQueueResponses, articlesReadArticlesData, articlesReadArticlesErrors, articlesReadArticlesResponses, articlesUpdateArticleData, articlesUpdateArticleErrors, articlesUpdateArticleResponses, categoriesCreateCategoryData, categoriesCreateCategoryErrors, categoriesCreateCategoryResponses, categoriesDeleteCategoryData, categoriesDeleteCategoryErrors, categoriesDeleteCategoryResponses, categoriesReadCategoriesData, categoriesReadCategoriesErrors, categoriesReadCategoriesResponses, categoriesReadCategoryData, categoriesReadCategoryErrors, categoriesReadCategoryResponses, categoriesUpdateCategoryData, categoriesUpdateCategoryErrors, categoriesUpdateCategoryResponses, clubMembersCreateClubMemberData, clubMembersCreateClubMemberErrors, clubMembersCreateClubMemberResponses, clubMembersDeleteClubMemberData, clubMembersDeleteClubMemberErrors, clubMembersDeleteClubMemberResponses, clubMembersReadActiveMembersData, clubMembersReadActiveMembersResponses, clubMembersReadAllMembersData, clubMembersReadAllMembersErrors, clubMembersReadAllMembersResponses, clubMembersUpdateClubMemberData, clubMembersUpdateClubMemberErrors, clubMembersUpdateClubMemberResponses, commentsCreateCommentData, commentsCreateCommentErrors, commentsCreateCommentResponses, commentsDeleteCommentData, commentsDeleteCommentErrors, commentsDeleteCommentResponses, commentsGetAllCommentsData, commentsGetAllCommentsErrors, commentsGetAllCommentsResponses, commentsGetArticleCommentsData, commentsGetArticleCommentsErrors, commentsGetArticleCommentsResponses, commentsUpdateCommentStatusData, commentsUpdateCommentStatusErrors, commentsUpdateCommentStatusResponses, contactDeleteContactMessageData, contactDeleteContactMessageErrors, contactDeleteContactMessageResponses, contactGetContactMessageData, contactGetContactMessageErrors, contactGetContactMessageResponses, contactMarkMessageReadData, contactMarkMessageReadErrors, contactMarkMessageReadResponses, contactMarkMessageUnreadData, contactMarkMessageUnreadErrors, contactMarkMessageUnreadResponses, contactReadContactMessagesData, contactReadContactMessagesErrors, contactReadContactMessagesResponses, contactSubmitContactFormData, contactSubmitContactFormErrors, contactSubmitContactFormResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, mediaDeleteMediaData, mediaDeleteMediaErrors, mediaDeleteMediaResponses, mediaReadMediaItemsData, mediaReadMediaItemsErrors, mediaReadMediaItemsResponses, mediaRegisterMediaData, mediaRegisterMediaErrors, mediaRegisterMediaResponses, mediaUploadFileData, mediaUploadFileErrors, mediaUploadFileResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, settingsDeleteSiteSettingData, settingsDeleteSiteSettingErrors, settingsDeleteSiteSettingResponses, settingsGetSiteSettingData, settingsGetSiteSettingErrors, settingsGetSiteSettingResponses, settingsGetSiteSettingsData, settingsGetSiteSettingsResponses, settingsSetSiteSettingData, settingsSetSiteSettingErrors, settingsSetSiteSettingResponses, tagsCreateTagData, tagsCreateTagErrors, tagsCreateTagResponses, tagsDeleteTagData, tagsDeleteTagErrors, tagsDeleteTagResponses, tagsReadTagsData, tagsReadTagsErrors, tagsReadTagsResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -688,6 +688,34 @@ export class ContactService {
     }
     
     /**
+     * Delete Contact Message
+     *
+     * Delete contact message (Admin / Super Admin).
+     */
+    public static deleteContactMessage<ThrowOnError extends boolean = true>(options: Options<contactDeleteContactMessageData, ThrowOnError>) {
+        return (options.client ?? client).delete<contactDeleteContactMessageResponses, contactDeleteContactMessageErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/contact/{id}',
+            ...options
+        });
+    }
+    
+    /**
+     * Get Contact Message
+     *
+     * Get contact message details (Admin / Super Admin).
+     */
+    public static getContactMessage<ThrowOnError extends boolean = true>(options: Options<contactGetContactMessageData, ThrowOnError>) {
+        return (options.client ?? client).get<contactGetContactMessageResponses, contactGetContactMessageErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/contact/{id}',
+            ...options
+        });
+    }
+    
+    /**
      * Mark Message Read
      *
      * Mark contact message as read (Admin / Super Admin).
@@ -702,15 +730,15 @@ export class ContactService {
     }
     
     /**
-     * Delete Contact Message
+     * Mark Message Unread
      *
-     * Delete contact message (Super Admin).
+     * Mark contact message as unread/new (Admin / Super Admin).
      */
-    public static deleteContactMessage<ThrowOnError extends boolean = true>(options: Options<contactDeleteContactMessageData, ThrowOnError>) {
-        return (options.client ?? client).delete<contactDeleteContactMessageResponses, contactDeleteContactMessageErrors, ThrowOnError>({
+    public static markMessageUnread<ThrowOnError extends boolean = true>(options: Options<contactMarkMessageUnreadData, ThrowOnError>) {
+        return (options.client ?? client).patch<contactMarkMessageUnreadResponses, contactMarkMessageUnreadErrors, ThrowOnError>({
             responseType: 'json',
             security: [{ scheme: 'bearer', type: 'http' }],
-            url: '/api/v1/contact/{id}',
+            url: '/api/v1/contact/{id}/mark-unread',
             ...options
         });
     }

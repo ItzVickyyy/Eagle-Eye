@@ -558,6 +558,14 @@ export type CommentPublic = {
      * Created At
      */
     created_at?: string | null;
+    /**
+     * Article Headline
+     */
+    article_headline?: string | null;
+    /**
+     * Article Slug
+     */
+    article_slug?: string | null;
 };
 
 /**
@@ -2301,6 +2309,66 @@ export type contactSubmitContactFormResponses = {
 
 export type contactSubmitContactFormResponse = contactSubmitContactFormResponses[keyof contactSubmitContactFormResponses];
 
+export type contactDeleteContactMessageData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/api/v1/contact/{id}';
+};
+
+export type contactDeleteContactMessageErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type contactDeleteContactMessageError = contactDeleteContactMessageErrors[keyof contactDeleteContactMessageErrors];
+
+export type contactDeleteContactMessageResponses = {
+    /**
+     * Successful Response
+     */
+    200: Message;
+};
+
+export type contactDeleteContactMessageResponse = contactDeleteContactMessageResponses[keyof contactDeleteContactMessageResponses];
+
+export type contactGetContactMessageData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/api/v1/contact/{id}';
+};
+
+export type contactGetContactMessageErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type contactGetContactMessageError = contactGetContactMessageErrors[keyof contactGetContactMessageErrors];
+
+export type contactGetContactMessageResponses = {
+    /**
+     * Successful Response
+     */
+    200: ContactMessagePublic;
+};
+
+export type contactGetContactMessageResponse = contactGetContactMessageResponses[keyof contactGetContactMessageResponses];
+
 export type contactMarkMessageReadData = {
     body?: never;
     path: {
@@ -2331,7 +2399,7 @@ export type contactMarkMessageReadResponses = {
 
 export type contactMarkMessageReadResponse = contactMarkMessageReadResponses[keyof contactMarkMessageReadResponses];
 
-export type contactDeleteContactMessageData = {
+export type contactMarkMessageUnreadData = {
     body?: never;
     path: {
         /**
@@ -2340,26 +2408,26 @@ export type contactDeleteContactMessageData = {
         id: number;
     };
     query?: never;
-    url: '/api/v1/contact/{id}';
+    url: '/api/v1/contact/{id}/mark-unread';
 };
 
-export type contactDeleteContactMessageErrors = {
+export type contactMarkMessageUnreadErrors = {
     /**
      * Validation Error
      */
     422: HTTPValidationError;
 };
 
-export type contactDeleteContactMessageError = contactDeleteContactMessageErrors[keyof contactDeleteContactMessageErrors];
+export type contactMarkMessageUnreadError = contactMarkMessageUnreadErrors[keyof contactMarkMessageUnreadErrors];
 
-export type contactDeleteContactMessageResponses = {
+export type contactMarkMessageUnreadResponses = {
     /**
      * Successful Response
      */
-    200: Message;
+    200: ContactMessagePublic;
 };
 
-export type contactDeleteContactMessageResponse = contactDeleteContactMessageResponses[keyof contactDeleteContactMessageResponses];
+export type contactMarkMessageUnreadResponse = contactMarkMessageUnreadResponses[keyof contactMarkMessageUnreadResponses];
 
 export type settingsGetSiteSettingsData = {
     body?: never;

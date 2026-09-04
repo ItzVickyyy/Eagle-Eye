@@ -47,7 +47,8 @@ function AboutPage() {
     queryFn: () => ClubMembersService.membersReadActiveMembers(),
   })
 
-  const members: any[] = (membersRes as any)?.data?.data || (membersRes as any)?.data || []
+  const members: any[] =
+    (membersRes as any)?.data?.data || (membersRes as any)?.data || []
   const advisers = members.filter(
     (m: any) =>
       m.position?.toLowerCase().includes("adviser") ||

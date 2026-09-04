@@ -54,11 +54,12 @@ export const columns: ColumnDef<UserTableData>[] = [
 
       return (
         <div className="flex flex-wrap items-center gap-1.5">
-          <Badge variant={isSuper ? "default" : "secondary"}>
-            {roleLabel}
-          </Badge>
+          <Badge variant={isSuper ? "default" : "secondary"}>{roleLabel}</Badge>
           {isDev && (
-            <Badge variant="outline" className="border-purple-500 text-purple-600 dark:text-purple-400">
+            <Badge
+              variant="outline"
+              className="border-purple-500 text-purple-600 dark:text-purple-400"
+            >
               Developer
             </Badge>
           )}

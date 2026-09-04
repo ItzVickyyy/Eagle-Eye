@@ -11,7 +11,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 
-import { CommentsService, type CommentStatus, UsersService } from "@/client"
+import { type CommentStatus, CommentsService, UsersService } from "@/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -42,9 +42,7 @@ export const Route = createFileRoute("/admin/comments")({
   beforeLoad: async () => {
     const { data: user } = await UsersService.readUserMe()
     const isStaffAdmin =
-      user.is_superuser ||
-      user.role === "super_admin" ||
-      user.role === "admin"
+      user.is_superuser || user.role === "super_admin" || user.role === "admin"
     if (!isStaffAdmin) {
       throw redirect({
         to: "/admin",
@@ -76,8 +74,7 @@ const statusBadgeVariants: Record<
   },
   spam: {
     label: "Spam",
-    className:
-      "bg-destructive/10 text-destructive border-destructive/20",
+    className: "bg-destructive/10 text-destructive border-destructive/20",
   },
 }
 
@@ -115,9 +112,7 @@ function CommentsModeration() {
         body: { status },
       }),
     onSuccess: (_, variables) => {
-      showSuccessToast(
-        `Comment marked as ${variables.status} successfully`
-      )
+      showSuccessToast(`Comment marked as ${variables.status} successfully`)
       queryClient.invalidateQueries({ queryKey: ["admin-comments"] })
     },
     onError: (err: any) => {
@@ -126,8 +121,7 @@ function CommentsModeration() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) =>
-      CommentsService.deleteComment({ path: { id } }),
+    mutationFn: (id: number) => CommentsService.deleteComment({ path: { id } }),
     onSuccess: () => {
       showSuccessToast("Comment deleted successfully")
       setCommentToDelete(null)
@@ -144,7 +138,8 @@ function CommentsModeration() {
         <ShieldAlert className="size-12 text-destructive mb-3" />
         <h2 className="text-xl font-bold">Access Restricted</h2>
         <p className="text-muted-foreground text-sm mt-1 max-w-md">
-          Comment moderation requires Editorial Staff or Administrator privileges.
+          Comment moderation requires Editorial Staff or Administrator
+          privileges.
         </p>
       </div>
     )
@@ -169,7 +164,9 @@ function CommentsModeration() {
       {/* Header */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Comment Moderation</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Comment Moderation
+          </h1>
           <p className="text-muted-foreground text-sm">
             Review, approve, or remove reader comments across published stories.
           </p>
@@ -218,13 +215,19 @@ function CommentsModeration() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={6}
+                  className="h-32 text-center text-muted-foreground"
+                >
                   Loading comments...
                 </TableCell>
               </TableRow>
             ) : filteredComments.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={6}
+                  className="h-32 text-center text-muted-foreground"
+                >
                   <div className="flex flex-col items-center justify-center gap-1.5">
                     <MessageSquare className="size-6 text-muted-foreground/60" />
                     <span>No comments found</span>
@@ -350,7 +353,8 @@ function CommentsModeration() {
             <DialogTitle>Delete Comment</DialogTitle>
             <DialogDescription>
               Are you sure you want to permanently delete this comment by{" "}
-              <strong>{commentToDelete?.guest_name}</strong>? This action cannot be undone.
+              <strong>{commentToDelete?.guest_name}</strong>? This action cannot
+              be undone.
             </DialogDescription>
           </DialogHeader>
 

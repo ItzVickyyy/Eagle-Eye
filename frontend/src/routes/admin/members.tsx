@@ -6,8 +6,8 @@ import {
   Trash2,
   Upload,
   UserCheck,
-  UserX,
   Users,
+  UserX,
 } from "lucide-react"
 import { useState } from "react"
 
@@ -240,7 +240,8 @@ function Members() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Club Members</h1>
           <p className="text-muted-foreground text-sm">
-            Manage the student editorial board, officers, and faculty advisers displayed on the About Us page.
+            Manage the student editorial board, officers, and faculty advisers
+            displayed on the About Us page.
           </p>
         </div>
         <Button onClick={openCreate} className="gap-2">
@@ -264,7 +265,10 @@ function Members() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={6}
+                  className="h-32 text-center text-muted-foreground"
+                >
                   Loading members...
                 </TableCell>
               </TableRow>
@@ -288,7 +292,10 @@ function Members() {
                       <div className="flex items-center gap-3">
                         <Avatar className="size-9">
                           {member.photo_url && (
-                            <AvatarImage src={member.photo_url} alt={fullName} />
+                            <AvatarImage
+                              src={member.photo_url}
+                              alt={fullName}
+                            />
                           )}
                           <AvatarFallback className="text-xs">
                             {initials}
@@ -375,7 +382,8 @@ function Members() {
                 {editingMember ? "Edit Club Member" : "Add Club Member"}
               </DialogTitle>
               <DialogDescription>
-                Add member details to display in the About Us leadership & staff list.
+                Add member details to display in the About Us leadership & staff
+                list.
               </DialogDescription>
             </DialogHeader>
 
@@ -428,7 +436,7 @@ function Members() {
                   <Avatar className="size-12 border">
                     {photoUrl && <AvatarImage src={photoUrl} />}
                     <AvatarFallback className="text-xs">
-                      {getInitials(firstName + " " + lastName) || "?"}
+                      {getInitials(`${firstName} ${lastName}`) || "?"}
                     </AvatarFallback>
                   </Avatar>
                   <label className="cursor-pointer">
@@ -517,8 +525,8 @@ function Members() {
           <DialogHeader>
             <DialogTitle>Delete Member</DialogTitle>
             <DialogDescription>
-              Are you sure you want to remove{" "}
-              {memberToDelete?.first_name} {memberToDelete?.last_name} from the club directory?
+              Are you sure you want to remove {memberToDelete?.first_name}{" "}
+              {memberToDelete?.last_name} from the club directory?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

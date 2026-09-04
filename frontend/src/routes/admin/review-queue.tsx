@@ -32,9 +32,7 @@ export const Route = createFileRoute("/admin/review-queue")({
   beforeLoad: async () => {
     const { data: user } = await UsersService.readUserMe()
     const isStaffAdmin =
-      user.is_superuser ||
-      user.role === "super_admin" ||
-      user.role === "admin"
+      user.is_superuser || user.role === "super_admin" || user.role === "admin"
     if (!isStaffAdmin) {
       throw redirect({
         to: "/admin",
@@ -60,7 +58,13 @@ function ReviewQueue() {
     (queueRes?.data as any)?.data || (queueRes as any)?.data || []
 
   const updateStatusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: number; status: "published" | "draft" }) =>
+    mutationFn: ({
+      id,
+      status,
+    }: {
+      id: number
+      status: "published" | "draft"
+    }) =>
       ArticlesService.updateArticle({
         path: { id: String(id) },
         body: { status },
@@ -100,15 +104,17 @@ function ReviewQueue() {
           </div>
           <h3 className="text-lg font-semibold">Review queue is empty</h3>
           <p className="mt-1 text-muted-foreground text-sm max-w-xs">
-            All submitted articles have been reviewed. New submissions will appear
-            here automatically.
+            All submitted articles have been reviewed. New submissions will
+            appear here automatically.
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4">
           {articles.map((article) => {
             const authorName =
-              article.author?.full_name || article.author?.email || "Contributor"
+              article.author?.full_name ||
+              article.author?.email ||
+              "Contributor"
 
             return (
               <div

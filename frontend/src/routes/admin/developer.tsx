@@ -14,7 +14,11 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 
-import { DeveloperService, type FeatureFlagsUpdate, UsersService } from "@/client"
+import {
+  DeveloperService,
+  type FeatureFlagsUpdate,
+  UsersService,
+} from "@/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -81,18 +85,12 @@ function DeveloperDashboard() {
     queryFn: async () => (await DeveloperService.getSystemDiagnostics()).data,
   })
 
-  const {
-    data: featureFlags,
-    isLoading: isFlagsLoading,
-  } = useQuery({
+  const { data: featureFlags, isLoading: isFlagsLoading } = useQuery({
     queryKey: ["developerFeatureFlags"],
     queryFn: async () => (await DeveloperService.getFeatureFlags()).data,
   })
 
-  const {
-    data: logs,
-    isLoading: isLogsLoading,
-  } = useQuery({
+  const { data: logs, isLoading: isLogsLoading } = useQuery({
     queryKey: ["developerLogs"],
     queryFn: async () => (await DeveloperService.getSystemLogs()).data,
   })
@@ -125,13 +123,19 @@ function DeveloperDashboard() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold tracking-tight">Developer System Dashboard</h1>
-            <Badge variant="outline" className="border-purple-500 text-purple-600 dark:text-purple-400">
+            <h1 className="text-2xl font-bold tracking-tight">
+              Developer System Dashboard
+            </h1>
+            <Badge
+              variant="outline"
+              className="border-purple-500 text-purple-600 dark:text-purple-400"
+            >
               System Level
             </Badge>
           </div>
           <p className="text-muted-foreground mt-1">
-            Technical maintenance, runtime diagnostics, and system-level configuration
+            Technical maintenance, runtime diagnostics, and system-level
+            configuration
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -142,7 +146,9 @@ function DeveloperDashboard() {
             disabled={isHealthRefetching}
             className="gap-2"
           >
-            <RefreshCw className={`size-4 ${isHealthRefetching ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`size-4 ${isHealthRefetching ? "animate-spin" : ""}`}
+            />
             Refresh Diagnostics
           </Button>
         </div>
@@ -167,14 +173,19 @@ function DeveloperDashboard() {
               </div>
             )}
             <p className="text-xs text-muted-foreground mt-1">
-              Environment: <span className="font-medium text-foreground">{health?.environment || "production"}</span>
+              Environment:{" "}
+              <span className="font-medium text-foreground">
+                {health?.environment || "production"}
+              </span>
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Database Latency</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Database Latency
+            </CardTitle>
             <Database className="size-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -186,14 +197,19 @@ function DeveloperDashboard() {
               </div>
             )}
             <p className="text-xs text-muted-foreground mt-1">
-              State: <span className="font-medium text-foreground capitalize">{health?.database_status || "connected"}</span>
+              State:{" "}
+              <span className="font-medium text-foreground capitalize">
+                {health?.database_status || "connected"}
+              </span>
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">FastAPI Engine</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              FastAPI Engine
+            </CardTitle>
             <Server className="size-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -212,7 +228,9 @@ function DeveloperDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">System Trust Boundary</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              System Trust Boundary
+            </CardTitle>
             <Shield className="size-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -227,7 +245,11 @@ function DeveloperDashboard() {
       </div>
 
       {/* Detailed Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-4"
+      >
         <TabsList>
           <TabsTrigger value="overview" className="gap-2">
             <Cpu className="size-4" />
@@ -268,41 +290,71 @@ function DeveloperDashboard() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Entity Table</TableHead>
-                        <TableHead className="text-right">Record Count</TableHead>
+                        <TableHead className="text-right">
+                          Record Count
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       <TableRow>
-                        <TableCell className="font-medium">Articles (All Statuses)</TableCell>
-                        <TableCell className="text-right">{diagnostics?.total_articles ?? 0}</TableCell>
+                        <TableCell className="font-medium">
+                          Articles (All Statuses)
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {diagnostics?.total_articles ?? 0}
+                        </TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell className="font-medium">Categories</TableCell>
-                        <TableCell className="text-right">{diagnostics?.total_categories ?? 0}</TableCell>
+                        <TableCell className="font-medium">
+                          Categories
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {diagnostics?.total_categories ?? 0}
+                        </TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell className="font-medium">Tags</TableCell>
-                        <TableCell className="text-right">{diagnostics?.total_tags ?? 0}</TableCell>
+                        <TableCell className="text-right">
+                          {diagnostics?.total_tags ?? 0}
+                        </TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell className="font-medium">Comments</TableCell>
-                        <TableCell className="text-right">{diagnostics?.total_comments ?? 0}</TableCell>
+                        <TableCell className="text-right">
+                          {diagnostics?.total_comments ?? 0}
+                        </TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell className="font-medium">Contact Inquiries</TableCell>
-                        <TableCell className="text-right">{diagnostics?.total_contact_messages ?? 0}</TableCell>
+                        <TableCell className="font-medium">
+                          Contact Inquiries
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {diagnostics?.total_contact_messages ?? 0}
+                        </TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell className="font-medium">Club Members</TableCell>
-                        <TableCell className="text-right">{diagnostics?.total_members ?? 0}</TableCell>
+                        <TableCell className="font-medium">
+                          Club Members
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {diagnostics?.total_members ?? 0}
+                        </TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell className="font-medium">Staff & User Accounts</TableCell>
-                        <TableCell className="text-right">{diagnostics?.total_users ?? 0}</TableCell>
+                        <TableCell className="font-medium">
+                          Staff & User Accounts
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {diagnostics?.total_users ?? 0}
+                        </TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell className="font-medium">Configured Site Settings</TableCell>
-                        <TableCell className="text-right">{diagnostics?.system_settings_count ?? 0}</TableCell>
+                        <TableCell className="font-medium">
+                          Configured Site Settings
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {diagnostics?.system_settings_count ?? 0}
+                        </TableCell>
                       </TableRow>
                     </TableBody>
                   </Table>
@@ -329,25 +381,45 @@ function DeveloperDashboard() {
                 ) : (
                   <div className="divide-y rounded-lg border text-sm">
                     <div className="flex items-center justify-between p-3">
-                      <span className="text-muted-foreground font-medium">Database Dialect</span>
-                      <Badge variant="outline">{diagnostics?.database_engine || "sqlite"}</Badge>
+                      <span className="text-muted-foreground font-medium">
+                        Database Dialect
+                      </span>
+                      <Badge variant="outline">
+                        {diagnostics?.database_engine || "sqlite"}
+                      </Badge>
                     </div>
                     <div className="flex items-center justify-between p-3">
-                      <span className="text-muted-foreground font-medium">Operating System</span>
-                      <span className="font-mono text-xs">{health?.platform_system || "Windows/Linux"}</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3">
-                      <span className="text-muted-foreground font-medium">Python Runtime</span>
-                      <span className="font-mono text-xs">{health?.python_version}</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3">
-                      <span className="text-muted-foreground font-medium">FastAPI Version</span>
-                      <span className="font-mono text-xs">{health?.fastapi_version}</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3">
-                      <span className="text-muted-foreground font-medium">Server UTC Timestamp</span>
+                      <span className="text-muted-foreground font-medium">
+                        Operating System
+                      </span>
                       <span className="font-mono text-xs">
-                        {health?.server_time_utc ? new Date(health.server_time_utc).toISOString() : "N/A"}
+                        {health?.platform_system || "Windows/Linux"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-3">
+                      <span className="text-muted-foreground font-medium">
+                        Python Runtime
+                      </span>
+                      <span className="font-mono text-xs">
+                        {health?.python_version}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-3">
+                      <span className="text-muted-foreground font-medium">
+                        FastAPI Version
+                      </span>
+                      <span className="font-mono text-xs">
+                        {health?.fastapi_version}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-3">
+                      <span className="text-muted-foreground font-medium">
+                        Server UTC Timestamp
+                      </span>
+                      <span className="font-mono text-xs">
+                        {health?.server_time_utc
+                          ? new Date(health.server_time_utc).toISOString()
+                          : "N/A"}
                       </span>
                     </div>
                   </div>
@@ -366,7 +438,8 @@ function DeveloperDashboard() {
                 Technical Feature Flags & Toggles
               </CardTitle>
               <CardDescription>
-                Live operational flags controlled at the application level by technical maintainers
+                Live operational flags controlled at the application level by
+                technical maintainers
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -380,15 +453,20 @@ function DeveloperDashboard() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
-                      <div className="font-semibold text-sm">Maintenance Mode</div>
+                      <div className="font-semibold text-sm">
+                        Maintenance Mode
+                      </div>
                       <div className="text-xs text-muted-foreground">
-                        Put the public site into temporary maintenance state for upgrades
+                        Put the public site into temporary maintenance state for
+                        upgrades
                       </div>
                     </div>
                     <Checkbox
                       checked={featureFlags?.maintenance_mode ?? false}
                       onCheckedChange={(checked) =>
-                        updateFlagsMutation.mutate({ maintenance_mode: Boolean(checked) })
+                        updateFlagsMutation.mutate({
+                          maintenance_mode: Boolean(checked),
+                        })
                       }
                       disabled={updateFlagsMutation.isPending}
                     />
@@ -396,15 +474,20 @@ function DeveloperDashboard() {
 
                   <div className="flex items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
-                      <div className="font-semibold text-sm">Public Reader Comments</div>
+                      <div className="font-semibold text-sm">
+                        Public Reader Comments
+                      </div>
                       <div className="text-xs text-muted-foreground">
-                        Allow public visitors to post new comments on published articles
+                        Allow public visitors to post new comments on published
+                        articles
                       </div>
                     </div>
                     <Checkbox
                       checked={featureFlags?.public_comments_enabled ?? true}
                       onCheckedChange={(checked) =>
-                        updateFlagsMutation.mutate({ public_comments_enabled: Boolean(checked) })
+                        updateFlagsMutation.mutate({
+                          public_comments_enabled: Boolean(checked),
+                        })
                       }
                       disabled={updateFlagsMutation.isPending}
                     />
@@ -412,15 +495,20 @@ function DeveloperDashboard() {
 
                   <div className="flex items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
-                      <div className="font-semibold text-sm">Contact Form Inquiries</div>
+                      <div className="font-semibold text-sm">
+                        Contact Form Inquiries
+                      </div>
                       <div className="text-xs text-muted-foreground">
-                        Accept new incoming message submissions through the public Contact Us form
+                        Accept new incoming message submissions through the
+                        public Contact Us form
                       </div>
                     </div>
                     <Checkbox
                       checked={featureFlags?.contact_form_enabled ?? true}
                       onCheckedChange={(checked) =>
-                        updateFlagsMutation.mutate({ contact_form_enabled: Boolean(checked) })
+                        updateFlagsMutation.mutate({
+                          contact_form_enabled: Boolean(checked),
+                        })
                       }
                       disabled={updateFlagsMutation.isPending}
                     />
@@ -428,15 +516,20 @@ function DeveloperDashboard() {
 
                   <div className="flex items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
-                      <div className="font-semibold text-sm">Public Self-Registration</div>
+                      <div className="font-semibold text-sm">
+                        Public Self-Registration
+                      </div>
                       <div className="text-xs text-muted-foreground">
-                        Enable or disable the public user sign-up endpoint (/signup)
+                        Enable or disable the public user sign-up endpoint
+                        (/signup)
                       </div>
                     </div>
                     <Checkbox
                       checked={featureFlags?.allow_public_signup ?? true}
                       onCheckedChange={(checked) =>
-                        updateFlagsMutation.mutate({ allow_public_signup: Boolean(checked) })
+                        updateFlagsMutation.mutate({
+                          allow_public_signup: Boolean(checked),
+                        })
                       }
                       disabled={updateFlagsMutation.isPending}
                     />
@@ -456,7 +549,8 @@ function DeveloperDashboard() {
                 Structured Application Diagnostic Logs
               </CardTitle>
               <CardDescription>
-                System startup, routing, and developer access events (sensitive credentials redacted)
+                System startup, routing, and developer access events (sensitive
+                credentials redacted)
               </CardDescription>
             </CardHeader>
             <CardContent>

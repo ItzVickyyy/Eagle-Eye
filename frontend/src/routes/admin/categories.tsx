@@ -40,9 +40,7 @@ export const Route = createFileRoute("/admin/categories")({
   beforeLoad: async () => {
     const { data: user } = await UsersService.readUserMe()
     const isStaffAdmin =
-      user.is_superuser ||
-      user.role === "super_admin" ||
-      user.role === "admin"
+      user.is_superuser || user.role === "super_admin" || user.role === "admin"
     if (!isStaffAdmin) {
       throw redirect({
         to: "/admin",
@@ -214,7 +212,8 @@ function Categories() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Categories</h1>
             <p className="text-muted-foreground text-sm">
-              Organize articles into main editorial sections (e.g. News, Academics, Sports, Events).
+              Organize articles into main editorial sections (e.g. News,
+              Academics, Sports, Events).
             </p>
           </div>
           <Button onClick={openCreateCategory} className="gap-2">
@@ -236,7 +235,10 @@ function Categories() {
             <TableBody>
               {loadingCategories ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-32 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={4}
+                    className="h-32 text-center text-muted-foreground"
+                  >
                     Loading categories...
                   </TableCell>
                 </TableRow>
@@ -294,7 +296,8 @@ function Categories() {
         <div>
           <h2 className="text-xl font-bold tracking-tight">Tags</h2>
           <p className="text-muted-foreground text-sm">
-            Keywords and topic tags applied across articles for cross-navigation.
+            Keywords and topic tags applied across articles for
+            cross-navigation.
           </p>
         </div>
 
@@ -352,7 +355,8 @@ function Categories() {
                 {editingCategory ? "Edit Category" : "Add Category"}
               </DialogTitle>
               <DialogDescription>
-                Categories group related articles on the website header and navigation.
+                Categories group related articles on the website header and
+                navigation.
               </DialogDescription>
             </DialogHeader>
 
@@ -411,8 +415,9 @@ function Categories() {
           <DialogHeader>
             <DialogTitle>Delete Category</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete category &ldquo;{categoryToDelete?.name}&rdquo;?
-              Articles in this category will become uncategorized.
+              Are you sure you want to delete category &ldquo;
+              {categoryToDelete?.name}&rdquo;? Articles in this category will
+              become uncategorized.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -431,7 +436,9 @@ function Categories() {
               }
               disabled={deleteCategoryMutation.isPending}
             >
-              {deleteCategoryMutation.isPending ? "Deleting..." : "Delete Category"}
+              {deleteCategoryMutation.isPending
+                ? "Deleting..."
+                : "Delete Category"}
             </Button>
           </DialogFooter>
         </DialogContent>

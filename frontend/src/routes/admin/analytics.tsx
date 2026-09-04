@@ -1,12 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link, redirect } from "@tanstack/react-router"
-import {
-  Clock,
-  Eye,
-  FileCheck,
-  MessageSquare,
-  TrendingUp,
-} from "lucide-react"
+import { Clock, Eye, FileCheck, MessageSquare, TrendingUp } from "lucide-react"
 
 import { AnalyticsService, UsersService } from "@/client"
 import { Badge } from "@/components/ui/badge"
@@ -32,9 +26,7 @@ export const Route = createFileRoute("/admin/analytics")({
   beforeLoad: async () => {
     const { data: user } = await UsersService.readUserMe()
     const isStaffAdmin =
-      user.is_superuser ||
-      user.role === "super_admin" ||
-      user.role === "admin"
+      user.is_superuser || user.role === "super_admin" || user.role === "admin"
     if (!isStaffAdmin) {
       throw redirect({
         to: "/admin",
@@ -203,7 +195,9 @@ function Analytics() {
                             {article.author?.full_name || article.author?.email}
                           </TableCell>
                           <TableCell className="text-xs text-muted-foreground">
-                            {formatDate(article.date_published || article.created_at)}
+                            {formatDate(
+                              article.date_published || article.created_at,
+                            )}
                           </TableCell>
                           <TableCell className="text-right font-mono font-semibold text-sm">
                             {article.views_count.toLocaleString()}

@@ -13,8 +13,8 @@ import { useEffect, useState } from "react"
 import { z } from "zod"
 
 import {
-  ArticlesService,
   type ArticleStatus,
+  ArticlesService,
   CategoriesService,
   MediaService,
   TagsService,
@@ -101,7 +101,8 @@ function NewArticle() {
 
   useEffect(() => {
     if (existingArticleRes) {
-      const article: any = (existingArticleRes as any)?.data || existingArticleRes
+      const article: any =
+        (existingArticleRes as any)?.data || existingArticleRes
       setHeadline(article.headline || "")
       setExcerpt(article.excerpt || "")
       setBody(article.body || "")
@@ -131,7 +132,7 @@ function NewArticle() {
       const tagIds: number[] = []
       for (const name of rawTagNames) {
         const found = availableTags.find(
-          (t: any) => t.name.toLowerCase() === name.toLowerCase()
+          (t: any) => t.name.toLowerCase() === name.toLowerCase(),
         )
         if (found) {
           tagIds.push(found.id)
@@ -165,28 +166,27 @@ function NewArticle() {
             tag_ids: uniqueTagIds,
           },
         })
-      } else {
-        return await ArticlesService.createArticle({
-          body: {
-            headline: headline.trim(),
-            slug: slug || "untitled",
-            excerpt: excerpt.trim() || undefined,
-            body: body.trim(),
-            category_id: categoryId,
-            cover_image_url: coverImageUrl.trim() || undefined,
-            status: targetStatus,
-            tag_ids: uniqueTagIds,
-          },
-        })
       }
+      return await ArticlesService.createArticle({
+        body: {
+          headline: headline.trim(),
+          slug: slug || "untitled",
+          excerpt: excerpt.trim() || undefined,
+          body: body.trim(),
+          category_id: categoryId,
+          cover_image_url: coverImageUrl.trim() || undefined,
+          status: targetStatus,
+          tag_ids: uniqueTagIds,
+        },
+      })
     },
     onSuccess: (_, status) => {
       const label =
         status === "published"
           ? "published"
           : status === "pending"
-          ? "submitted for review"
-          : "saved as draft"
+            ? "submitted for review"
+            : "saved as draft"
       showSuccessToast(`Article successfully ${label}!`)
       queryClient.invalidateQueries({ queryKey: ["admin-articles"] })
       queryClient.invalidateQueries({ queryKey: ["review-queue"] })
@@ -330,7 +330,11 @@ function NewArticle() {
             />
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
             <div className="flex items-center justify-between pb-2">
               <Label className="font-semibold">
                 Story Content <span className="text-destructive">*</span>
@@ -412,7 +416,11 @@ function NewArticle() {
                     .map((t) => t.trim().replace(/^#/, ""))
                     .filter(Boolean)
                     .map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-[10px]">
+                      <Badge
+                        key={tag}
+                        variant="secondary"
+                        className="text-[10px]"
+                      >
                         #{tag}
                       </Badge>
                     ))}
@@ -420,7 +428,9 @@ function NewArticle() {
               )}
               {availableTags.length > 0 && (
                 <div className="flex flex-col gap-1 mt-1">
-                  <span className="text-[11px] text-muted-foreground">Available tags (click to add):</span>
+                  <span className="text-[11px] text-muted-foreground">
+                    Available tags (click to add):
+                  </span>
                   <div className="flex flex-wrap gap-1">
                     {availableTags.map((t: any) => (
                       <Badge
@@ -434,7 +444,8 @@ function NewArticle() {
                             .filter(Boolean)
                           if (
                             !current.some(
-                              (tag) => tag.toLowerCase() === t.name.toLowerCase()
+                              (tag) =>
+                                tag.toLowerCase() === t.name.toLowerCase(),
                             )
                           ) {
                             const updated = [...current, t.name].join(", ")
@@ -494,7 +505,10 @@ function NewArticle() {
             )}
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="imageUrl" className="text-[11px] text-muted-foreground">
+              <Label
+                htmlFor="imageUrl"
+                className="text-[11px] text-muted-foreground"
+              >
                 Or direct image URL
               </Label>
               <Input

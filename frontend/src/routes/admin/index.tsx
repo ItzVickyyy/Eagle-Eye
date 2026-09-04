@@ -16,12 +16,7 @@ import {
 import { AnalyticsService, ArticlesService } from "@/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import useAuth from "@/hooks/useAuth"
 import { formatDate } from "@/utils"
 
@@ -154,7 +149,9 @@ function Dashboard() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold tracking-tight">Recent Articles</h2>
+            <h2 className="text-lg font-bold tracking-tight">
+              Recent Articles
+            </h2>
             <Button asChild variant="ghost" size="sm">
               <Link to="/admin/articles" className="gap-1 text-xs">
                 View all <ArrowRight className="size-3.5" />
@@ -180,7 +177,9 @@ function Dashboard() {
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {article.category?.name || "General"} •{" "}
-                        {formatDate(article.date_published || article.created_at)}
+                        {formatDate(
+                          article.date_published || article.created_at,
+                        )}
                       </p>
                     </div>
                   </div>
@@ -200,13 +199,21 @@ function Dashboard() {
         <div className="flex flex-col gap-4">
           <h2 className="text-lg font-bold tracking-tight">Quick Actions</h2>
           <div className="flex flex-col gap-2.5">
-            <Button asChild variant="outline" className="justify-start gap-2.5 h-11">
+            <Button
+              asChild
+              variant="outline"
+              className="justify-start gap-2.5 h-11"
+            >
               <Link to="/admin/articles/new">
                 <PlusCircle className="size-4 text-primary" />
                 <span>Write a new story</span>
               </Link>
             </Button>
-            <Button asChild variant="outline" className="justify-start gap-2.5 h-11">
+            <Button
+              asChild
+              variant="outline"
+              className="justify-start gap-2.5 h-11"
+            >
               <Link to="/admin/articles">
                 <FileText className="size-4 text-muted-foreground" />
                 <span>Manage all articles</span>
@@ -214,13 +221,21 @@ function Dashboard() {
             </Button>
             {isStaffAdmin && (
               <>
-                <Button asChild variant="outline" className="justify-start gap-2.5 h-11">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="justify-start gap-2.5 h-11"
+                >
                   <Link to="/admin/review-queue">
                     <ListChecks className="size-4 text-amber-500" />
                     <span>Review pending stories</span>
                   </Link>
                 </Button>
-                <Button asChild variant="outline" className="justify-start gap-2.5 h-11">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="justify-start gap-2.5 h-11"
+                >
                   <Link to="/admin/members">
                     <Users className="size-4 text-muted-foreground" />
                     <span>Manage club members</span>

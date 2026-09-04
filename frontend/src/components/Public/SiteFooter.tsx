@@ -41,23 +41,31 @@ export function SiteFooter() {
     }
   })
 
-  const siteName = settingsMap["site_name"] || "Eagle Eye"
+  const siteName = settingsMap.site_name || "Eagle Eye"
   const siteTagline =
-    settingsMap["site_tagline"] ||
+    settingsMap.site_tagline ||
     "The official student publication of Colegio de Los Baños, reporting campus news since day one."
-  const contactEmail = settingsMap["contact_email"] || "mediaclub@cdlb.edu.ph"
-  const schoolName = settingsMap["school_name"] || "Colegio de Los Baños"
+  const contactEmail = settingsMap.contact_email || "mediaclub@cdlb.edu.ph"
+  const schoolName = settingsMap.school_name || "Colegio de Los Baños"
   const newsroomLocation =
-    settingsMap["newsroom_location"] || "Los Baños, Laguna, Philippines"
+    settingsMap.newsroom_location || "Los Baños, Laguna, Philippines"
   const facebookUrl =
-    settingsMap["facebook_url"] || "https://facebook.com/cdlbmediaclub"
-  const twitterUrl = settingsMap["twitter_url"] || ""
-  const instagramUrl = settingsMap["instagram_url"] || ""
+    settingsMap.facebook_url || "https://facebook.com/cdlbmediaclub"
+  const twitterUrl = settingsMap.twitter_url || ""
+  const instagramUrl = settingsMap.instagram_url || ""
 
   const socialLinks = [
     { icon: FaFacebookF, href: facebookUrl, label: "Facebook" },
-    { icon: FaInstagram, href: instagramUrl || "https://instagram.com", label: "Instagram" },
-    { icon: FaXTwitter, href: twitterUrl || "https://twitter.com", label: "Twitter" },
+    {
+      icon: FaInstagram,
+      href: instagramUrl || "https://instagram.com",
+      label: "Instagram",
+    },
+    {
+      icon: FaXTwitter,
+      href: twitterUrl || "https://twitter.com",
+      label: "Twitter",
+    },
   ].filter((s) => Boolean(s.href))
 
   return (

@@ -55,8 +55,12 @@ function SiteSettings() {
   const [siteName, setSiteName] = useState("Eagle Eye")
   const [siteTagline, setSiteTagline] = useState("CDLB Media Club News Website")
   const [contactEmail, setContactEmail] = useState("mediaclub@cdlb.edu.ph")
-  const [newsroomLocation, setNewsroomLocation] = useState("Colegio de Los Baños, Laguna")
-  const [facebookUrl, setFacebookUrl] = useState("https://facebook.com/cdlbmediaclub")
+  const [newsroomLocation, setNewsroomLocation] = useState(
+    "Colegio de Los Baños, Laguna",
+  )
+  const [facebookUrl, setFacebookUrl] = useState(
+    "https://facebook.com/cdlbmediaclub",
+  )
   const [twitterUrl, setTwitterUrl] = useState("")
   const [instagramUrl, setInstagramUrl] = useState("")
 
@@ -99,13 +103,14 @@ function SiteSettings() {
         }
       })
 
-      if (map["site_name"] !== undefined) setSiteName(map["site_name"])
-      if (map["site_tagline"] !== undefined) setSiteTagline(map["site_tagline"])
-      if (map["contact_email"] !== undefined) setContactEmail(map["contact_email"])
-      if (map["newsroom_location"] !== undefined) setNewsroomLocation(map["newsroom_location"])
-      if (map["facebook_url"] !== undefined) setFacebookUrl(map["facebook_url"])
-      if (map["twitter_url"] !== undefined) setTwitterUrl(map["twitter_url"])
-      if (map["instagram_url"] !== undefined) setInstagramUrl(map["instagram_url"])
+      if (map.site_name !== undefined) setSiteName(map.site_name)
+      if (map.site_tagline !== undefined) setSiteTagline(map.site_tagline)
+      if (map.contact_email !== undefined) setContactEmail(map.contact_email)
+      if (map.newsroom_location !== undefined)
+        setNewsroomLocation(map.newsroom_location)
+      if (map.facebook_url !== undefined) setFacebookUrl(map.facebook_url)
+      if (map.twitter_url !== undefined) setTwitterUrl(map.twitter_url)
+      if (map.instagram_url !== undefined) setInstagramUrl(map.instagram_url)
 
       setCustomSettings(extra)
     }
@@ -114,13 +119,37 @@ function SiteSettings() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       const allToSave: SettingPair[] = [
-        { key: "site_name", value: siteName, description: "Website brand name" },
-        { key: "site_tagline", value: siteTagline, description: "Website tagline" },
-        { key: "contact_email", value: contactEmail, description: "Official contact email" },
-        { key: "newsroom_location", value: newsroomLocation, description: "Physical newsroom location" },
-        { key: "facebook_url", value: facebookUrl, description: "Facebook page URL" },
+        {
+          key: "site_name",
+          value: siteName,
+          description: "Website brand name",
+        },
+        {
+          key: "site_tagline",
+          value: siteTagline,
+          description: "Website tagline",
+        },
+        {
+          key: "contact_email",
+          value: contactEmail,
+          description: "Official contact email",
+        },
+        {
+          key: "newsroom_location",
+          value: newsroomLocation,
+          description: "Physical newsroom location",
+        },
+        {
+          key: "facebook_url",
+          value: facebookUrl,
+          description: "Facebook page URL",
+        },
         { key: "twitter_url", value: twitterUrl, description: "Twitter/X URL" },
-        { key: "instagram_url", value: instagramUrl, description: "Instagram page URL" },
+        {
+          key: "instagram_url",
+          value: instagramUrl,
+          description: "Instagram page URL",
+        },
         ...customSettings,
       ]
 
@@ -149,7 +178,10 @@ function SiteSettings() {
     if (!newKey.trim()) return
     setCustomSettings((prev) => [
       ...prev,
-      { key: newKey.trim().toLowerCase().replace(/\s+/g, "_"), value: newValue },
+      {
+        key: newKey.trim().toLowerCase().replace(/\s+/g, "_"),
+        value: newValue,
+      },
     ])
     setNewKey("")
     setNewValue("")
@@ -300,7 +332,9 @@ function SiteSettings() {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <SettingsIcon className="size-5 text-primary" />
-                <CardTitle className="text-lg">Advanced / Custom Settings</CardTitle>
+                <CardTitle className="text-lg">
+                  Advanced / Custom Settings
+                </CardTitle>
               </div>
               <CardDescription>
                 Arbitrary key-value config options for site features.
@@ -319,7 +353,9 @@ function SiteSettings() {
                     onChange={(e) => {
                       const val = e.target.value
                       setCustomSettings((prev) =>
-                        prev.map((s, i) => (i === idx ? { ...s, value: val } : s)),
+                        prev.map((s, i) =>
+                          i === idx ? { ...s, value: val } : s,
+                        ),
                       )
                     }}
                     className="flex-1 text-sm"
@@ -336,7 +372,10 @@ function SiteSettings() {
                 </div>
               ))}
 
-              <form onSubmit={handleAddCustom} className="flex items-center gap-3 pt-2">
+              <form
+                onSubmit={handleAddCustom}
+                className="flex items-center gap-3 pt-2"
+              >
                 <Input
                   placeholder="key_name"
                   value={newKey}

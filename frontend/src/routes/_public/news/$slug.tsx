@@ -1,6 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, Link, notFound } from "@tanstack/react-router"
-import { CalendarDays, Clock, Eye, Link2, MessageSquare, Send } from "lucide-react"
+import {
+  CalendarDays,
+  Clock,
+  Eye,
+  Link2,
+  MessageSquare,
+  Send,
+} from "lucide-react"
 import { useState } from "react"
 import { FaFacebookF, FaXTwitter } from "react-icons/fa6"
 
@@ -34,7 +41,11 @@ function ArticleDetail() {
   const [commentEmail, setCommentEmail] = useState("")
   const [commentBody, setCommentBody] = useState("")
 
-  const { data: articleRes, isLoading, error } = useQuery({
+  const {
+    data: articleRes,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["article-detail", slug],
     queryFn: async () => {
       try {
@@ -88,7 +99,9 @@ function ArticleDetail() {
       setCommentName("")
       setCommentEmail("")
       setCommentBody("")
-      queryClient.invalidateQueries({ queryKey: ["article-comments", article?.id] })
+      queryClient.invalidateQueries({
+        queryKey: ["article-comments", article?.id],
+      })
     },
     onError: (err: any) => {
       showErrorToast(err.message || "Failed to post comment.")
@@ -109,12 +122,17 @@ function ArticleDetail() {
 
   const category = article.category
   const authorName = article.author?.full_name || "Eagle Eye Staff"
-  const authorRole = article.author?.position_title || article.author?.department || "Staff Writer"
+  const authorRole =
+    article.author?.position_title ||
+    article.author?.department ||
+    "Staff Writer"
   const initials = getInitials(authorName)
   const readTime = calculateReadTime(article.body || article.excerpt)
-  const relatedArticles: any[] = (relatedRes as any)?.data?.data || (relatedRes as any)?.data || []
+  const relatedArticles: any[] =
+    (relatedRes as any)?.data?.data || (relatedRes as any)?.data || []
   const related = relatedArticles.filter((a: any) => a.id !== article.id)
-  const comments: any[] = (commentsRes as any)?.data?.data || (commentsRes as any)?.data || []
+  const comments: any[] =
+    (commentsRes as any)?.data?.data || (commentsRes as any)?.data || []
 
   const handleCommentSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -163,7 +181,9 @@ function ArticleDetail() {
           {article.headline}
         </h1>
         {article.excerpt && (
-          <p className="mt-4 text-lg text-muted-foreground">{article.excerpt}</p>
+          <p className="mt-4 text-lg text-muted-foreground">
+            {article.excerpt}
+          </p>
         )}
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-y py-4">
@@ -267,7 +287,10 @@ function ArticleDetail() {
           </div>
 
           {/* Comment submission form */}
-          <form onSubmit={handleCommentSubmit} className="rounded-xl border p-5 bg-card space-y-4 mb-8">
+          <form
+            onSubmit={handleCommentSubmit}
+            className="rounded-xl border p-5 bg-card space-y-4 mb-8"
+          >
             <h3 className="font-semibold text-sm">Leave a comment</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input
@@ -310,7 +333,10 @@ function ArticleDetail() {
               </p>
             ) : (
               comments.map((c: any) => (
-                <div key={c.id} className="rounded-lg border p-4 bg-muted/20 space-y-1.5">
+                <div
+                  key={c.id}
+                  className="rounded-lg border p-4 bg-muted/20 space-y-1.5"
+                >
                   <div className="flex items-center justify-between">
                     <p className="font-semibold text-sm">{c.guest_name}</p>
                     <span className="text-xs text-muted-foreground">

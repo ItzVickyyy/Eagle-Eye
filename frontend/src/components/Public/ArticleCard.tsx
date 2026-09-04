@@ -2,8 +2,8 @@ import { Link } from "@tanstack/react-router"
 import { Clock } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
-import { calculateReadTime, formatShortDate } from "@/utils"
 import { cn } from "@/lib/utils"
+import { calculateReadTime, formatShortDate } from "@/utils"
 
 export interface ArticleItemData {
   id: string | number
@@ -47,20 +47,20 @@ export function ArticleCard({
     typeof article.category === "object" && article.category !== null
       ? article.category.name
       : typeof article.category === "string"
-      ? article.category
-      : article.category_name || "News"
+        ? article.category
+        : article.category_name || "News"
   const authorName =
     typeof article.author === "object" && article.author !== null
       ? article.author.full_name || article.author.name || "Eagle Eye Staff"
       : typeof article.author === "string"
-      ? article.author
-      : article.author_name || "Eagle Eye Staff"
+        ? article.author
+        : article.author_name || "Eagle Eye Staff"
   const readTime =
     article.readTimeMinutes ||
     calculateReadTime(
       typeof article.content === "string"
         ? article.content
-        : article.body || excerpt
+        : article.body || excerpt,
     )
 
   if (variant === "hero") {

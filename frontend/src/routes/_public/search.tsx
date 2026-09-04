@@ -6,7 +6,11 @@ import { z } from "zod"
 
 import { ArticlesService } from "@/client"
 import { ArticleCard } from "@/components/Public/ArticleCard"
-import { EmptyState, LoadingState, SearchEmptyState } from "@/components/Public/States"
+import {
+  EmptyState,
+  LoadingState,
+  SearchEmptyState,
+} from "@/components/Public/States"
 import { Button } from "@/components/ui/button"
 
 const searchParamsSchema = z.object({
@@ -44,8 +48,10 @@ function SearchResults() {
     enabled: !!q && q.trim().length > 0,
   })
 
-  const results: any[] = (searchResults as any)?.data?.data || (searchResults as any)?.data || []
-  const total: number = (searchResults as any)?.data?.count ?? (searchResults as any)?.count ?? 0
+  const results: any[] =
+    (searchResults as any)?.data?.data || (searchResults as any)?.data || []
+  const total: number =
+    (searchResults as any)?.data?.count ?? (searchResults as any)?.count ?? 0
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault()

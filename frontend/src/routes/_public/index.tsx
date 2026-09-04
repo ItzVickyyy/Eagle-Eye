@@ -31,8 +31,10 @@ function Home() {
     queryFn: () => CategoriesService.readCategories({ query: { limit: 10 } }),
   })
 
-  const articles = (articlesRes?.data as any)?.data || (articlesRes as any)?.data || []
-  const categories = (categoriesRes?.data as any)?.data || (categoriesRes as any)?.data || []
+  const articles =
+    (articlesRes?.data as any)?.data || (articlesRes as any)?.data || []
+  const categories =
+    (categoriesRes?.data as any)?.data || (categoriesRes as any)?.data || []
 
   if (loadingArticles) {
     return (

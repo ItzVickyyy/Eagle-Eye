@@ -12,7 +12,11 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 
-import { ContactService, type ContactMessageStatus, UsersService } from "@/client"
+import {
+  type ContactMessageStatus,
+  ContactService,
+  UsersService,
+} from "@/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -43,9 +47,7 @@ export const Route = createFileRoute("/admin/contact")({
   beforeLoad: async () => {
     const { data: user } = await UsersService.readUserMe()
     const isStaffAdmin =
-      user.is_superuser ||
-      user.role === "super_admin" ||
-      user.role === "admin"
+      user.is_superuser || user.role === "super_admin" || user.role === "admin"
     if (!isStaffAdmin) {
       throw redirect({
         to: "/admin",
@@ -72,8 +74,7 @@ const statusBadgeVariants: Record<
   },
   read: {
     label: "Read",
-    className:
-      "bg-muted text-muted-foreground border-border",
+    className: "bg-muted text-muted-foreground border-border",
   },
 }
 
@@ -201,7 +202,8 @@ function ContactInbox() {
             )}
           </div>
           <p className="text-muted-foreground text-sm">
-            Read and manage general inquiries and feedback sent through the public contact form.
+            Read and manage general inquiries and feedback sent through the
+            public contact form.
           </p>
         </div>
       </div>
@@ -249,13 +251,19 @@ function ContactInbox() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={6}
+                  className="h-32 text-center text-muted-foreground"
+                >
                   Loading messages...
                 </TableCell>
               </TableRow>
             ) : filteredMessages.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={6}
+                  className="h-32 text-center text-muted-foreground"
+                >
                   <div className="flex flex-col items-center justify-center gap-1.5">
                     <Inbox className="size-6 text-muted-foreground/60" />
                     <span>No contact messages found</span>
@@ -270,7 +278,9 @@ function ContactInbox() {
                 return (
                   <TableRow
                     key={m.id}
-                    className={isUnread ? "bg-primary/5 font-medium" : undefined}
+                    className={
+                      isUnread ? "bg-primary/5 font-medium" : undefined
+                    }
                   >
                     <TableCell className="align-top">
                       <div className="flex flex-col">
@@ -377,12 +387,18 @@ function ContactInbox() {
                 <Badge
                   variant="outline"
                   className={
-                    (statusBadgeVariants[selectedMessage.status] ||
-                      statusBadgeVariants.read).className
+                    (
+                      statusBadgeVariants[selectedMessage.status] ||
+                      statusBadgeVariants.read
+                    ).className
                   }
                 >
-                  {(statusBadgeVariants[selectedMessage.status] ||
-                    statusBadgeVariants.read).label}
+                  {
+                    (
+                      statusBadgeVariants[selectedMessage.status] ||
+                      statusBadgeVariants.read
+                    ).label
+                  }
                 </Badge>
               )}
             </div>
@@ -400,7 +416,7 @@ function ContactInbox() {
                   </span>
                   <a
                     href={`mailto:${selectedMessage.email}?subject=Re: ${encodeURIComponent(
-                      selectedMessage.subject || "Your message to Eagle Eye"
+                      selectedMessage.subject || "Your message to Eagle Eye",
                     )}`}
                     className="text-primary hover:underline inline-flex items-center gap-1"
                   >
@@ -456,10 +472,7 @@ function ContactInbox() {
                   Mark Read
                 </Button>
               )}
-              <Button
-                size="sm"
-                onClick={() => setSelectedMessage(null)}
-              >
+              <Button size="sm" onClick={() => setSelectedMessage(null)}>
                 Close
               </Button>
             </div>
@@ -479,7 +492,8 @@ function ContactInbox() {
             <DialogTitle>Delete Contact Message</DialogTitle>
             <DialogDescription>
               Are you sure you want to delete this message from{" "}
-              <strong>{messageToDelete?.name}</strong>? This action cannot be undone.
+              <strong>{messageToDelete?.name}</strong>? This action cannot be
+              undone.
             </DialogDescription>
           </DialogHeader>
 

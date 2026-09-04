@@ -49,7 +49,11 @@ function ContactPage() {
     mutationFn: (data: ContactFormData) =>
       ContactService.submitContactForm({ body: data }),
     onSuccess: (res: any) => {
-      showSuccessToast(res?.data?.message || res?.message || "Your message has been sent successfully!")
+      showSuccessToast(
+        res?.data?.message ||
+          res?.message ||
+          "Your message has been sent successfully!",
+      )
       form.reset()
     },
     onError: (err: any) => {

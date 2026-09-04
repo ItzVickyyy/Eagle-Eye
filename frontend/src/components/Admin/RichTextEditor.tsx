@@ -101,8 +101,7 @@ export function RichTextEditor({
     onUpdate: ({ editor }) => {
       const html = editor.getHTML()
       const isEmpty =
-        editor.isEmpty ||
-        (!editor.getText().trim() && !html.includes("<img"))
+        editor.isEmpty || (!editor.getText().trim() && !html.includes("<img"))
       onChange(isEmpty ? "" : html)
     },
   })
@@ -133,7 +132,7 @@ export function RichTextEditor({
         className={cn(
           "w-full rounded-md border border-input bg-background p-4 text-sm text-muted-foreground",
           minHeight,
-          className
+          className,
         )}
       >
         Loading editor...
@@ -178,7 +177,9 @@ export function RichTextEditor({
     setLinkUrl("")
   }
 
-  const handleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0]
     if (!file) return
 
@@ -226,7 +227,7 @@ export function RichTextEditor({
       className={cn(
         "flex flex-col w-full rounded-md border border-input bg-background shadow-xs focus-within:ring-1 focus-within:ring-ring transition-colors",
         disabled && "opacity-60 cursor-not-allowed",
-        className
+        className,
       )}
     >
       {/* Formatting Toolbar */}
@@ -464,7 +465,9 @@ export function RichTextEditor({
             variant="ghost"
             size="sm"
             className="h-8 w-8 p-0"
-            onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}
+            onClick={() =>
+              editor.chain().focus().unsetAllMarks().clearNodes().run()
+            }
             disabled={disabled}
             aria-label="Clear formatting"
             title="Clear Formatting"
@@ -508,7 +511,7 @@ export function RichTextEditor({
       <div
         className={cn(
           "p-4 cursor-text overflow-y-auto focus-within:outline-hidden",
-          minHeight
+          minHeight,
         )}
         onClick={() => editor.chain().focus().run()}
       >
@@ -594,7 +597,9 @@ export function RichTextEditor({
               <label className="cursor-pointer border border-dashed rounded-lg p-4 flex flex-col items-center justify-center gap-2 hover:bg-muted/30 transition-colors">
                 <Upload className="size-6 text-muted-foreground" />
                 <span className="text-xs font-medium text-foreground">
-                  {uploadingImage ? "Uploading image..." : "Choose image to upload"}
+                  {uploadingImage
+                    ? "Uploading image..."
+                    : "Choose image to upload"}
                 </span>
                 <span className="text-[11px] text-muted-foreground">
                   PNG, JPG, WEBP or GIF
@@ -618,7 +623,10 @@ export function RichTextEditor({
 
             {/* URL option */}
             <div className="flex flex-col gap-2">
-              <Label htmlFor="image-url-input" className="text-xs font-semibold">
+              <Label
+                htmlFor="image-url-input"
+                className="text-xs font-semibold"
+              >
                 Image Web URL
               </Label>
               <Input
@@ -630,7 +638,10 @@ export function RichTextEditor({
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label htmlFor="image-alt-input" className="text-xs font-semibold">
+              <Label
+                htmlFor="image-alt-input"
+                className="text-xs font-semibold"
+              >
                 Alt Text / Caption (Optional)
               </Label>
               <Input

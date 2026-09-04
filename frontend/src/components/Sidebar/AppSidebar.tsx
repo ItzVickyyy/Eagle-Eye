@@ -110,8 +110,7 @@ export function AppSidebar() {
     currentUser?.role === "admin"
 
   const isSuperAdmin =
-    currentUser?.is_superuser ||
-    currentUser?.role === "super_admin"
+    currentUser?.is_superuser || currentUser?.role === "super_admin"
 
   const dashboardItems: NavItem[] = [
     { icon: Home, title: "Dashboard", path: "/admin" },

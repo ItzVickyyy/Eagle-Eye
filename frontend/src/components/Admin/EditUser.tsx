@@ -215,7 +215,9 @@ const EditUser = ({ user, onSuccess }: EditUserProps) => {
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
-                    <FormLabel className="font-normal">Developer system access?</FormLabel>
+                    <FormLabel className="font-normal">
+                      Developer system access?
+                    </FormLabel>
                   </FormItem>
                 )}
               />

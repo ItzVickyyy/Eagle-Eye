@@ -44,7 +44,8 @@ function NewsListing() {
     queryFn: () => CategoriesService.readCategories({ query: { limit: 50 } }),
   })
 
-  const categories: any[] = (categoriesRes?.data as any)?.data || (categoriesRes as any)?.data || []
+  const categories: any[] =
+    (categoriesRes?.data as any)?.data || (categoriesRes as any)?.data || []
   const activeCategory = categories.find((c) => c.slug === categorySlug)
 
   const { data: articlesRes, isLoading } = useQuery({
@@ -59,8 +60,10 @@ function NewsListing() {
       }),
   })
 
-  const articles: any[] = (articlesRes?.data as any)?.data || (articlesRes as any)?.data || []
-  const total = (articlesRes?.data as any)?.count ?? (articlesRes as any)?.count ?? 0
+  const articles: any[] =
+    (articlesRes?.data as any)?.data || (articlesRes as any)?.data || []
+  const total =
+    (articlesRes?.data as any)?.count ?? (articlesRes as any)?.count ?? 0
   const totalPages = Math.ceil(total / PAGE_SIZE) || 1
 
   return (
@@ -121,7 +124,8 @@ function NewsListing() {
       ) : (
         <>
           <p className="mb-4 text-sm text-muted-foreground">
-            Showing {articles.length} of {total} {total === 1 ? "story" : "stories"}
+            Showing {articles.length} of {total}{" "}
+            {total === 1 ? "story" : "stories"}
           </p>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {articles.map((article) => (
@@ -185,8 +189,7 @@ function NewsListing() {
                       className={cn(
                         buttonVariants({ variant: "ghost" }),
                         "gap-1 px-2.5",
-                        page >= totalPages &&
-                          "pointer-events-none opacity-40",
+                        page >= totalPages && "pointer-events-none opacity-40",
                       )}
                     >
                       <span className="hidden sm:block">Next</span>

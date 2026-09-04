@@ -73,6 +73,21 @@ def read_contact_messages(
     return ContactMessagesPublic(data=messages_public, count=count)
 
 
+@router.get("/{id}", response_model=ContactMessagePublic)
+def get_contact_message(
+    id: int,
+    session: SessionDep,
+    current_user: AdminUser,
+) -> Any:
+    """
+    Get contact message details (Admin / Super Admin).
+    """
+    msg = session.get(ContactMessage, id)
+    if not msg:
+        raise HTTPException(status_code=404, detail="Message not found")
+    return msg
+
+
 @router.patch("/{id}/mark-read", response_model=ContactMessagePublic)
 def mark_message_read(
     *,
@@ -93,15 +108,35 @@ def mark_message_read(
     return msg
 
 
+@router.patch("/{id}/mark-unread", response_model=ContactMessagePublic)
+def mark_message_unread(
+    *,
+    session: SessionDep,
+    id: int,
+    current_user: AdminUser,
+) -> Any:
+    """
+    Mark contact message as unread/new (Admin / Super Admin).
+    """
+    msg = session.get(ContactMessage, id)
+    if not msg:
+        raise HTTPException(status_code=404, detail="Message not found")
+    msg.status = ContactMessageStatus.new
+    session.add(msg)
+    session.commit()
+    session.refresh(msg)
+    return msg
+
+
 @router.delete("/{id}", response_model=Message)
 def delete_contact_message(
     *,
     session: SessionDep,
     id: int,
-    current_user: SuperAdminUser,
+    current_user: AdminUser,
 ) -> Message:
     """
-    Delete contact message (Super Admin).
+    Delete contact message (Admin / Super Admin).
     """
     msg = session.get(ContactMessage, id)
     if not msg:

@@ -361,6 +361,8 @@ class CommentPublic(CommentBase):
     article_id: uuid.UUID
     status: CommentStatus
     created_at: datetime | None = None
+    article_headline: str | None = None
+    article_slug: str | None = None
 
 
 class CommentsPublic(SQLModel):

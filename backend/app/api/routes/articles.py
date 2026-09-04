@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import func as sa_func
 from sqlmodel import col, func, select
 
 from app.api.deps import (
@@ -42,6 +43,60 @@ def slugify(text: str) -> str:
     text = re.sub(r"[\s_-]+", "-", text)
     text = re.sub(r"^-+|-+$", "", text)
     return text or "article"
+
+
+def _fts_document() -> Any:
+    """The searchable document for an article.
+
+    This expression is textually identical to the functional index created in
+    migration ``3e4f5a6b7c8d`` (``to_tsvector`` over headline + excerpt + a
+    tag-stripped body), so PostgreSQL can use the ``GIN`` index for lookups.
+    HTML markup is removed at search/index time only; the write-time
+    sanitization pipeline is untouched.
+    """
+    return sa_func.concat_ws(
+        " ",
+        Article.headline,
+        sa_func.coalesce(Article.excerpt, ""),
+        sa_func.regexp_replace(sa_func.coalesce(Article.body, ""), "<[^>]+>", "", "g"),
+    )
+
+
+_FTS_OPERATOR = "@@"
+
+
+def _apply_search_filter(
+    statement: Any, search: str, dialect_name: str
+) -> tuple[Any, Any | None, bool]:
+    """Filter ``statement`` to articles matching ``search``.
+
+    Returns ``(statement, rank_expr, is_fts)``. On PostgreSQL this uses
+    full-text search (``to_tsvector`` / ``websearch_to_tsquery``) backed by the
+    functional ``GIN`` index and yields a ``ts_rank`` expression for relevance
+    ordering. On any other dialect (e.g. SQLite in tests) it falls back to the
+    legacy ``ILIKE`` substring match so behavior and the public contract are
+    preserved.
+    """
+    q = search.strip()
+    if not q:
+        return statement, None, False
+
+    if dialect_name == "postgresql":
+        document = _fts_document()
+        query = sa_func.websearch_to_tsquery("english", q)
+        statement = statement.where(
+            sa_func.to_tsvector("english", document).op(_FTS_OPERATOR)(query)
+        )
+        rank = sa_func.ts_rank(sa_func.to_tsvector("english", document), query)
+        return statement, rank, True
+
+    pattern = f"%{q}%"
+    statement = statement.where(
+        (Article.headline.ilike(pattern))
+        | (Article.excerpt.ilike(pattern))
+        | (Article.body.ilike(pattern))
+    )
+    return statement, None, False
 
 
 @router.get("/", response_model=ArticlesPublic)
@@ -109,23 +164,28 @@ def read_articles(
             .where(ArticleTag.tag_id == tag_id)
         )
 
+    search_rank = None
     if search:
-        search_pattern = f"%{search.strip()}%"
-        statement = statement.where(
-            (Article.headline.ilike(search_pattern))
-            | (Article.excerpt.ilike(search_pattern))
-            | (Article.body.ilike(search_pattern))
+        dialect_name = str(session.get_bind().dialect.name)
+        statement, search_rank, _ = _apply_search_filter(
+            statement, search, dialect_name
         )
 
     # Count query
     count_statement = select(func.count()).select_from(statement.subquery())
     count = session.exec(count_statement).one()
 
-    # Sort published by date_published or created_at desc
-    statement = statement.order_by(
-        col(Article.date_published).desc().nullslast(),
-        col(Article.created_at).desc(),
-    ).offset(skip).limit(limit)
+    # Sort by relevance when a full-text search is active, otherwise by recency.
+    order = []
+    if search_rank is not None:
+        order.append(search_rank.desc())
+    order.extend(
+        [
+            col(Article.date_published).desc().nullslast(),
+            col(Article.created_at).desc(),
+        ]
+    )
+    statement = statement.order_by(*order).offset(skip).limit(limit)
 
     articles = session.exec(statement).all()
     articles_public = [ArticlePublic.model_validate(art) for art in articles]

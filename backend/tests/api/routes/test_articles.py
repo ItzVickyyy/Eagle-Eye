@@ -411,4 +411,98 @@ def test_article_rich_text_formatting_and_sanitization(
     assert "stealCookies" not in saved_body
 
 
+def _create_published(client: TestClient, headers: dict[str, str], **overrides: object) -> dict:
+    payload = {
+        "headline": "Campus Solar Caravan Hits the Road",
+        "slug": f"search-solar-{random_lower_string()}",
+        "excerpt": "Students showcased the solar caravan across Laguna.",
+        "body": "<p>Students drove the campus solar caravan through neighboring towns this week.</p>",
+        "status": "published",
+    }
+    payload.update(overrides)
+    r = client.post(f"{settings.API_V1_STR}/articles/", headers=headers, json=payload)
+    assert r.status_code == 200, r.text
+    return r.json()
 
+
+def test_public_search_matches_headline(client: TestClient, superuser_token_headers: dict[str, str]) -> None:
+    created = _create_published(client, superuser_token_headers)
+    r = client.get(
+        f"{settings.API_V1_STR}/articles/",
+        params={"search": "Caravan", "limit": 20},
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert data["count"] >= 1
+    assert any(a["slug"] == created["slug"] for a in data["data"])
+
+
+def test_public_search_matches_body(client: TestClient, superuser_token_headers: dict[str, str]) -> None:
+    created = _create_published(client, superuser_token_headers)
+    r = client.get(
+        f"{settings.API_V1_STR}/articles/",
+        params={"search": "neighboring", "limit": 20},
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert any(a["slug"] == created["slug"] for a in data["data"])
+
+
+def test_public_search_multiword_query(client: TestClient, superuser_token_headers: dict[str, str]) -> None:
+    _create_published(client, superuser_token_headers)
+    # Multiple space-separated words should still return a relevant article.
+    r = client.get(
+        f"{settings.API_V1_STR}/articles/",
+        params={"search": "solar caravan", "limit": 20},
+    )
+    assert r.status_code == 200
+    assert r.json()["count"] >= 1
+
+
+def test_public_search_irrelevant_query_returns_no_results(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    _create_published(client, superuser_token_headers)
+    r = client.get(
+        f"{settings.API_V1_STR}/articles/",
+        params={"search": "zzzz-qwerty-unrelated-term-1234", "limit": 20},
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert data["count"] == 0
+    assert data["data"] == []
+
+
+def test_public_search_excludes_unpublished_articles(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    _create_published(client, superuser_token_headers)
+    # Draft article that should NOT appear in public search results.
+    _create_published(
+        client,
+        superuser_token_headers,
+        headline="Solar Caravan Draft That Must Stay Hidden",
+        status="draft",
+    )
+    r = client.get(
+        f"{settings.API_V1_STR}/articles/",
+        params={"search": "Caravan", "limit": 50},
+    )
+    assert r.status_code == 200
+    data = r.json()
+    for a in data["data"]:
+        assert a["status"] == "published"
+    assert not any("Draft" in a["headline"] for a in data["data"])
+
+
+def test_search_response_contract_preserved(client: TestClient, superuser_token_headers: dict[str, str]) -> None:
+    _create_published(client, superuser_token_headers)
+    r = client.get(
+        f"{settings.API_V1_STR}/articles/",
+        params={"search": "Caravan", "limit": 10},
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert {"data", "count"} <= set(body)
+    assert isinstance(body["count"], int)
+    assert isinstance(body["data"], list)

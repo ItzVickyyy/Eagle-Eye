@@ -362,3 +362,53 @@ def test_update_article_with_invalid_tag_id_returns_400(
     assert "Tag with id 888888 does not exist" in patch_res.json()["detail"]
 
 
+def test_article_rich_text_formatting_and_sanitization(
+    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+) -> None:
+    rich_html_body = """
+    <h2>Campus Breakthrough</h2>
+    <p>This is a <strong>major</strong> editorial piece with <em>emphasis</em> and <u>underline</u>.</p>
+    <blockquote><p>Student journalism matters more than ever.</p></blockquote>
+    <ul>
+        <li>First highlight</li>
+        <li>Second highlight</li>
+    </ul>
+    <p>Read more at <a href="https://cdlb.edu.ph" target="_blank" rel="noopener noreferrer">official site</a>.</p>
+    <img src="https://cdlb.edu.ph/images/campus.jpg" alt="Campus Quad" />
+    <script>alert('malicious script')</script>
+    <p onclick="stealCookies()">Clean paragraph</p>
+    """
+
+    create_res = client.post(
+        f"{settings.API_V1_STR}/articles/",
+        headers=superuser_token_headers,
+        json={
+            "headline": "Rich Text Story",
+            "slug": f"rich-story-{random_lower_string()}",
+            "body": rich_html_body,
+            "status": "published",
+        },
+    )
+    assert create_res.status_code == 200
+    saved_article = create_res.json()
+    saved_body = saved_article["body"]
+
+    # Verify safe rich formatting is preserved
+    assert "<h2>Campus Breakthrough</h2>" in saved_body
+    assert "<strong>major</strong>" in saved_body
+    assert "<em>emphasis</em>" in saved_body
+    assert "<u>underline</u>" in saved_body
+    assert "<blockquote><p>Student journalism matters more than ever.</p></blockquote>" in saved_body
+    assert "<ul><li>First highlight</li><li>Second highlight</li></ul>" in saved_body or ("<li>First highlight</li>" in saved_body and "<li>Second highlight</li>" in saved_body)
+    assert 'href="https://cdlb.edu.ph"' in saved_body
+    assert 'src="https://cdlb.edu.ph/images/campus.jpg"' in saved_body
+    assert 'alt="Campus Quad"' in saved_body
+
+    # Verify unsafe script and event handlers were completely stripped
+    assert "<script>" not in saved_body
+    assert "alert('malicious script')" not in saved_body
+    assert "onclick" not in saved_body
+    assert "stealCookies" not in saved_body
+
+
+

@@ -96,7 +96,7 @@ class SystemLogsResponse(BaseModel):
 @router.get("/health", response_model=SystemHealthResponse)
 def get_system_health(
     session: SessionDep,
-    current_user: DeveloperUser,
+    _current_user: DeveloperUser,
 ) -> Any:
     """
     Get backend system health and database connectivity latency (Developer only).
@@ -104,7 +104,7 @@ def get_system_health(
     start_time = time.perf_counter()
     db_status = "connected"
     try:
-        session.exec(text("SELECT 1"))
+        session.exec(text("SELECT 1"))  # type: ignore[call-overload]
     except Exception:
         db_status = "error"
     latency_ms = round((time.perf_counter() - start_time) * 1000, 2)
@@ -124,7 +124,7 @@ def get_system_health(
 @router.get("/diagnostics", response_model=SystemDiagnosticsResponse)
 def get_system_diagnostics(
     session: SessionDep,
-    current_user: DeveloperUser,
+    _current_user: DeveloperUser,
 ) -> Any:
     """
     Get aggregated system diagnostics and entity metrics (Developer only).
@@ -178,7 +178,7 @@ def _set_flag(session: SessionDep, key: str, value: bool) -> None:
 @router.get("/feature-flags", response_model=FeatureFlags)
 def get_feature_flags(
     session: SessionDep,
-    current_user: DeveloperUser,
+    _current_user: DeveloperUser,
 ) -> Any:
     """
     Retrieve application-level technical feature flags and maintenance state (Developer only).
@@ -232,7 +232,7 @@ def update_feature_flags(
 @router.get("/logs", response_model=SystemLogsResponse)
 def get_system_logs(
     session: SessionDep,
-    current_user: DeveloperUser,
+    _current_user: DeveloperUser,
 ) -> Any:
     """
     Retrieve recent audit/application event logs (Developer only).
@@ -242,7 +242,10 @@ def get_system_logs(
     """
     entries = session.exec(
         select(AuditLog)
-        .order_by(AuditLog.created_at.desc(), AuditLog.id.desc())
+        .order_by(
+            AuditLog.created_at.desc(),  # type: ignore[attr-defined]
+            AuditLog.id.desc(),  # type: ignore[attr-defined]
+        )
         .limit(200)
     ).all()
 

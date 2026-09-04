@@ -3,7 +3,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, HTTPException
 from sqlalchemy import func as sa_func
 from sqlmodel import col, func, select
 
@@ -13,7 +13,6 @@ from app.api.deps import (
     OptionalCurrentUser,
     SessionDep,
     is_admin_or_above,
-    is_super_admin,
 )
 from app.core.audit import write_audit_log
 from app.core.sanitizer import sanitize_html
@@ -31,7 +30,6 @@ from app.models import (
     Tag,
     TagPublic,
     User,
-    UserRole,
 )
 
 router = APIRouter(prefix="/articles", tags=["articles"])
@@ -92,9 +90,9 @@ def _apply_search_filter(
 
     pattern = f"%{q}%"
     statement = statement.where(
-        (Article.headline.ilike(pattern))
-        | (Article.excerpt.ilike(pattern))
-        | (Article.body.ilike(pattern))
+        (Article.headline.ilike(pattern))  # type: ignore[attr-defined]
+        | (Article.excerpt.ilike(pattern))  # type: ignore[union-attr]
+        | (Article.body.ilike(pattern))  # type: ignore[union-attr]
     )
     return statement, None, False
 
@@ -160,7 +158,7 @@ def read_articles(
 
     if tag_id:
         statement = (
-            statement.join(ArticleTag, Article.id == ArticleTag.article_id)
+            statement.join(ArticleTag, Article.id == ArticleTag.article_id)  # type: ignore[arg-type]
             .where(ArticleTag.tag_id == tag_id)
         )
 
@@ -195,7 +193,7 @@ def read_articles(
 @router.get("/review-queue", response_model=ArticlesPublic)
 def get_review_queue(
     session: SessionDep,
-    current_user: AdminUser,
+    _current_user: AdminUser,
     skip: int = 0,
     limit: int = 50,
 ) -> Any:
@@ -250,14 +248,14 @@ def get_article_by_slug(
     category = session.get(Category, article.category_id) if article.category_id else None
     tags_query = (
         select(Tag)
-        .join(ArticleTag, Tag.id == ArticleTag.tag_id)
+        .join(ArticleTag, Tag.id == ArticleTag.tag_id)  # type: ignore[arg-type]
         .where(ArticleTag.article_id == article.id)
     )
     tags = session.exec(tags_query).all()
 
     detail = ArticleDetailPublic.model_validate(article)
-    detail.author = author
-    detail.category = category
+    detail.author = author  # type: ignore[assignment]
+    detail.category = category  # type: ignore[assignment]
     detail.tags = [TagPublic.model_validate(t) for t in tags]
     return detail
 
@@ -288,14 +286,14 @@ def get_article_by_id(
     category = session.get(Category, article.category_id) if article.category_id else None
     tags_query = (
         select(Tag)
-        .join(ArticleTag, Tag.id == ArticleTag.tag_id)
+        .join(ArticleTag, Tag.id == ArticleTag.tag_id)  # type: ignore[arg-type]
         .where(ArticleTag.article_id == article.id)
     )
     tags = session.exec(tags_query).all()
 
     detail = ArticleDetailPublic.model_validate(article)
-    detail.author = author
-    detail.category = category
+    detail.author = author  # type: ignore[assignment]
+    detail.category = category  # type: ignore[assignment]
     detail.tags = [TagPublic.model_validate(t) for t in tags]
     return detail
 

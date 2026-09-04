@@ -3,7 +3,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import col, func, select
 
-from app.api.deps import AdminUser, SessionDep, SuperAdminUser
+from app.api.deps import AdminUser, SessionDep
 from app.core.config import settings
 from app.core.rate_limit import contact_rate_limiter
 from app.models import (
@@ -58,7 +58,7 @@ def submit_contact_form(
 @router.get("/", response_model=ContactMessagesPublic)
 def read_contact_messages(
     session: SessionDep,
-    current_user: AdminUser,
+    _current_user: AdminUser,
     status: ContactMessageStatus | None = None,
     skip: int = 0,
     limit: int = 50,
@@ -82,7 +82,7 @@ def read_contact_messages(
 def get_contact_message(
     id: int,
     session: SessionDep,
-    current_user: AdminUser,
+    _current_user: AdminUser,
 ) -> Any:
     """
     Get contact message details (Admin / Super Admin).
@@ -98,7 +98,7 @@ def mark_message_read(
     *,
     session: SessionDep,
     id: int,
-    current_user: AdminUser,
+    _current_user: AdminUser,
 ) -> Any:
     """
     Mark contact message as read (Admin / Super Admin).
@@ -118,7 +118,7 @@ def mark_message_unread(
     *,
     session: SessionDep,
     id: int,
-    current_user: AdminUser,
+    _current_user: AdminUser,
 ) -> Any:
     """
     Mark contact message as unread/new (Admin / Super Admin).
@@ -138,7 +138,7 @@ def delete_contact_message(
     *,
     session: SessionDep,
     id: int,
-    current_user: AdminUser,
+    _current_user: AdminUser,
 ) -> Message:
     """
     Delete contact message (Admin / Super Admin).

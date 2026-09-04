@@ -1,4 +1,3 @@
-import uuid
 from datetime import UTC, datetime
 
 from sqlmodel import Session, create_engine, select

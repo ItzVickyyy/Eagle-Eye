@@ -1,15 +1,13 @@
 import uuid
+
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
 from app.core.config import settings
 from app.models import (
-    Article,
-    ArticleStatus,
     ArticleTag,
     Category,
     Tag,
-    User,
     UserCreate,
     UserRole,
 )
@@ -28,7 +26,7 @@ def test_create_article_as_contributor(
     headers = authentication_token_from_email(client=client, email=email, db=db)
 
     # Create category
-    cat = session_cat = db.exec(select(Category).where(Category.slug == "news")).first()
+    cat = db.exec(select(Category).where(Category.slug == "news")).first()
 
     data = {
         "headline": "New Student Council Elected",
@@ -78,7 +76,7 @@ def test_contributor_cannot_publish_directly(
 
 
 def test_admin_publish_article(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, superuser_token_headers: dict[str, str]
 ) -> None:
     data = {
         "headline": "Official Admin Announcement",
@@ -98,7 +96,7 @@ def test_admin_publish_article(
 
 
 def test_public_articles_list_only_published(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, superuser_token_headers: dict[str, str]
 ) -> None:
     # Create draft article
     draft_data = {
@@ -122,7 +120,7 @@ def test_public_articles_list_only_published(
 
 
 def test_get_article_by_slug_and_increment_views(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, superuser_token_headers: dict[str, str]
 ) -> None:
     data = {
         "headline": "View Count Test Article",
@@ -146,7 +144,7 @@ def test_get_article_by_slug_and_increment_views(
 
 
 def test_create_article_sanitizes_xss_body(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, superuser_token_headers: dict[str, str]
 ) -> None:
     malicious_body = (
         "<script>alert('XSS')</script>"
@@ -318,7 +316,7 @@ def test_update_article_with_empty_tags_removes_all_associations(
 
 
 def test_create_article_with_invalid_tag_id_returns_400(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, superuser_token_headers: dict[str, str]
 ) -> None:
     r = client.post(
         f"{settings.API_V1_STR}/articles/",
@@ -336,7 +334,7 @@ def test_create_article_with_invalid_tag_id_returns_400(
 
 
 def test_update_article_with_invalid_tag_id_returns_400(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, superuser_token_headers: dict[str, str]
 ) -> None:
     # 1. Create article
     create_res = client.post(
@@ -363,7 +361,7 @@ def test_update_article_with_invalid_tag_id_returns_400(
 
 
 def test_article_rich_text_formatting_and_sanitization(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, superuser_token_headers: dict[str, str]
 ) -> None:
     rich_html_body = """
     <h2>Campus Breakthrough</h2>

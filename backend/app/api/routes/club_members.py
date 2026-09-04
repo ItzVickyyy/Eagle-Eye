@@ -38,7 +38,7 @@ def read_active_members(session: SessionDep) -> Any:
 @router.get("/all", response_model=ClubMembersPublic)
 def read_all_members(
     session: SessionDep,
-    current_user: AdminUser,
+    _current_user: AdminUser,
     skip: int = 0,
     limit: int = 100,
 ) -> Any:
@@ -60,7 +60,7 @@ def create_club_member(
     *,
     session: SessionDep,
     member_in: ClubMemberCreate,
-    current_user: SuperAdminUser,
+    _current_user: SuperAdminUser,
 ) -> Any:
     """
     Create a new club member (Super Admin).
@@ -78,7 +78,7 @@ def update_club_member(
     session: SessionDep,
     id: int,
     member_in: ClubMemberUpdate,
-    current_user: SuperAdminUser,
+    _current_user: SuperAdminUser,
 ) -> Any:
     """
     Update club member info (Super Admin).
@@ -100,7 +100,7 @@ def delete_club_member(
     *,
     session: SessionDep,
     id: int,
-    current_user: SuperAdminUser,
+    _current_user: SuperAdminUser,
 ) -> Message:
     """
     Delete club member (Super Admin).

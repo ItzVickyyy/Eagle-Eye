@@ -5,7 +5,7 @@ from typing import Any
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from sqlmodel import col, func, select
 
-from app.api.deps import AdminUser, CurrentUser, SessionDep, is_admin_or_above
+from app.api.deps import CurrentUser, SessionDep, is_admin_or_above
 from app.core.audit import write_audit_log
 from app.core.config import settings
 from app.core.storage import get_storage
@@ -36,7 +36,7 @@ ALLOWED_MIME_TYPES: dict[str, list[str]] = {
 @router.get("/", response_model=MediasPublic)
 def read_media_items(
     session: SessionDep,
-    current_user: CurrentUser,
+    _current_user: CurrentUser,
     skip: int = 0,
     limit: int = 50,
 ) -> Any:

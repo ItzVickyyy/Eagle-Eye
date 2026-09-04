@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException
 from sqlmodel import col, func, select
 
 from app.api.deps import AdminUser, CurrentUser, SessionDep
-from app.models import Message, Tag, TagCreate, TagPublic, TagUpdate, TagsPublic
+from app.models import Message, Tag, TagCreate, TagPublic, TagsPublic
 
 router = APIRouter(prefix="/tags", tags=["tags"])
 
@@ -26,7 +26,7 @@ def create_tag(
     *,
     session: SessionDep,
     tag_in: TagCreate,
-    current_user: CurrentUser,
+    _current_user: CurrentUser,
 ) -> Any:
     """
     Create a tag.
@@ -48,7 +48,7 @@ def delete_tag(
     *,
     session: SessionDep,
     id: int,
-    current_user: AdminUser,
+    _current_user: AdminUser,
 ) -> Message:
     """
     Delete tag (Admin / Super Admin).

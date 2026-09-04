@@ -11,10 +11,12 @@ from app.api.routes import (
     login,
     media,
     private,
-    settings as site_settings,
     tags,
     users,
     utils,
+)
+from app.api.routes import (
+    settings as site_settings,
 )
 from app.core.config import settings
 

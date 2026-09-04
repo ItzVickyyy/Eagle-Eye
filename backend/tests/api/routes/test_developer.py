@@ -3,7 +3,7 @@ from sqlmodel import Session
 
 from app import crud
 from app.core.config import settings
-from app.models import UserCreate, UserRole, UserUpdate
+from app.models import UserCreate, UserRole
 from tests.utils.user import authentication_token_from_email
 from tests.utils.utils import random_email, random_lower_string
 

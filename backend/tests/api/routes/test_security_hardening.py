@@ -1,28 +1,19 @@
 import io
-import time
 import uuid
+
 from fastapi.testclient import TestClient
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from app import crud
-from app.core import security
 from app.core.config import settings
 from app.core.rate_limit import login_rate_limiter
 from app.models import (
-    Article,
-    ArticleCreate,
-    ArticleStatus,
-    Comment,
-    CommentStatus,
-    ContactMessage,
-    Media,
     User,
     UserCreate,
     UserRole,
 )
 from tests.utils.user import authentication_token_from_email
 from tests.utils.utils import random_email, random_lower_string
-
 
 # ---------------------------------------------------------------------------
 # Helper

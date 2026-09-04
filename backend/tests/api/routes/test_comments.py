@@ -1,10 +1,10 @@
 import uuid
+
 from fastapi.testclient import TestClient
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from app.core.config import settings
 from app.models import (
-    Article,
     Comment,
     CommentStatus,
     UserCreate,
@@ -15,7 +15,7 @@ from tests.utils.utils import random_email, random_lower_string
 
 
 def test_public_create_and_read_article_comments(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, superuser_token_headers: dict[str, str]
 ) -> None:
     # 1. Create published article
     art_res = client.post(

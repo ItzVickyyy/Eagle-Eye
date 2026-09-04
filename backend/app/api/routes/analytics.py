@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from sqlmodel import col, func, select
 
 from app.api.deps import AdminUser, SessionDep
-from app.models import Article, ArticlePublic, ArticleStatus, Category, Comment, User
+from app.models import Article, ArticlePublic, ArticleStatus, Comment, User
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
@@ -24,7 +24,7 @@ class AnalyticsOverview(BaseModel):
 @router.get("/overview", response_model=AnalyticsOverview)
 def get_analytics_overview(
     session: SessionDep,
-    current_user: AdminUser,
+    _current_user: AdminUser,
 ) -> Any:
     """
     Get high-level site publication and traffic analytics for Admin/Super Admin.

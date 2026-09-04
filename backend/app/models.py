@@ -1,7 +1,6 @@
 import uuid
 from datetime import UTC, datetime
-from enum import Enum
-from typing import Optional
+from enum import StrEnum
 
 from pydantic import EmailStr
 from sqlalchemy import DateTime, Text
@@ -17,26 +16,26 @@ def get_datetime_utc() -> datetime:
 # ---------------------------------------------------------------------------
 
 
-class UserRole(str, Enum):
+class UserRole(StrEnum):
     super_admin = "super_admin"
     admin = "admin"
     contributor = "contributor"
 
 
-class ArticleStatus(str, Enum):
+class ArticleStatus(StrEnum):
     draft = "draft"
     pending = "pending"
     published = "published"
     archived = "archived"
 
 
-class CommentStatus(str, Enum):
+class CommentStatus(StrEnum):
     pending = "pending"
     approved = "approved"
     spam = "spam"
 
 
-class ContactMessageStatus(str, Enum):
+class ContactMessageStatus(StrEnum):
     new = "new"
     read = "read"
 
@@ -98,10 +97,10 @@ class User(UserBase, table=True):
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
-    articles: list["Article"] = Relationship(
+    articles: list[Article] = Relationship(
         back_populates="author", cascade_delete=True
     )
-    media: list["Media"] = Relationship(
+    media: list[Media] = Relationship(
         back_populates="uploaded_by_user", cascade_delete=True
     )
 
@@ -139,7 +138,7 @@ class CategoryUpdate(SQLModel):
 
 class Category(CategoryBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    articles: list["Article"] = Relationship(back_populates="category")
+    articles: list[Article] = Relationship(back_populates="category")
 
 
 class CategoryPublic(CategoryBase):
@@ -184,7 +183,7 @@ class TagUpdate(SQLModel):
 
 class Tag(TagBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    articles: list["Article"] = Relationship(
+    articles: list[Article] = Relationship(
         back_populates="tags", link_model=ArticleTag
     )
 
@@ -236,14 +235,14 @@ class ArticleUpdate(SQLModel):
 
 class Article(ArticleBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    body: Optional[str] = Field(default=None, sa_type=Text)
+    body: str | None = Field(default=None, sa_type=Text)
     author_id: uuid.UUID = Field(
         foreign_key="user.id", nullable=False, ondelete="CASCADE"
     )
     category_id: int | None = Field(
         default=None, foreign_key="category.id", ondelete="SET NULL"
     )
-    date_published: datetime | None = Field(
+    date_published: datetime | None = Field(  # type: ignore[call-overload]
         default=None, sa_type=DateTime(timezone=True)
     )
     created_at: datetime | None = Field(
@@ -259,10 +258,10 @@ class Article(ArticleBase, table=True):
     tags: list[Tag] = Relationship(
         back_populates="articles", link_model=ArticleTag
     )
-    media: list["Media"] = Relationship(
+    media: list[Media] = Relationship(
         back_populates="article", cascade_delete=True
     )
-    comments: list["Comment"] = Relationship(
+    comments: list[Comment] = Relationship(
         back_populates="article", cascade_delete=True
     )
 

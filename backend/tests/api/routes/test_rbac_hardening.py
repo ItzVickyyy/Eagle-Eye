@@ -1,26 +1,19 @@
-import uuid
 from fastapi.testclient import TestClient
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from app import crud
 from app.core.config import settings
 from app.models import (
     Article,
-    ArticleCreate,
     ArticleStatus,
     Category,
-    Comment,
-    CommentStatus,
-    ContactMessage,
     Media,
-    SiteSetting,
     User,
     UserCreate,
     UserRole,
 )
 from tests.utils.user import authentication_token_from_email
 from tests.utils.utils import random_email, random_lower_string
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -71,7 +64,7 @@ def test_super_admin_role_capabilities(client: TestClient, db: Session) -> None:
     assert r_settings.status_code == 200
 
     # Super Admin CAN delete categories
-    cat = session_cat = Category(name="TestCat", slug="test-cat-rbac")
+    cat = Category(name="TestCat", slug="test-cat-rbac")
     db.add(cat)
     db.commit()
     db.refresh(cat)
@@ -342,7 +335,6 @@ def test_object_level_user_self_access_and_isolation(client: TestClient, db: Ses
     headers_a = authentication_token_from_email(client=client, email=email_a, db=db)
 
     user_b, email_b, _ = create_user_with_role(db, role=UserRole.contributor)
-    headers_b = authentication_token_from_email(client=client, email=email_b, db=db)
 
     # 1. User A can view their own record via /users/{id}
     r_me = client.get(f"{settings.API_V1_STR}/users/{user_a.id}", headers=headers_a)

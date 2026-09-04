@@ -115,8 +115,7 @@ def write_audit_log(
     if actor is not None:
         actor_id = actor.id
         actor_email = actor.email
-        actor_role = getattr(actor, "role", None)
-        actor_role = actor_role.value if hasattr(actor_role, "value") else actor_role
+        actor_role = str(actor.role)
         actor_is_developer = bool(actor.is_developer)
 
     entry = AuditLog(

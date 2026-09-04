@@ -10,7 +10,7 @@ from tests.utils.utils import random_email, random_lower_string
 
 
 def test_create_category_as_admin(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, superuser_token_headers: dict[str, str]
 ) -> None:
     slug = f"cat-{random_lower_string()}"
     data = {
@@ -40,7 +40,7 @@ def test_read_categories(client: TestClient) -> None:
 
 
 def test_read_category_by_id_and_slug(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, superuser_token_headers: dict[str, str]
 ) -> None:
     slug = f"read-{random_lower_string()}"
     data = {"name": "Read Test", "slug": slug}
@@ -64,7 +64,7 @@ def test_read_category_by_id_and_slug(
 
 
 def test_delete_empty_category(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, superuser_token_headers: dict[str, str]
 ) -> None:
     slug = f"del-{random_lower_string()}"
     data = {"name": "Delete Me", "slug": slug}

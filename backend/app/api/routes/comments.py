@@ -49,7 +49,7 @@ def get_article_comments(
 @router.get("/", response_model=CommentsPublic)
 def get_all_comments(
     session: SessionDep,
-    current_user: AdminUser,
+    _current_user: AdminUser,
     status: CommentStatus | None = None,
     skip: int = 0,
     limit: int = 50,
@@ -112,7 +112,7 @@ def update_comment_status(
     session: SessionDep,
     id: int,
     comment_in: CommentUpdate,
-    current_user: AdminUser,
+    _current_user: AdminUser,
 ) -> Any:
     """
     Moderate comment status (Admin / Super Admin).
@@ -133,7 +133,7 @@ def delete_comment(
     *,
     session: SessionDep,
     id: int,
-    current_user: AdminUser,
+    _current_user: AdminUser,
 ) -> Message:
     """
     Delete comment (Admin / Super Admin).

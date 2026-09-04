@@ -50,7 +50,7 @@ def create_category(
     *,
     session: SessionDep,
     category_in: CategoryCreate,
-    current_user: AdminUser,
+    _current_user: AdminUser,
 ) -> Any:
     """
     Create category (Admin / Super Admin).
@@ -74,7 +74,7 @@ def update_category(
     session: SessionDep,
     id: int,
     category_in: CategoryUpdate,
-    current_user: AdminUser,
+    _current_user: AdminUser,
 ) -> Any:
     """
     Update category (Admin / Super Admin).
@@ -105,7 +105,7 @@ def delete_category(
     *,
     session: SessionDep,
     id: int,
-    current_user: SuperAdminUser,
+    _current_user: SuperAdminUser,
 ) -> Message:
     """
     Delete category (Super Admin).

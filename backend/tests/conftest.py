@@ -23,7 +23,7 @@ def db() -> Generator[Session]:
     SQLModel.metadata.create_all(test_engine)
     with Session(test_engine) as session:
         init_db(session)
-        
+
         def get_test_db():
             with Session(test_engine) as test_session:
                 yield test_session

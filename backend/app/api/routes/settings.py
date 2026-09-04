@@ -41,7 +41,7 @@ def set_site_setting(
     *,
     session: SessionDep,
     setting_in: SiteSettingCreate,
-    current_user: SuperAdminUser,
+    _current_user: SuperAdminUser,
 ) -> Any:
     """
     Set or update a site setting (Super Admin).
@@ -62,7 +62,7 @@ def delete_site_setting(
     *,
     session: SessionDep,
     key: str,
-    current_user: SuperAdminUser,
+    _current_user: SuperAdminUser,
 ) -> Message:
     """
     Delete a site setting (Super Admin).

@@ -8,6 +8,7 @@ import {
   ListChecks,
   MessageSquare,
   Settings,
+  Terminal,
   Users,
 } from "lucide-react"
 import { SidebarAppearance } from "@/components/Common/Appearance"
@@ -42,6 +43,10 @@ const editorItems: NavItem[] = [
 const moderationItems: NavItem[] = [
   { icon: MessageSquare, title: "Comments", path: "/admin/comments" },
   { icon: Inbox, title: "Contact Inbox", path: "/admin/contact" },
+]
+
+const developerItems: NavItem[] = [
+  { icon: Terminal, title: "System Dashboard", path: "/admin/developer" },
 ]
 
 const superAdminItems: NavItem[] = [
@@ -115,6 +120,9 @@ export function AppSidebar() {
         <NavGroup label="Content" items={editorItems} />
         {isStaffAdmin && (
           <NavGroup label="Moderation & Inbox" items={moderationItems} />
+        )}
+        {currentUser?.is_developer && (
+          <NavGroup label="Developer" items={developerItems} />
         )}
         {currentUser?.is_superuser && (
           <NavGroup label="Administration" items={superAdminItems} />

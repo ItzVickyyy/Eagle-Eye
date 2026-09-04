@@ -667,6 +667,50 @@ export type ContactMessagesPublic = {
 };
 
 /**
+ * FeatureFlags
+ */
+export type FeatureFlags = {
+    /**
+     * Maintenance Mode
+     */
+    maintenance_mode: boolean;
+    /**
+     * Public Comments Enabled
+     */
+    public_comments_enabled: boolean;
+    /**
+     * Contact Form Enabled
+     */
+    contact_form_enabled: boolean;
+    /**
+     * Allow Public Signup
+     */
+    allow_public_signup: boolean;
+};
+
+/**
+ * FeatureFlagsUpdate
+ */
+export type FeatureFlagsUpdate = {
+    /**
+     * Maintenance Mode
+     */
+    maintenance_mode?: boolean | null;
+    /**
+     * Public Comments Enabled
+     */
+    public_comments_enabled?: boolean | null;
+    /**
+     * Contact Form Enabled
+     */
+    contact_form_enabled?: boolean | null;
+    /**
+     * Allow Public Signup
+     */
+    allow_public_signup?: boolean | null;
+};
+
+/**
  * HTTPValidationError
  */
 export type HTTPValidationError = {
@@ -827,6 +871,130 @@ export type SiteSettingsPublic = {
 };
 
 /**
+ * SystemDiagnosticsResponse
+ */
+export type SystemDiagnosticsResponse = {
+    /**
+     * Database Engine
+     */
+    database_engine: string;
+    /**
+     * Total Users
+     */
+    total_users: number;
+    /**
+     * Total Articles
+     */
+    total_articles: number;
+    /**
+     * Total Categories
+     */
+    total_categories: number;
+    /**
+     * Total Tags
+     */
+    total_tags: number;
+    /**
+     * Total Comments
+     */
+    total_comments: number;
+    /**
+     * Total Contact Messages
+     */
+    total_contact_messages: number;
+    /**
+     * Total Members
+     */
+    total_members: number;
+    /**
+     * System Settings Count
+     */
+    system_settings_count: number;
+    /**
+     * Server Time Utc
+     */
+    server_time_utc: string;
+};
+
+/**
+ * SystemHealthResponse
+ */
+export type SystemHealthResponse = {
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Database Status
+     */
+    database_status: string;
+    /**
+     * Database Latency Ms
+     */
+    database_latency_ms: number;
+    /**
+     * Server Time Utc
+     */
+    server_time_utc: string;
+    /**
+     * Environment
+     */
+    environment: string;
+    /**
+     * Python Version
+     */
+    python_version: string;
+    /**
+     * Fastapi Version
+     */
+    fastapi_version: string;
+    /**
+     * Platform System
+     */
+    platform_system: string;
+};
+
+/**
+ * SystemLogEntry
+ */
+export type SystemLogEntry = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Timestamp
+     */
+    timestamp: string;
+    /**
+     * Level
+     */
+    level: string;
+    /**
+     * Component
+     */
+    component: string;
+    /**
+     * Message
+     */
+    message: string;
+};
+
+/**
+ * SystemLogsResponse
+ */
+export type SystemLogsResponse = {
+    /**
+     * Data
+     */
+    data: Array<SystemLogEntry>;
+    /**
+     * Count
+     */
+    count: number;
+};
+
+/**
  * TagCreate
  */
 export type TagCreate = {
@@ -909,6 +1077,10 @@ export type UserCreate = {
      */
     is_superuser?: boolean;
     /**
+     * Is Developer
+     */
+    is_developer?: boolean;
+    /**
      * Full Name
      */
     full_name?: string | null;
@@ -943,6 +1115,10 @@ export type UserPublic = {
      * Is Superuser
      */
     is_superuser?: boolean;
+    /**
+     * Is Developer
+     */
+    is_developer?: boolean;
     /**
      * Full Name
      */
@@ -1005,6 +1181,10 @@ export type UserUpdate = {
      * Is Superuser
      */
     is_superuser?: boolean | null;
+    /**
+     * Is Developer
+     */
+    is_developer?: boolean | null;
     /**
      * Full Name
      */
@@ -2428,6 +2608,95 @@ export type contactMarkMessageUnreadResponses = {
 };
 
 export type contactMarkMessageUnreadResponse = contactMarkMessageUnreadResponses[keyof contactMarkMessageUnreadResponses];
+
+export type developerGetSystemHealthData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/developer/health';
+};
+
+export type developerGetSystemHealthResponses = {
+    /**
+     * Successful Response
+     */
+    200: SystemHealthResponse;
+};
+
+export type developerGetSystemHealthResponse = developerGetSystemHealthResponses[keyof developerGetSystemHealthResponses];
+
+export type developerGetSystemDiagnosticsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/developer/diagnostics';
+};
+
+export type developerGetSystemDiagnosticsResponses = {
+    /**
+     * Successful Response
+     */
+    200: SystemDiagnosticsResponse;
+};
+
+export type developerGetSystemDiagnosticsResponse = developerGetSystemDiagnosticsResponses[keyof developerGetSystemDiagnosticsResponses];
+
+export type developerGetFeatureFlagsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/developer/feature-flags';
+};
+
+export type developerGetFeatureFlagsResponses = {
+    /**
+     * Successful Response
+     */
+    200: FeatureFlags;
+};
+
+export type developerGetFeatureFlagsResponse = developerGetFeatureFlagsResponses[keyof developerGetFeatureFlagsResponses];
+
+export type developerUpdateFeatureFlagsData = {
+    body: FeatureFlagsUpdate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/developer/feature-flags';
+};
+
+export type developerUpdateFeatureFlagsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type developerUpdateFeatureFlagsError = developerUpdateFeatureFlagsErrors[keyof developerUpdateFeatureFlagsErrors];
+
+export type developerUpdateFeatureFlagsResponses = {
+    /**
+     * Successful Response
+     */
+    200: FeatureFlags;
+};
+
+export type developerUpdateFeatureFlagsResponse = developerUpdateFeatureFlagsResponses[keyof developerUpdateFeatureFlagsResponses];
+
+export type developerGetSystemLogsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/developer/logs';
+};
+
+export type developerGetSystemLogsResponses = {
+    /**
+     * Successful Response
+     */
+    200: SystemLogsResponse;
+};
+
+export type developerGetSystemLogsResponse = developerGetSystemLogsResponses[keyof developerGetSystemLogsResponses];
 
 export type settingsGetSiteSettingsData = {
     body?: never;

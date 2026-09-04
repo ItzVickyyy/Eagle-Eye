@@ -12,3 +12,7 @@ backend/app/frontend/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Local artifacts
+New folder/
+frontend/src/data/

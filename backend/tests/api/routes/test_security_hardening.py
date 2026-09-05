@@ -279,7 +279,8 @@ def test_csp_forbids_remote_scripts_and_arbitrary_iframes() -> None:
     """The CSP must keep scripts and frames restricted.
 
     - ``default-src 'self'`` and ``script-src 'self'`` block third-party JS.
-    - ``frame-src 'self'`` blocks any third-party iframe embedding.
+    - ``frame-src 'self'`` blocks any third-party iframe embedding, except
+      the allow-listed Cloudflare Turnstile origin required by CAPTCHA.
     - ``object-src 'none'`` blocks plugin embeds (Flash/Java).
     - ``base-uri 'self'`` blocks ``<base>`` tag injection.
     """
@@ -294,23 +295,41 @@ def test_csp_forbids_remote_scripts_and_arbitrary_iframes() -> None:
     assert "'unsafe-inline'" not in script_src
     assert "'unsafe-eval'" not in script_src
 
-    # frame-src must be the same origin only; a bare ``https:`` scheme
-    # token (followed by a space, not by ``//``) would re-introduce the
-    # entire TLS web as an allowed embed origin.
-    frame_src = _csp_directive("frame-src")
-    assert frame_src == "'self'"
+    # Cloudflare Turnstile is explicitly allow-listed for script/frame/connect
+    # so the CAPTCHA widget can load; arbitrary other hosts remain forbidden.
+    assert "https://challenges.cloudflare.com" in script_src
     for forbidden in (
         "https://cdn.jsdelivr.net",
         "https://unpkg.com",
         "https://google.com",
     ):
-        assert forbidden not in frame_src
+        assert forbidden not in script_src, (
+            f"script-src must not allow {forbidden!r}"
+        )
 
-    # connect-src must be the same origin only: there is no browser-side
-    # Sentry integration, so allowing *.sentry.io would be an unused
-    # wildcard that future code could mistakenly rely on.
+    # frame-src allows same-origin plus the explicit Turnstile host; a bare
+    # ``https:`` scheme token (followed by a space, not by ``//``) would
+    # re-introduce the entire TLS web as an allowed embed origin and is
+    # forbidden here.
+    frame_src = _csp_directive("frame-src")
+    assert "'self'" in frame_src
+    assert "https://challenges.cloudflare.com" in frame_src
+    for forbidden in (
+        "https://cdn.jsdelivr.net",
+        "https://unpkg.com",
+        "https://google.com",
+    ):
+        assert forbidden not in frame_src, (
+            f"frame-src must not allow {forbidden!r}"
+        )
+
+    # connect-src allows same-origin plus the explicit Turnstile verify
+    # host; there is no browser-side Sentry integration, so allowing
+    # *.sentry.io would be an unused wildcard that future code could
+    # mistakenly rely on.
     connect_src = _csp_directive("connect-src")
-    assert connect_src == "'self'"
+    assert "'self'" in connect_src
+    assert "https://challenges.cloudflare.com" in connect_src
     assert "sentry.io" not in CONTENT_SECURITY_POLICY
 
 

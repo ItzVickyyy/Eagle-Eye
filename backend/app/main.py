@@ -73,13 +73,13 @@ Scope
 
 CONTENT_SECURITY_POLICY = (
     "default-src 'self'; "
-    "script-src 'self'; "
+    "script-src 'self' https://challenges.cloudflare.com; "
     "style-src 'self' 'unsafe-inline'; "
     "img-src 'self' data: blob: https:; "
     "media-src 'self' blob: https:; "
     "font-src 'self' data:; "
-    "connect-src 'self'; "
-    "frame-src 'self'; "
+    "connect-src 'self' https://challenges.cloudflare.com; "
+    "frame-src 'self' https://challenges.cloudflare.com; "
     "worker-src 'self' blob:; "
     "object-src 'none'; "
     "base-uri 'self'; "

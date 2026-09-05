@@ -93,6 +93,12 @@ class Settings(BaseSettings):
     TURNSTILE_SITE_KEY: str | None = None
     TURNSTILE_SECRET_KEY: str | None = None
 
+    # Optional frontend-side site key (VITE_TURNSTILE_SITE_KEY) surfaced
+    # through the deployment .env. The frontend bundle is built separately
+    # and reads this value directly via Vite; we only sanity-check it on
+    # the backend side so a misconfigured prod build is caught at startup.
+    VITE_TURNSTILE_SITE_KEY: str | None = None
+
     EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
 
     @computed_field  # type: ignore[prop-decorator]
@@ -144,6 +150,51 @@ class Settings(BaseSettings):
         self._check_default_secret(
             "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD
         )
+
+        return self
+
+    @model_validator(mode="after")
+    def _validate_captcha_configuration(self) -> Self:
+        """Fail fast on inconsistent CAPTCHA configuration.
+
+        The check runs once at process startup when the Settings instance
+        is constructed, so a misconfigured production deployment refuses
+        to boot rather than silently disabling CAPTCHA or leaking a
+        missing-secret warning to logs after a request is already in
+        flight. The hidden ``_captcha_runtime_required`` override (used by
+        the test suite to force the dependency active) is also honored
+        here: if it is set we treat the configuration as if CAPTCHA were
+        enabled, but we never assert on a secret value in any error path.
+
+        Errors reference *names* of variables only; secret values are
+        intentionally never included in any message.
+        """
+        runtime_required = bool(getattr(self, "_captcha_runtime_required", False))
+        if not (self.CAPTCHA_ENABLED or runtime_required):
+            return self
+
+        missing: list[str] = []
+        if not self.TURNSTILE_SECRET_KEY:
+            missing.append("TURNSTILE_SECRET_KEY")
+        if not self.TURNSTILE_SITE_KEY:
+            missing.append("TURNSTILE_SITE_KEY")
+        if not self.VITE_TURNSTILE_SITE_KEY:
+            missing.append("VITE_TURNSTILE_SITE_KEY")
+
+        if missing:
+            rendered = ", ".join(missing)
+            if self.FASTAPI_ENV == "development" or runtime_required:
+                warnings.warn(
+                    "CAPTCHA is enabled but configuration is incomplete; "
+                    f"missing environment variables: {rendered}. "
+                    "Verification will fail closed until they are set.",
+                    stacklevel=1,
+                )
+            else:
+                raise ValueError(
+                    "CAPTCHA is enabled but configuration is incomplete; "
+                    f"missing environment variables: {rendered}."
+                )
 
         return self
 

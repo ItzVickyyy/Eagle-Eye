@@ -7,6 +7,11 @@ from sqlmodel import Session
 from app import crud
 from app.core.config import settings
 from app.core.rate_limit import login_rate_limiter
+from app.main import (
+    CONTENT_SECURITY_POLICY,
+    HSTS_MAX_AGE_SECONDS,
+    PERMISSIONS_POLICY,
+)
 from app.models import (
     User,
     UserCreate,
@@ -18,6 +23,15 @@ from tests.utils.utils import random_email, random_lower_string
 # ---------------------------------------------------------------------------
 # Helper
 # ---------------------------------------------------------------------------
+
+
+def _csp_directive(name: str, policy: str = CONTENT_SECURITY_POLICY) -> str:
+    """Return the value of a single CSP directive from a serialized policy."""
+    parts = [part.strip() for part in policy.split(";")]
+    for part in parts:
+        if part.startswith(name + " "):
+            return part[len(name) + 1 :]
+    raise AssertionError(f"Directive {name!r} not present in CSP")
 
 
 def create_security_test_user(
@@ -251,6 +265,127 @@ def test_security_headers_present(client: TestClient) -> None:
     assert r.headers.get("X-Frame-Options") == "DENY"
     assert r.headers.get("X-XSS-Protection") == "1; mode=block"
     assert r.headers.get("Referrer-Policy") == "strict-origin-when-cross-origin"
+    assert r.headers.get("Content-Security-Policy") == CONTENT_SECURITY_POLICY
+    assert r.headers.get("Permissions-Policy") == PERMISSIONS_POLICY
+
+
+def test_csp_forbids_remote_scripts_and_arbitrary_iframes() -> None:
+    """The CSP must keep scripts and frames restricted.
+
+    - ``default-src 'self'`` and ``script-src 'self'`` block third-party JS.
+    - ``frame-src 'self'`` blocks any third-party iframe embedding.
+    - ``object-src 'none'`` blocks plugin embeds (Flash/Java).
+    - ``base-uri 'self'`` blocks ``<base>`` tag injection.
+    """
+    assert "default-src 'self'" in CONTENT_SECURITY_POLICY
+    assert "script-src 'self'" in CONTENT_SECURITY_POLICY
+    assert "object-src 'none'" in CONTENT_SECURITY_POLICY
+    assert "base-uri 'self'" in CONTENT_SECURITY_POLICY
+    assert "frame-ancestors 'none'" in CONTENT_SECURITY_POLICY
+
+    # script-src must not allow inline code execution.
+    script_src = _csp_directive("script-src")
+    assert "'unsafe-inline'" not in script_src
+    assert "'unsafe-eval'" not in script_src
+
+    # frame-src must be the same origin only; a bare ``https:`` scheme
+    # token (followed by a space, not by ``//``) would re-introduce the
+    # entire TLS web as an allowed embed origin.
+    frame_src = _csp_directive("frame-src")
+    assert frame_src == "'self'"
+    for forbidden in (
+        "https://cdn.jsdelivr.net",
+        "https://unpkg.com",
+        "https://google.com",
+    ):
+        assert forbidden not in frame_src
+
+    # connect-src must be the same origin only: there is no browser-side
+    # Sentry integration, so allowing *.sentry.io would be an unused
+    # wildcard that future code could mistakenly rely on.
+    connect_src = _csp_directive("connect-src")
+    assert connect_src == "'self'"
+    assert "sentry.io" not in CONTENT_SECURITY_POLICY
+
+
+def test_permissions_policy_disables_powerful_features() -> None:
+    """Permissions-Policy must deny every powerful feature the app does not use."""
+    for feature in (
+        "camera",
+        "microphone",
+        "geolocation",
+        "payment",
+        "usb",
+        "interest-cohort",
+        "accelerometer",
+        "gyroscope",
+        "magnetometer",
+    ):
+        assert f"{feature}=()" in PERMISSIONS_POLICY, (
+            f"Permissions-Policy must disable {feature!r}"
+        )
+
+
+def test_hsts_absent_over_plain_http(client: TestClient) -> None:
+    """HSTS must NOT be sent over plain HTTP.
+
+    Sending HSTS over a non-TLS response would cause browsers to remember a
+    policy the deployment cannot honour, and the local dev server / test
+    client both run over plain HTTP.
+    """
+    r = client.get(f"{settings.API_V1_STR}/articles/")
+    assert r.status_code == 200
+    assert "Strict-Transport-Security" not in r.headers
+
+
+def test_hsts_present_when_request_scheme_is_https() -> None:
+    """HSTS is emitted when ``request.url.scheme`` is ``https``.
+
+    Uses a fresh ``TestClient`` with ``base_url='https://testserver'`` so
+    Starlette's test transport advertises the HTTPS scheme on the request.
+    """
+    from app.main import app
+
+    with TestClient(app, base_url="https://testserver") as https_client:
+        r = https_client.get(f"{settings.API_V1_STR}/articles/")
+    assert r.status_code == 200
+    hsts = r.headers.get("Strict-Transport-Security")
+    assert hsts is not None
+    assert hsts == f"max-age={HSTS_MAX_AGE_SECONDS}"
+    # We intentionally do NOT enable includeSubDomains/preload: the
+    # deployment has no documented ownership of every subdomain, and adding
+    # either flag would be hard to undo once a browser caches the header.
+    assert "includeSubDomains" not in hsts
+    assert "preload" not in hsts
+
+
+def test_hsts_present_when_proxy_advertises_https(client: TestClient) -> None:
+    """A trusted ``X-Forwarded-Proto: https`` header is enough to emit HSTS.
+
+    Production runs behind a TLS-terminating reverse proxy, so the raw
+    ``request.url.scheme`` is HTTP. Honoring the forwarded scheme lets the
+    header reach clients in that topology.
+    """
+    r = client.get(
+        f"{settings.API_V1_STR}/articles/",
+        headers={"X-Forwarded-Proto": "https"},
+    )
+    assert r.status_code == 200
+    hsts = r.headers.get("Strict-Transport-Security")
+    assert hsts == f"max-age={HSTS_MAX_AGE_SECONDS}"
+
+
+def test_hsts_absent_when_proxy_advertises_http(client: TestClient) -> None:
+    """A reverse proxy explicitly saying ``X-Forwarded-Proto: http`` must not
+    trigger HSTS even if the header is sent in a header list (e.g. a chain of
+    proxies). Only the first value matters.
+    """
+    r = client.get(
+        f"{settings.API_V1_STR}/articles/",
+        headers={"X-Forwarded-Proto": "http"},
+    )
+    assert r.status_code == 200
+    assert "Strict-Transport-Security" not in r.headers
 
 
 # ---------------------------------------------------------------------------

@@ -49,6 +49,79 @@ app.add_middleware(
 app.add_middleware(MaintenanceModeMiddleware)
 
 
+"""
+Content Security Policy for Eagle Eye.
+
+Scope
+-----
+- The SPA serves its JS bundle from ``/assets/`` on the same origin as the
+  API, so ``default-src 'self'`` covers the bulk of traffic.
+- The rich-text editor (``RichTextEditor.tsx``) lets administrators paste
+  arbitrary ``http://``, ``https://``, or root-relative URLs into article
+  bodies. To keep that capability without explicitly allow-listing the open
+  web in script/style contexts, ``img-src`` and ``media-src`` permit any
+  HTTPS source, while ``connect-src`` and ``script-src`` stay restricted to
+  the same origin.
+- ``style-src 'unsafe-inline'`` is required for inline ``style={...}``
+  attributes used by Radix/Sonner UI components. A future iteration can
+  replace this with hashes or nonces if inline-style usage is removed.
+- ``frame-src 'self'`` permits only same-origin framing; no third-party
+  iframe embedding is used.
+- Sentry is used server-side only; there is no browser-side Sentry
+  integration.
+"""
+
+CONTENT_SECURITY_POLICY = (
+    "default-src 'self'; "
+    "script-src 'self'; "
+    "style-src 'self' 'unsafe-inline'; "
+    "img-src 'self' data: blob: https:; "
+    "media-src 'self' blob: https:; "
+    "font-src 'self' data:; "
+    "connect-src 'self'; "
+    "frame-src 'self'; "
+    "worker-src 'self' blob:; "
+    "object-src 'none'; "
+    "base-uri 'self'; "
+    "form-action 'self'; "
+    "frame-ancestors 'none'"
+)
+
+PERMISSIONS_POLICY = (
+    "camera=(), "
+    "microphone=(), "
+    "geolocation=(), "
+    "payment=(), "
+    "usb=(), "
+    "interest-cohort=(), "
+    "accelerometer=(), "
+    "gyroscope=(), "
+    "magnetometer=(), "
+    "fullscreen=(self)"
+)
+
+# One year in seconds. ``includeSubDomains``/``preload`` are deliberately
+# omitted: the deployment has no evidence of owning a registrable domain or
+# running TLS on every subdomain, so setting them could brick unrelated
+# subdomains or get the apex listed on the HSTS preload list by mistake.
+HSTS_MAX_AGE_SECONDS = 31_536_000
+
+
+def _is_https(request: Request) -> bool:
+    """Return True when the request reached us over a TLS-protected transport.
+
+    Honors a trusted ``X-Forwarded-Proto`` header so the value is correct
+    behind a TLS-terminating reverse proxy in production. Plain-HTTP clients
+    (notably the local dev server and the test client) never receive HSTS.
+    """
+    if request.url.scheme == "https":
+        return True
+    forwarded_proto = request.headers.get("x-forwarded-proto")
+    if forwarded_proto is not None and forwarded_proto.split(",")[0].strip().lower() == "https":
+        return True
+    return False
+
+
 @app.middleware("http")
 async def add_security_headers(
     request: Request, call_next: Callable[[Request], Awaitable[Response]]
@@ -58,6 +131,12 @@ async def add_security_headers(
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Content-Security-Policy"] = CONTENT_SECURITY_POLICY
+    response.headers["Permissions-Policy"] = PERMISSIONS_POLICY
+    if _is_https(request):
+        response.headers["Strict-Transport-Security"] = (
+            f"max-age={HSTS_MAX_AGE_SECONDS}"
+        )
     return response
 
 

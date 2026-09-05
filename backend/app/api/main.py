@@ -35,5 +35,14 @@ api_router.include_router(media.router)
 api_router.include_router(analytics.router)
 api_router.include_router(utils.router)
 
+# SECURITY: the /api/v1/private/* routes are dev-only helpers for bootstrapping
+# users from the test suite and CLI scripts. They have NO authentication. They
+# must NEVER be reachable in any non-development environment.
+#
+# `settings.FASTAPI_ENV` is typed as `Literal["development"] | None` in
+# app.core.config, so any other value is rejected at startup. Production
+# defaults to `None` (or any value other than "development"), and this
+# conditional is the only line of defense. Do not broaden it without also
+# adding a defense-in-depth check in the route itself.
 if settings.FASTAPI_ENV == "development":
-    api_router.include_router(private.router)
+    api_router.include_router(private.router)  # pragma: no cover - dev-only router

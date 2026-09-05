@@ -62,4 +62,23 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 WORKDIR /app/backend/
 
+# Container-level healthcheck. Mirrors the `healthcheck:` block in
+# compose.yml so plain `docker run` and non-compose orchestrators also get
+# a real readiness signal (not just TCP port 8000). Uses the same endpoint
+# the app exposes for this purpose: /api/v1/utils/health-check/. Uses
+# python (already in the image) rather than installing curl, to keep the
+# image lean.
+HEALTHCHECK --interval=10s --timeout=5s --retries=5 --start-period=30s \
+    CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/api/v1/utils/health-check/', timeout=3).status == 200 else 1)"
+
+# Entrypoint runs prestart (alembic upgrade head + initial data) before
+# exec'ing the CMD. This closes the migration-race window for any deploy
+# path (manual docker compose up, VPS cold start, fresh VPS rebuild).
+# CI workflows that already invoke `docker compose run --rm backend bash
+# scripts/prestart.sh` can opt out with SKIP_PRESTART=1.
+COPY ./backend/scripts/entrypoint.sh /app/backend/scripts/entrypoint.sh
+RUN chmod +x /app/backend/scripts/entrypoint.sh
+
+ENTRYPOINT ["/app/backend/scripts/entrypoint.sh"]
+
 CMD ["fastapi", "run", "--workers", "4"]

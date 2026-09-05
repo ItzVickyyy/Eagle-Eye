@@ -13,7 +13,16 @@ from app.core.config import settings
 from app.core.flags import MaintenanceModeMiddleware
 
 FRONTEND_DIR = Path(__file__).parent / "frontend"
-UPLOAD_DIR = Path("uploads")
+# Local upload directory. Resolved to an absolute path under the
+# backend/ folder (Path(__file__).parent.parent == /app/backend/ in
+# the container) so that a production deployment can mount a named
+# volume at this exact path. See compose.deploy.yml: backend volume
+# `app-uploads-data` mounted at /app/backend/uploads. The previous
+# CWD-relative `uploads` was rejected because `docker compose run`
+# and the long-running app container can have different CWDs
+# depending on entrypoint behaviour, which silently split writes
+# across container filesystems.
+UPLOAD_DIR = Path(__file__).parent.parent / settings.MEDIA_STORAGE_LOCAL_DIR
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 

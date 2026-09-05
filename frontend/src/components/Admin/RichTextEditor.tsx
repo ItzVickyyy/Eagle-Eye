@@ -1,3 +1,4 @@
+import { Node } from "@tiptap/core"
 import Image from "@tiptap/extension-image"
 import Link from "@tiptap/extension-link"
 import Placeholder from "@tiptap/extension-placeholder"
@@ -25,6 +26,7 @@ import {
   Undo,
   Unlink,
   Upload,
+  Video as VideoIcon,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 
@@ -44,6 +46,42 @@ import { LoadingButton } from "@/components/ui/loading-button"
 import { Separator } from "@/components/ui/separator"
 import useCustomToast from "@/hooks/useCustomToast"
 import { cn } from "@/lib/utils"
+
+const VideoNode = Node.create({
+  name: "video",
+  group: "block",
+  atom: true,
+  selectable: true,
+  draggable: true,
+  addAttributes() {
+    return {
+      src: { default: null },
+      controls: { default: true },
+      preload: { default: "metadata" },
+      width: { default: null },
+      height: { default: null },
+      poster: { default: null },
+    }
+  },
+  parseHTML() {
+    return [{ tag: "video[src]" }]
+  },
+  renderHTML({ HTMLAttributes }) {
+    const attrs = HTMLAttributes as Record<string, string | boolean | null>
+    return [
+      "video",
+      {
+        src: attrs.src ?? undefined,
+        controls: attrs.controls === false ? null : "true",
+        preload: attrs.preload ?? "metadata",
+        width: attrs.width ?? undefined,
+        height: attrs.height ?? undefined,
+        poster: attrs.poster ?? undefined,
+        class: "rounded-lg max-w-full h-auto my-4 border",
+      },
+    ]
+  },
+})
 
 interface RichTextEditorProps {
   value: string
@@ -71,6 +109,10 @@ export function RichTextEditor({
   const [imageAlt, setImageAlt] = useState("")
   const [uploadingImage, setUploadingImage] = useState(false)
 
+  const [videoDialogOpen, setVideoDialogOpen] = useState(false)
+  const [videoUrl, setVideoUrl] = useState("")
+  const [uploadingVideo, setUploadingVideo] = useState(false)
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -92,6 +134,7 @@ export function RichTextEditor({
           class: "rounded-lg max-w-full h-auto my-4 border",
         },
       }),
+      VideoNode,
       Placeholder.configure({
         placeholder,
       }),
@@ -101,7 +144,10 @@ export function RichTextEditor({
     onUpdate: ({ editor }) => {
       const html = editor.getHTML()
       const isEmpty =
-        editor.isEmpty || (!editor.getText().trim() && !html.includes("<img"))
+        editor.isEmpty ||
+        (!editor.getText().trim() &&
+          !html.includes("<img") &&
+          !html.includes("<video"))
       onChange(isEmpty ? "" : html)
     },
   })
@@ -112,7 +158,9 @@ export function RichTextEditor({
     const currentHtml = editor.getHTML()
     const isEmpty =
       editor.isEmpty ||
-      (!editor.getText().trim() && !currentHtml.includes("<img"))
+      (!editor.getText().trim() &&
+        !currentHtml.includes("<img") &&
+        !currentHtml.includes("<video"))
     const normalizedCurrent = isEmpty ? "" : currentHtml
     const normalizedIncoming = value || ""
 
@@ -220,6 +268,70 @@ export function RichTextEditor({
     setImageDialogOpen(false)
     setImageUrl("")
     setImageAlt("")
+  }
+
+  const isSafeMediaUrl = (raw: string): boolean => {
+    const v = raw.trim()
+    if (!v) return false
+    if (
+      v.startsWith("http://") ||
+      v.startsWith("https://") ||
+      v.startsWith("/")
+    ) {
+      return true
+    }
+    return false
+  }
+
+  const handleVideoFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingVideo(true)
+    try {
+      const res: any = await MediaService.uploadFile({
+        body: { file },
+      })
+      const uploadedUrl = res?.data?.file_url || res?.file_url
+      if (uploadedUrl) {
+        editor
+          .chain()
+          .focus()
+          .insertContent({
+            type: "video",
+            attrs: { src: uploadedUrl, controls: true, preload: "metadata" },
+          })
+          .run()
+        showSuccessToast("Video inserted successfully!")
+        setVideoDialogOpen(false)
+        setVideoUrl("")
+      }
+    } catch (err: any) {
+      showErrorToast(err.message || "Failed to upload video")
+    } finally {
+      setUploadingVideo(false)
+    }
+  }
+
+  const handleInsertVideoUrl = () => {
+    if (!isSafeMediaUrl(videoUrl)) {
+      showErrorToast(
+        "Video URL must start with http://, https://, or a relative /path.",
+      )
+      return
+    }
+    editor
+      .chain()
+      .focus()
+      .insertContent({
+        type: "video",
+        attrs: { src: videoUrl.trim(), controls: true, preload: "metadata" },
+      })
+      .run()
+    setVideoDialogOpen(false)
+    setVideoUrl("")
   }
 
   return (
@@ -465,6 +577,18 @@ export function RichTextEditor({
             variant="ghost"
             size="sm"
             className="h-8 w-8 p-0"
+            onClick={() => setVideoDialogOpen(true)}
+            disabled={disabled}
+            aria-label="Insert video"
+            title="Insert Video"
+          >
+            <VideoIcon className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
             onClick={() =>
               editor.chain().focus().unsetAllMarks().clearNodes().run()
             }
@@ -668,6 +792,90 @@ export function RichTextEditor({
               loading={uploadingImage}
               disabled={!imageUrl.trim()}
               onClick={handleInsertImageUrl}
+            >
+              Insert URL
+            </LoadingButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Video Dialog */}
+      <Dialog open={videoDialogOpen} onOpenChange={setVideoDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Insert Video</DialogTitle>
+            <DialogDescription>
+              Upload a video from your device or specify a hosted video URL.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-4 py-2">
+            <div className="flex flex-col gap-2">
+              <Label className="text-xs font-semibold">Upload Video</Label>
+              <label className="cursor-pointer border border-dashed rounded-lg p-4 flex flex-col items-center justify-center gap-2 hover:bg-muted/30 transition-colors">
+                <Upload className="size-6 text-muted-foreground" />
+                <span className="text-xs font-medium text-foreground">
+                  {uploadingVideo
+                    ? "Uploading video..."
+                    : "Choose video to upload"}
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  MP4 or WEBM up to 100MB
+                </span>
+                <input
+                  type="file"
+                  accept="video/mp4,video/webm"
+                  onChange={handleVideoFileUpload}
+                  disabled={uploadingVideo}
+                  className="sr-only"
+                />
+              </label>
+            </div>
+
+            <div className="relative flex items-center justify-center">
+              <Separator className="w-full" />
+              <span className="absolute bg-background px-2 text-[11px] text-muted-foreground uppercase">
+                Or via URL
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label
+                htmlFor="video-url-input"
+                className="text-xs font-semibold"
+              >
+                Video Web URL
+              </Label>
+              <Input
+                id="video-url-input"
+                placeholder="https://example.com/clip.mp4"
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault()
+                    handleInsertVideoUrl()
+                  }
+                }}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setVideoDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <LoadingButton
+              type="button"
+              size="sm"
+              loading={uploadingVideo}
+              disabled={!videoUrl.trim()}
+              onClick={handleInsertVideoUrl}
             >
               Insert URL
             </LoadingButton>

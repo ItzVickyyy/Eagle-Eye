@@ -21,7 +21,19 @@ router = APIRouter(prefix="/media", tags=["media"])
 
 storage = get_storage(settings.MEDIA_STORAGE_BACKEND, settings.MEDIA_STORAGE_LOCAL_DIR)
 
-MAX_UPLOAD_BYTES = 15 * 1024 * 1024  # 15 MB
+
+def _max_upload_bytes_for(content_type: str) -> int:
+    if content_type.startswith("video/"):
+        return settings.MAX_UPLOAD_BYTES_VIDEO
+    return settings.MAX_UPLOAD_BYTES_IMAGE
+
+
+def _format_size_limit(limit_bytes: int) -> str:
+    mb = limit_bytes / (1024 * 1024)
+    if mb == int(mb):
+        return f"{int(mb)}MB"
+    return f"{mb:.1f}MB"
+
 
 ALLOWED_MIME_TYPES: dict[str, list[str]] = {
     "image/jpeg": [".jpg", ".jpeg"],
@@ -89,14 +101,19 @@ async def upload_file(
     if content_type not in ALLOWED_MIME_TYPES:
         raise HTTPException(
             status_code=400,
-            detail="File type not supported. Use JPG, PNG, WEBP, GIF, or MP4.",
+            detail="File type not supported. Use JPG, PNG, WEBP, GIF, MP4, or WEBM.",
         )
 
     content = await file.read()
-    if len(content) > MAX_UPLOAD_BYTES:
+    max_bytes = _max_upload_bytes_for(content_type)
+    if len(content) > max_bytes:
+        kind = "video" if content_type.startswith("video/") else "image"
         raise HTTPException(
             status_code=413,
-            detail="File size exceeds maximum allowed limit of 15MB.",
+            detail=(
+                f"File size exceeds maximum allowed limit for {kind} "
+                f"({_format_size_limit(max_bytes)})."
+            ),
         )
     if len(content) == 0:
         raise HTTPException(

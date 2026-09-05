@@ -56,10 +56,25 @@ class Settings(BaseSettings):
 
     # Media storage
     # - "local" uses the local filesystem at MEDIA_STORAGE_LOCAL_DIR.
-    # A future production/object-storage backend can be selected here without
-    # changing the media router.
-    MEDIA_STORAGE_BACKEND: Literal["local"] = "local"
+    # - "s3" uses an S3-compatible bucket (AWS S3, Cloudflare R2,
+    #   Backblaze B2, MinIO, ...). The router is unchanged either way.
+    MEDIA_STORAGE_BACKEND: Literal["local", "s3"] = "local"
     MEDIA_STORAGE_LOCAL_DIR: str = "uploads"
+
+    # S3-compatible backend (used when MEDIA_STORAGE_BACKEND=s3).
+    MEDIA_S3_BUCKET: str | None = None
+    MEDIA_S3_REGION: str | None = None
+    # Override the AWS endpoint (required for R2 / B2 / MinIO; leave empty for AWS).
+    MEDIA_S3_ENDPOINT_URL: str | None = None
+    MEDIA_S3_ACCESS_KEY: str | None = None
+    MEDIA_S3_SECRET_KEY: str | None = None
+    # Optional CDN/custom domain in front of the bucket. Falls back to the
+    # endpoint URL (or the regional AWS hostname) when unset.
+    MEDIA_S3_PUBLIC_URL_BASE: str | None = None
+
+    # Upload size limits per media kind. Enforced by the media router.
+    MAX_UPLOAD_BYTES_IMAGE: int = 15 * 1024 * 1024  # 15 MiB
+    MAX_UPLOAD_BYTES_VIDEO: int = 100 * 1024 * 1024  # 100 MiB
 
     EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
 

@@ -44,6 +44,75 @@ def test_sanitize_html_blocks_data_and_vbscript_urls() -> None:
     assert "javascript:" not in result
 
 
+def test_sanitize_html_allows_safe_video_attributes() -> None:
+    raw = (
+        '<p>before</p>'
+        '<video src="https://cdn.example.com/v.mp4" controls width="640" '
+        'height="360" preload="metadata" muted playsinline></video>'
+        '<p>after</p>'
+    )
+    result = sanitize_html(raw)
+    assert '<video src="https://cdn.example.com/v.mp4"' in result
+    assert "controls" in result
+    assert 'width="640"' in result
+    assert 'preload="metadata"' in result
+    assert "muted" in result
+    assert "playsinline" in result
+    assert "<p>before</p>" in result
+    assert "<p>after</p>" in result
+
+
+def test_sanitize_html_strips_unsafe_video_attributes() -> None:
+    raw = (
+        '<video src="https://cdn.example.com/v.mp4" '
+        'onclick="alert(1)" onerror="x" autoplay="true" style="color:red"></video>'
+    )
+    result = sanitize_html(raw)
+    assert "onclick" not in result
+    assert "onerror" not in result
+    assert "autoplay" not in result
+    assert "style=" not in result
+    assert 'src="https://cdn.example.com/v.mp4"' in result
+
+
+def test_sanitize_html_allows_source_and_track_inside_video() -> None:
+    raw = (
+        '<video controls>'
+        '<source src="https://cdn.example.com/v.mp4" type="video/mp4" />'
+        '<source src="https://cdn.example.com/v.webm" type="video/webm" />'
+        '<track src="https://cdn.example.com/captions.vtt" '
+        'kind="captions" srclang="en" label="English" default />'
+        '</video>'
+    )
+    result = sanitize_html(raw)
+    assert '<source src="https://cdn.example.com/v.mp4"' in result
+    assert 'type="video/mp4"' in result
+    assert '<source src="https://cdn.example.com/v.webm"' in result
+    assert "<track" in result
+    assert 'kind="captions"' in result
+    assert 'srclang="en"' in result
+    assert "default" in result
+
+
+def test_sanitize_html_blocks_dangerous_video_and_source_urls() -> None:
+    raw = (
+        '<video src="javascript:alert(1)"></video>'
+        '<source src="data:video/mp4;base64,xxx" type="video/mp4" />'
+        '<track src="vbscript:msgbox(1)" kind="captions" />'
+    )
+    result = sanitize_html(raw)
+    assert "javascript:" not in result
+    assert "data:" not in result
+    assert "vbscript:" not in result
+    # The <video> tag itself is preserved (it has no other allowed attrs here)
+    # but its dangerous src is dropped, so the element is inert.
+    assert "<video" in result
+    assert 'src="javascript' not in result
+    # <source> with an unsafe src is rendered without the offending attribute;
+    # without src it is harmless. <track> with an unsafe src is rendered
+    # without src, also harmless.
+
+
 def test_sanitize_html_strips_mixed_case_event_handlers() -> None:
     raw = (
         '<p ONCLICK="alert(1)">Text</p>'

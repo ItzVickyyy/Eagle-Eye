@@ -34,6 +34,9 @@ ALLOWED_TAGS = {
     "code",
     "a",
     "img",
+    "video",
+    "source",
+    "track",
     "span",
     "div",
     "table",
@@ -47,11 +50,25 @@ ALLOWED_TAGS = {
     "figcaption",
 }
 
-VOID_TAGS = {"br", "hr", "img"}
+VOID_TAGS = {"br", "hr", "img", "source", "track"}
 
 ALLOWED_ATTRS = {
     "a": {"href", "title", "target", "rel", "class"},
     "img": {"src", "alt", "title", "width", "height", "class"},
+    "video": {
+        "src",
+        "controls",
+        "poster",
+        "width",
+        "height",
+        "preload",
+        "loop",
+        "muted",
+        "playsinline",
+        "class",
+    },
+    "source": {"src", "type"},
+    "track": {"src", "kind", "srclang", "label", "default"},
     "p": {"class"},
     "span": {"class"},
     "div": {"class"},
@@ -94,6 +111,7 @@ DISALLOWED_CONTAINER_TAGS = {
     "button",
     "textarea",
     "select",
+    "audio",
 }
 
 DISALLOWED_VOID_TAGS = {
@@ -103,8 +121,6 @@ DISALLOWED_VOID_TAGS = {
     "link",
     "base",
     "param",
-    "source",
-    "track",
 }
 
 SAFE_SCHEMES = {"http", "https", "mailto", "tel"}

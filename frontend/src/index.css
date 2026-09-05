@@ -271,7 +271,9 @@
 }
 
 .prose-content img,
-.tiptap img {
+.tiptap img,
+.prose-content video,
+.tiptap video {
   border-radius: 0.5rem;
   max-width: 100%;
   height: auto;

@@ -26,3 +26,10 @@ backend/uploads/
 *.sql.gz
 *.bak
 
+# Local audit/QA artifacts (release-readiness probes).
+# Never commit test JWTs, captured command logs, or scratch IDs.
+*_token.txt
+*-token.txt
+dev_token.txt
+*.log
+

@@ -978,6 +978,22 @@ export type SystemLogEntry = {
      * Message
      */
     message: string;
+    /**
+     * Event
+     */
+    event?: string | null;
+    /**
+     * Actor
+     */
+    actor?: string | null;
+    /**
+     * Target
+     */
+    target?: string | null;
+    /**
+     * Success
+     */
+    success?: boolean | null;
 };
 
 /**
@@ -992,6 +1008,18 @@ export type SystemLogsResponse = {
      * Count
      */
     count: number;
+    /**
+     * Limit
+     */
+    limit: number;
+    /**
+     * Offset
+     */
+    offset: number;
+    /**
+     * Has More
+     */
+    has_more: boolean;
 };
 
 /**
@@ -2685,9 +2713,47 @@ export type developerUpdateFeatureFlagsResponse = developerUpdateFeatureFlagsRes
 export type developerGetSystemLogsData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Event
+         */
+        event?: string | null;
+        /**
+         * Component
+         */
+        component?: string | null;
+        /**
+         * Target Type
+         */
+        target_type?: string | null;
+        /**
+         * Severity
+         */
+        severity?: string | null;
+        /**
+         * Success
+         */
+        success?: boolean | null;
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Offset
+         */
+        offset?: number;
+    };
     url: '/api/v1/developer/logs';
 };
+
+export type developerGetSystemLogsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type developerGetSystemLogsError = developerGetSystemLogsErrors[keyof developerGetSystemLogsErrors];
 
 export type developerGetSystemLogsResponses = {
     /**

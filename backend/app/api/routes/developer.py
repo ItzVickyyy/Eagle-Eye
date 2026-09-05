@@ -86,6 +86,9 @@ class SystemLogEntry(BaseModel):
 class SystemLogsResponse(BaseModel):
     data: list[SystemLogEntry]
     count: int
+    limit: int
+    offset: int
+    has_more: bool
 
 
 # ---------------------------------------------------------------------------
@@ -233,42 +236,80 @@ def update_feature_flags(
 def get_system_logs(
     session: SessionDep,
     _current_user: DeveloperUser,
+    event: str | None = None,
+    component: str | None = None,
+    target_type: str | None = None,
+    severity: str | None = None,
+    success: bool | None = None,
+    limit: int = 50,
+    offset: int = 0,
 ) -> Any:
     """
     Retrieve recent audit/application event logs (Developer only).
 
+    Supports optional filtering on event name, component, target type,
+    severity, and success flag plus offset/limit pagination. The
+    ``has_more`` flag indicates whether additional entries exist after the
+    returned page.
+
     Returns real persisted events from the audit trail. An empty list is a
     valid state: this endpoint does not fabricate sample activity.
     """
-    entries = session.exec(
-        select(AuditLog)
+    # Clamp pagination to a safe range so a malicious client cannot request
+    # the entire table in a single call.
+    safe_limit = max(1, min(int(limit), 200))
+    safe_offset = max(0, int(offset))
+
+    statement = select(AuditLog)
+    if event:
+        statement = statement.where(AuditLog.event == event)
+    if component:
+        statement = statement.where(AuditLog.component == component)
+    if target_type:
+        statement = statement.where(AuditLog.target_type == target_type)
+    if severity:
+        statement = statement.where(AuditLog.severity == severity.upper())
+    if success is not None:
+        statement = statement.where(AuditLog.success == success)
+
+    # Pull one extra row so we can compute ``has_more`` without a second
+    # count query.
+    rows = session.exec(
+        statement
         .order_by(
             AuditLog.created_at.desc(),  # type: ignore[attr-defined]
             AuditLog.id.desc(),  # type: ignore[attr-defined]
         )
-        .limit(200)
+        .offset(safe_offset)
+        .limit(safe_limit + 1)
     ).all()
 
-    if entries:
-        data = [
-            SystemLogEntry(
-                id=entry.id.hex,
-                timestamp=entry.created_at,
-                level=entry.severity,
-                component=entry.component,
-                message=entry.message,
-                event=entry.event,
-                actor=entry.actor_email or "system",
-                target=(
-                    f"{entry.target_type}:{entry.target_id}"
-                    if entry.target_type
-                    else None
-                ),
-                success=entry.success,
-            )
-            for entry in entries
-        ]
-    else:
-        data = []
+    has_more = len(rows) > safe_limit
+    page = rows[:safe_limit]
 
-    return SystemLogsResponse(data=data, count=len(data))
+    data = [
+        SystemLogEntry(
+            id=entry.id.hex,
+            timestamp=entry.created_at,
+            level=entry.severity,
+            component=entry.component,
+            message=entry.message,
+            event=entry.event,
+            actor=entry.actor_email or "system",
+            target=(
+                f"{entry.target_type}:{entry.target_id}"
+                if entry.target_type
+                else None
+            ),
+            success=entry.success,
+        )
+        for entry in page
+    ]
+
+    return SystemLogsResponse(
+        data=data,
+        count=len(data),
+        limit=safe_limit,
+        offset=safe_offset,
+        has_more=has_more,
+    )

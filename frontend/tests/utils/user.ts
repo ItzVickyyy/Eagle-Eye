@@ -23,7 +23,9 @@ export async function logInUser(page: Page, email: string, password: string) {
   await page.getByTestId("password-input").fill(password)
   await page.getByRole("button", { name: "Log In" }).click()
   await page.waitForURL("**/admin")
-  await expect(page.getByRole("heading", { name: /Welcome back/ })).toBeVisible()
+  await expect(
+    page.getByRole("heading", { name: /Welcome back/ }),
+  ).toBeVisible()
 }
 
 export async function logOutUser(page: Page) {

@@ -5,9 +5,7 @@ import { randomEmail, randomPassword } from "./utils/random"
 import { logInUser } from "./utils/user"
 
 async function findUserRow(page: Page, email: string) {
-  await expect(
-    page.getByRole("heading", { name: "Users" }),
-  ).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Users" })).toBeVisible()
 
   const userRow = page.getByRole("row").filter({ hasText: email })
 
@@ -27,16 +25,12 @@ async function findUserRow(page: Page, email: string) {
     }
 
     if (await nextPageButton.isDisabled()) {
-      throw new Error(
-        `User row for ${email} not found on the final page`,
-      )
+      throw new Error(`User row for ${email} not found on the final page`)
     }
 
     await nextPageButton.click()
 
-    await expect(
-      page.getByRole("heading", { name: "Users" }),
-    ).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Users" })).toBeVisible()
   }
 }
 

@@ -535,6 +535,46 @@ This fixes the "2 shared passwords" problem, preserves Super Admin as the highes
 - Production secret/environment-value management through the UI
 - Backup/restore controls unless there is a concrete operational requirement
 
+#### 5.5.1 Runtime Feature Flags
+
+Developer-managed runtime feature flags are the supported mechanism for temporarily disabling specific public-facing capabilities without a redeploy. Flag values are stored in the database and read at request time.
+
+The following flags are enforced:
+
+- `dev_maintenance_mode` — When enabled, an HTTP middleware intercepts public traffic and returns a maintenance response. To keep administration and recovery paths reachable, the middleware allowlists prefix paths ending in `/` (`/api/v1/login/`, `/api/v1/developer/`, `/api/v1/utils/`, `/api/v1/settings/`) and exact paths (`/api/v1/password-recovery`, `/api/v1/reset-password`, `/docs`, `/redoc`, `/openapi.json`, `/uploads`, `/assets`, `/favicon.ico`, `/`). Developer tooling and admin/auth operations remain reachable while maintenance mode is active.
+- `dev_public_comments_enabled` — Gates `POST /api/v1/comments/`. When disabled, the request is rejected with `403 Forbidden` and the detail message `Public comments are temporarily disabled`. Existing approved comments remain readable; admin moderation is unaffected.
+- `dev_contact_form_enabled` — Gates `POST /api/v1/contact/`. When disabled, the request is rejected with `403 Forbidden` and the detail message `The contact form is temporarily disabled`. Admin contact inbox is unaffected.
+- `dev_allow_public_signup` — Gates `POST /api/v1/users/signup`. When disabled, the request is rejected with `403 Forbidden` and the detail message `Public sign-up is temporarily disabled`. Existing authentication and user management flows are unaffected.
+
+Flag values are toggled through the Developer dashboard. The current set of supported flag keys MUST NOT be expanded without updating this section.
+
+#### 5.5.2 Developer Logs (System Audit Log)
+
+Application audit log entries are exposed to Developer sessions through the `GET /api/v1/developer/logs` endpoint.
+
+Query parameters (all optional):
+
+- `event` — filter by audit event name (e.g. `developer.feature_flags_updated`).
+- `actor` — filter by actor identifier (typically a user ID).
+- `component` — filter by emitting component.
+- `target_type` — filter by target entity type.
+- `severity` — filter by severity level.
+- `success` — filter by success indicator (`true` / `false`).
+
+Pagination:
+
+- `offset` (default `0`) — number of most-recent entries to skip.
+- `limit` (default capped by the implementation) — maximum number of entries to return.
+- The response includes a `has_more` boolean indicating whether additional entries exist beyond the current page.
+
+Ordering is deterministic newest-first so the first page reflects the latest activity and successive pages return progressively older entries.
+
+#### 5.5.3 Auditability of Developer Actions
+
+Sensitive developer actions that change system state MUST be recorded in the application audit log. The `PATCH /api/v1/developer/feature-flags` endpoint emits a single audit event, `developer.feature_flags_updated`, capturing the developer who made the change, the previous flag values, and the new flag values.
+
+Runtime flag reads are not audited. Only state-changing developer actions (currently flag updates) produce audit events.
+
 ### 5.6 System-Wide / Non-Functional
 - Mobile-responsive design (breakpoints tested on phone/tablet/desktop)
 - Proper hosting with HTTPS

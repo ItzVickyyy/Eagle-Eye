@@ -5,6 +5,7 @@ from sqlmodel import col, func, select
 
 from app.api.deps import AdminUser, SessionDep
 from app.core.config import settings
+from app.core.flags import enforce_contact_form_enabled
 from app.core.rate_limit import contact_rate_limiter
 from app.models import (
     ContactMessage,
@@ -22,7 +23,10 @@ router = APIRouter(prefix="/contact", tags=["contact"])
 @router.post(
     "/",
     response_model=Message,
-    dependencies=[Depends(contact_rate_limiter)],
+    dependencies=[
+        Depends(contact_rate_limiter),
+        Depends(enforce_contact_form_enabled),
+    ],
 )
 def submit_contact_form(
     *,

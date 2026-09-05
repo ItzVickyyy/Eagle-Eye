@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   Cpu,
   Database,
+  Filter,
   Layers,
   RefreshCw,
   Server,
@@ -29,6 +30,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
@@ -90,10 +92,65 @@ function DeveloperDashboard() {
     queryFn: async () => (await DeveloperService.getFeatureFlags()).data,
   })
 
-  const { data: logs, isLoading: isLogsLoading } = useQuery({
+  const { isLoading: isLogsLoading } = useQuery({
     queryKey: ["developerLogs"],
     queryFn: async () => (await DeveloperService.getSystemLogs()).data,
   })
+
+  const [logFilters, setLogFilters] = useState({
+    event: "",
+    actor: "",
+    component: "",
+    target_type: "",
+    severity: "",
+    success: "" as "" | "true" | "false",
+  })
+  const [logOffset, setLogOffset] = useState(0)
+  const logPageSize = 50
+
+  const buildLogQuery = (offset: number) => ({
+    event: logFilters.event || undefined,
+    component: logFilters.component || undefined,
+    target_type: logFilters.target_type || undefined,
+    severity: logFilters.severity || undefined,
+    success:
+      logFilters.success === "" ? undefined : logFilters.success === "true",
+    limit: logPageSize,
+    offset,
+  })
+
+  const filteredLogsQuery = useQuery({
+    queryKey: ["developerLogsFiltered", logFilters, logOffset],
+    queryFn: async () =>
+      (
+        await DeveloperService.getSystemLogs({
+          query: buildLogQuery(logOffset),
+        })
+      ).data,
+    enabled: activeTab === "logs",
+  })
+
+  const applyLogFilters = () => {
+    setLogOffset(0)
+    void filteredLogsQuery.refetch()
+  }
+
+  const clearLogFilters = () => {
+    setLogFilters({
+      event: "",
+      actor: "",
+      component: "",
+      target_type: "",
+      severity: "",
+      success: "",
+    })
+    setLogOffset(0)
+  }
+
+  const loadOlderLogs = () => {
+    if (!filteredLogsQuery.data?.has_more) return
+    setLogOffset((prev) => prev + logPageSize)
+  }
 
   const updateFlagsMutation = useMutation({
     mutationFn: (flags: FeatureFlagsUpdate) =>
@@ -553,52 +610,222 @@ function DeveloperDashboard() {
                 credentials redacted)
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              {isLogsLoading ? (
+            <CardContent className="space-y-4">
+              <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-6">
+                <div className="space-y-1">
+                  <label
+                    htmlFor="log-filter-event"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    Event
+                  </label>
+                  <Input
+                    id="log-filter-event"
+                    placeholder="e.g. user.created"
+                    value={logFilters.event}
+                    onChange={(e) =>
+                      setLogFilters((f) => ({ ...f, event: e.target.value }))
+                    }
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label
+                    htmlFor="log-filter-actor"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    Actor
+                  </label>
+                  <Input
+                    id="log-filter-actor"
+                    placeholder="e.g. user@example.com"
+                    value={logFilters.actor}
+                    onChange={(e) =>
+                      setLogFilters((f) => ({ ...f, actor: e.target.value }))
+                    }
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label
+                    htmlFor="log-filter-component"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    Component
+                  </label>
+                  <Input
+                    id="log-filter-component"
+                    placeholder="e.g. auth"
+                    value={logFilters.component}
+                    onChange={(e) =>
+                      setLogFilters((f) => ({
+                        ...f,
+                        component: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label
+                    htmlFor="log-filter-target"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    Target Type
+                  </label>
+                  <Input
+                    id="log-filter-target"
+                    placeholder="e.g. user"
+                    value={logFilters.target_type}
+                    onChange={(e) =>
+                      setLogFilters((f) => ({
+                        ...f,
+                        target_type: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label
+                    htmlFor="log-filter-severity"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    Severity
+                  </label>
+                  <Input
+                    id="log-filter-severity"
+                    placeholder="INFO, WARN, ERROR"
+                    value={logFilters.severity}
+                    onChange={(e) =>
+                      setLogFilters((f) => ({
+                        ...f,
+                        severity: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label
+                    htmlFor="log-filter-success"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    Success
+                  </label>
+                  <select
+                    id="log-filter-success"
+                    className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none md:text-sm"
+                    value={logFilters.success}
+                    onChange={(e) =>
+                      setLogFilters((f) => ({
+                        ...f,
+                        success: e.target.value as "" | "true" | "false",
+                      }))
+                    }
+                  >
+                    <option value="">Any</option>
+                    <option value="true">Success</option>
+                    <option value="false">Failure</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={applyLogFilters}
+                  className="gap-2"
+                >
+                  <Filter className="size-4" />
+                  Apply Filters
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={clearLogFilters}
+                  disabled={filteredLogsQuery.isFetching}
+                >
+                  Clear
+                </Button>
+                {logOffset > 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    Showing rows {logOffset + 1}–
+                    {logOffset + (filteredLogsQuery.data?.data.length ?? 0)}
+                    {filteredLogsQuery.data?.has_more ? "+" : ""}
+                  </span>
+                )}
+              </div>
+              {isLogsLoading || filteredLogsQuery.isLoading ? (
                 <div className="space-y-2">
                   <Skeleton className="h-8 w-full" />
                   <Skeleton className="h-8 w-full" />
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[180px]">Timestamp</TableHead>
-                      <TableHead className="w-[100px]">Level</TableHead>
-                      <TableHead className="w-[160px]">Component</TableHead>
-                      <TableHead>Event Message</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {logs?.data.map((log) => (
-                      <TableRow key={log.id}>
-                        <TableCell className="font-mono text-xs text-muted-foreground">
-                          {new Date(log.timestamp).toLocaleTimeString()}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={
-                              log.level === "ERROR"
-                                ? "destructive"
-                                : log.level === "WARN"
-                                  ? "secondary"
-                                  : "outline"
-                            }
-                            className="text-xs font-mono"
-                          >
-                            {log.level}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-mono text-xs font-medium">
-                          {log.component}
-                        </TableCell>
-                        <TableCell className="font-mono text-xs">
-                          {log.message}
-                        </TableCell>
+                <>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[180px]">Timestamp</TableHead>
+                        <TableHead className="w-[100px]">Level</TableHead>
+                        <TableHead className="w-[160px]">Component</TableHead>
+                        <TableHead>Event</TableHead>
+                        <TableHead>Event Message</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredLogsQuery.data?.data.length ? (
+                        filteredLogsQuery.data.data.map((log) => (
+                          <TableRow key={log.id}>
+                            <TableCell className="font-mono text-xs text-muted-foreground">
+                              {new Date(log.timestamp).toLocaleString()}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={
+                                  log.level === "ERROR"
+                                    ? "destructive"
+                                    : log.level === "WARN"
+                                      ? "secondary"
+                                      : "outline"
+                                }
+                                className="text-xs font-mono"
+                              >
+                                {log.level}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="font-mono text-xs font-medium">
+                              {log.component}
+                            </TableCell>
+                            <TableCell className="font-mono text-xs">
+                              {log.event}
+                            </TableCell>
+                            <TableCell className="font-mono text-xs">
+                              {log.message}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell
+                            colSpan={5}
+                            className="text-center text-sm text-muted-foreground py-6"
+                          >
+                            No log entries match the current filters.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                  <div className="flex items-center justify-end">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={loadOlderLogs}
+                      disabled={
+                        !filteredLogsQuery.data?.has_more ||
+                        filteredLogsQuery.isFetching
+                      }
+                    >
+                      Load older
+                    </Button>
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>

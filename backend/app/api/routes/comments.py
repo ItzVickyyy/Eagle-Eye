@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import col, func, select
 
 from app.api.deps import AdminUser, SessionDep
+from app.core.flags import enforce_public_comments_enabled
 from app.core.rate_limit import comment_rate_limiter
 from app.models import (
     Article,
@@ -78,7 +79,10 @@ def get_all_comments(
 @router.post(
     "/",
     response_model=CommentPublic,
-    dependencies=[Depends(comment_rate_limiter)],
+    dependencies=[
+        Depends(comment_rate_limiter),
+        Depends(enforce_public_comments_enabled),
+    ],
 )
 def create_comment(
     *,

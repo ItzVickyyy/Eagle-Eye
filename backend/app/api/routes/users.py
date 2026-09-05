@@ -13,6 +13,7 @@ from app.api.deps import (
 )
 from app.core.audit import write_audit_log
 from app.core.config import settings
+from app.core.flags import enforce_public_signup_enabled
 from app.core.rate_limit import signup_rate_limiter
 from app.core.security import get_password_hash, verify_password
 from app.models import (
@@ -161,7 +162,10 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
 @router.post(
     "/signup",
     response_model=UserPublic,
-    dependencies=[Depends(signup_rate_limiter)],
+    dependencies=[
+        Depends(signup_rate_limiter),
+        Depends(enforce_public_signup_enabled),
+    ],
 )
 def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     """

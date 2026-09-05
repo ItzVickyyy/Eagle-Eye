@@ -10,6 +10,7 @@ from starlette.responses import Response
 
 from app.api.main import api_router
 from app.core.config import settings
+from app.core.flags import MaintenanceModeMiddleware
 
 FRONTEND_DIR = Path(__file__).parent / "frontend"
 UPLOAD_DIR = Path("uploads")
@@ -36,6 +37,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(MaintenanceModeMiddleware)
 
 
 @app.middleware("http")

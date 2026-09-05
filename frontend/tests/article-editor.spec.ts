@@ -9,12 +9,8 @@ test.describe("Article editor route", () => {
     await expect(
       page.getByRole("heading", { name: "Articles", level: 1 }),
     ).toBeVisible()
-    await expect(
-      page.getByRole("link", { name: /New Article/ }),
-    ).toBeVisible()
-    await expect(
-      page.getByRole("tab", { name: /Drafts/ }),
-    ).toBeVisible()
+    await expect(page.getByRole("link", { name: /New Article/ })).toBeVisible()
+    await expect(page.getByRole("tab", { name: /Drafts/ })).toBeVisible()
   })
 
   test("/admin/articles/new renders the editor (not the list)", async ({
@@ -30,9 +26,7 @@ test.describe("Article editor route", () => {
     await expect(page.locator("#excerpt")).toBeVisible()
     await expect(page.locator("#tags")).toBeVisible()
 
-    await expect(
-      page.getByRole("button", { name: "Save Draft" }),
-    ).toBeVisible()
+    await expect(page.getByRole("button", { name: "Save Draft" })).toBeVisible()
     await expect(
       page.getByRole("button", { name: "Submit for Review" }),
     ).toBeVisible()

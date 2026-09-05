@@ -1,14 +1,50 @@
-import { expect, test } from "@playwright/test"
+import { expect, type Page, test } from "@playwright/test"
 import { firstSuperuser, firstSuperuserPassword } from "./config.ts"
 import { createUser } from "./utils/privateApi"
 import { randomEmail, randomPassword } from "./utils/random"
 import { logInUser } from "./utils/user"
 
+async function findUserRow(page: Page, email: string) {
+  await expect(
+    page.getByRole("heading", { name: "Users" }),
+  ).toBeVisible()
+
+  const userRow = page.getByRole("row").filter({ hasText: email })
+
+  while (true) {
+    if (await userRow.isVisible()) {
+      return userRow
+    }
+
+    const nextPageButton = page.getByRole("button", {
+      name: "Go to next page",
+    })
+
+    if (!(await nextPageButton.isVisible())) {
+      throw new Error(
+        `User row for ${email} not found and pagination is not available`,
+      )
+    }
+
+    if (await nextPageButton.isDisabled()) {
+      throw new Error(
+        `User row for ${email} not found on the final page`,
+      )
+    }
+
+    await nextPageButton.click()
+
+    await expect(
+      page.getByRole("heading", { name: "Users" }),
+    ).toBeVisible()
+  }
+}
+
 test("Admin page is accessible and shows correct title", async ({ page }) => {
   await page.goto("/admin/users")
   await expect(page.getByRole("heading", { name: "Users" })).toBeVisible()
   await expect(
-    page.getByText("Manage user accounts and permissions"),
+    page.getByText("Manage staff accounts and role assignments"),
   ).toBeVisible()
 })
 
@@ -19,7 +55,7 @@ test("Add User button is visible", async ({ page }) => {
 
 test.describe("Admin user management", () => {
   test("Create a new user successfully", async ({ page }) => {
-    await page.goto("/admin")
+    await page.goto("/admin/users")
 
     const email = randomEmail()
     const password = randomPassword()
@@ -38,12 +74,12 @@ test.describe("Admin user management", () => {
 
     await expect(page.getByRole("dialog")).not.toBeVisible()
 
-    const userRow = page.getByRole("row").filter({ hasText: email })
+    const userRow = await findUserRow(page, email)
     await expect(userRow).toBeVisible()
   })
 
   test("Create a superuser", async ({ page }) => {
-    await page.goto("/admin")
+    await page.goto("/admin/users")
 
     const email = randomEmail()
     const password = randomPassword()
@@ -62,12 +98,12 @@ test.describe("Admin user management", () => {
 
     await expect(page.getByRole("dialog")).not.toBeVisible()
 
-    const userRow = page.getByRole("row").filter({ hasText: email })
-    await expect(userRow.getByText("Superuser")).toBeVisible()
+    const userRow = await findUserRow(page, email)
+    await expect(userRow.getByText("Super Admin")).toBeVisible()
   })
 
   test("Edit a user successfully", async ({ page }) => {
-    await page.goto("/admin")
+    await page.goto("/admin/users")
 
     const email = randomEmail()
     const password = randomPassword()
@@ -84,7 +120,7 @@ test.describe("Admin user management", () => {
     await expect(page.getByText("User created successfully")).toBeVisible()
     await expect(page.getByRole("dialog")).not.toBeVisible()
 
-    const userRow = page.getByRole("row").filter({ hasText: email })
+    const userRow = await findUserRow(page, email)
     await userRow.getByRole("button").click()
 
     await page.getByRole("menuitem", { name: "Edit User" }).click()
@@ -97,7 +133,7 @@ test.describe("Admin user management", () => {
   })
 
   test("Delete a user successfully", async ({ page }) => {
-    await page.goto("/admin")
+    await page.goto("/admin/users")
 
     const email = randomEmail()
     const password = randomPassword()
@@ -112,7 +148,7 @@ test.describe("Admin user management", () => {
 
     await expect(page.getByRole("dialog")).not.toBeVisible()
 
-    const userRow = page.getByRole("row").filter({ hasText: email })
+    const userRow = await findUserRow(page, email)
     await userRow.getByRole("button").click()
 
     await page.getByRole("menuitem", { name: "Delete User" }).click()
@@ -129,7 +165,7 @@ test.describe("Admin user management", () => {
   })
 
   test("Cancel user creation", async ({ page }) => {
-    await page.goto("/admin")
+    await page.goto("/admin/users")
 
     await page.getByRole("button", { name: "Add User" }).click()
     await page.getByPlaceholder("Email").fill("test@example.com")
@@ -140,7 +176,7 @@ test.describe("Admin user management", () => {
   })
 
   test("Email is required and must be valid", async ({ page }) => {
-    await page.goto("/admin")
+    await page.goto("/admin/users")
 
     await page.getByRole("button", { name: "Add User" }).click()
 
@@ -151,7 +187,7 @@ test.describe("Admin user management", () => {
   })
 
   test("Password must be at least 8 characters", async ({ page }) => {
-    await page.goto("/admin")
+    await page.goto("/admin/users")
 
     await page.getByRole("button", { name: "Add User" }).click()
 
@@ -166,7 +202,7 @@ test.describe("Admin user management", () => {
   })
 
   test("Passwords must match", async ({ page }) => {
-    await page.goto("/admin")
+    await page.goto("/admin/users")
 
     await page.getByRole("button", { name: "Add User" }).click()
 

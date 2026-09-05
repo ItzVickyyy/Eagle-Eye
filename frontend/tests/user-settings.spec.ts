@@ -4,21 +4,28 @@ import { createUser } from "./utils/privateApi.ts"
 import { randomEmail, randomPassword } from "./utils/random"
 import { logInUser, logOutUser } from "./utils/user"
 
-const tabs = ["My profile", "Password", "Danger zone"]
+const tabs = ["My Profile", "Password", "Danger Zone"]
 
 test("My profile tab is active by default", async ({ page }) => {
   await page.goto("/admin/settings")
-  await expect(page.getByRole("tab", { name: "My profile" })).toHaveAttribute(
+  await expect(page.getByRole("tab", { name: "My Profile" })).toHaveAttribute(
     "aria-selected",
     "true",
   )
 })
 
-test("All tabs are visible", async ({ page }) => {
-  await page.goto("/admin/settings")
-  for (const tab of tabs) {
-    await expect(page.getByRole("tab", { name: tab })).toBeVisible()
-  }
+test.describe("All tabs are visible", () => {
+  test.use({ storageState: { cookies: [], origins: [] } })
+  test("non-superuser sees all three tabs", async ({ page }) => {
+    const email = randomEmail()
+    const password = randomPassword()
+    await createUser({ email, password })
+    await logInUser(page, email, password)
+    await page.goto("/admin/settings")
+    for (const tab of tabs) {
+      await expect(page.getByRole("tab", { name: tab })).toBeVisible()
+    }
+  })
 })
 
 test.describe("Edit user profile", () => {

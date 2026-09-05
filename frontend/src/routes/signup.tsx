@@ -7,6 +7,7 @@ import {
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { AuthLayout } from "@/components/Common/AuthLayout"
+import { Turnstile } from "@/components/Common/Turnstile"
 import {
   Form,
   FormControl,
@@ -19,6 +20,8 @@ import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
 import useAuth, { isLoggedIn } from "@/hooks/useAuth"
+import { useTurnstileToken } from "@/hooks/useTurnstileToken"
+import { getTurnstileSiteKey } from "@/lib/captcha"
 
 const formSchema = z
   .object({
@@ -59,6 +62,11 @@ export const Route = createFileRoute("/signup")({
 
 function SignUp() {
   const { signUpMutation } = useAuth()
+  const captcha = useTurnstileToken({
+    onExpire: () => {
+      form.setError("root", { message: "CAPTCHA expired, please verify again" })
+    },
+  })
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     mode: "onBlur",
@@ -74,9 +82,17 @@ function SignUp() {
   const onSubmit = (data: FormData) => {
     if (signUpMutation.isPending) return
 
+    if (getTurnstileSiteKey() !== "" && !captcha.token) {
+      form.setError("root", { message: "Please complete the CAPTCHA" })
+      return
+    }
+
     // exclude confirm_password from submission data
     const { confirm_password: _confirm_password, ...submitData } = data
-    signUpMutation.mutate(submitData)
+    signUpMutation.mutate({
+      ...submitData,
+      captcha_token: captcha.token ?? null,
+    })
   }
 
   return (
@@ -164,6 +180,22 @@ function SignUp() {
                 </FormItem>
               )}
             />
+
+            <Turnstile
+              siteKey={getTurnstileSiteKey()}
+              onVerify={captcha.onVerify}
+              onExpire={captcha.onExpire}
+            />
+
+            {form.formState.errors.root?.message ? (
+              <p
+                data-testid="form-root-error"
+                role="alert"
+                className="text-destructive text-sm"
+              >
+                {form.formState.errors.root.message}
+              </p>
+            ) : null}
 
             <LoadingButton
               type="submit"

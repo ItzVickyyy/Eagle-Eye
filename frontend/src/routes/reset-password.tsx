@@ -11,6 +11,7 @@ import { z } from "zod"
 
 import { LoginService } from "@/client"
 import { AuthLayout } from "@/components/Common/AuthLayout"
+import { Turnstile } from "@/components/Common/Turnstile"
 import {
   Form,
   FormControl,
@@ -22,7 +23,9 @@ import {
 import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
 import { isLoggedIn } from "@/hooks/useAuth"
+import { useTurnstileToken } from "@/hooks/useTurnstileToken"
 import useCustomToast from "@/hooks/useCustomToast"
+import { getTurnstileSiteKey } from "@/lib/captcha"
 import { handleError } from "@/utils"
 
 const searchSchema = z.object({
@@ -70,6 +73,11 @@ function ResetPassword() {
   const { token } = Route.useSearch()
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const navigate = useNavigate()
+  const captcha = useTurnstileToken({
+    onExpire: () => {
+      form.setError("root", { message: "CAPTCHA expired, please verify again" })
+    },
+  })
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -82,18 +90,30 @@ function ResetPassword() {
   })
 
   const mutation = useMutation({
-    mutationFn: (data: { new_password: string; token: string }) =>
-      LoginService.resetPassword({ body: data }),
+    mutationFn: (data: {
+      new_password: string
+      token: string
+      captcha_token?: string | null
+    }) => LoginService.resetPassword({ body: data }),
     onSuccess: () => {
       showSuccessToast("Password updated successfully")
       form.reset()
+      captcha.reset()
       navigate({ to: "/login" })
     },
     onError: handleError.bind(showErrorToast),
   })
 
   const onSubmit = (data: FormData) => {
-    mutation.mutate({ new_password: data.new_password, token })
+    if (getTurnstileSiteKey() !== "" && !captcha.token) {
+      form.setError("root", { message: "Please complete the CAPTCHA" })
+      return
+    }
+    mutation.mutate({
+      new_password: data.new_password,
+      token,
+      captcha_token: captcha.token ?? null,
+    })
   }
 
   return (
@@ -143,6 +163,22 @@ function ResetPassword() {
                 </FormItem>
               )}
             />
+
+            <Turnstile
+              siteKey={getTurnstileSiteKey()}
+              onVerify={captcha.onVerify}
+              onExpire={captcha.onExpire}
+            />
+
+            {form.formState.errors.root?.message ? (
+              <p
+                data-testid="form-root-error"
+                role="alert"
+                className="text-destructive text-sm"
+              >
+                {form.formState.errors.root.message}
+              </p>
+            ) : null}
 
             <LoadingButton
               type="submit"

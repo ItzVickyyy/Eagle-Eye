@@ -614,6 +614,10 @@ export type ContactMessageCreate = {
      * Message
      */
     message: string;
+    /**
+     * Captcha Token
+     */
+    captcha_token?: string | null;
 };
 
 /**
@@ -804,6 +808,20 @@ export type NewPassword = {
      * New Password
      */
     new_password: string;
+    /**
+     * Captcha Token
+     */
+    captcha_token?: string | null;
+};
+
+/**
+ * PasswordRecoveryRequest
+ */
+export type PasswordRecoveryRequest = {
+    /**
+     * Captcha Token
+     */
+    captcha_token?: string | null;
 };
 
 /**
@@ -1186,6 +1204,10 @@ export type UserRegister = {
      * Full Name
      */
     full_name?: string | null;
+    /**
+     * Captcha Token
+     */
+    captcha_token?: string | null;
 };
 
 /**
@@ -1338,7 +1360,7 @@ export type loginTestTokenResponses = {
 export type loginTestTokenResponse = loginTestTokenResponses[keyof loginTestTokenResponses];
 
 export type loginRecoverPasswordData = {
-    body?: never;
+    body?: PasswordRecoveryRequest;
     path: {
         /**
          * Email

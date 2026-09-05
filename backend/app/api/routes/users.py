@@ -12,6 +12,7 @@ from app.api.deps import (
     is_super_admin,
 )
 from app.core.audit import write_audit_log
+from app.core.captcha import verify_captcha
 from app.core.config import settings
 from app.core.flags import enforce_public_signup_enabled
 from app.core.rate_limit import signup_rate_limiter
@@ -165,6 +166,7 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
     dependencies=[
         Depends(signup_rate_limiter),
         Depends(enforce_public_signup_enabled),
+        Depends(verify_captcha),
     ],
 )
 def register_user(session: SessionDep, user_in: UserRegister) -> Any:

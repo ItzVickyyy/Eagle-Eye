@@ -82,6 +82,13 @@ services:
       # operators can opt out of Redis-backed rate limiting by simply
       # not setting it.  When empty, the backend uses in-memory limits.
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      # CAPTCHA (Cloudflare Turnstile) -- both keys are optional; when
+      # CAPTCHA_ENABLED is unset/false the verification is bypassed.
+      # Production deployments that enable CAPTCHA must supply both the
+      # public site key (safe to ship to the SPA) and the secret key.
+      CAPTCHA_ENABLED: ${CAPTCHA_ENABLED:-false}
+      TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:-}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
 
     healthcheck:
       test:

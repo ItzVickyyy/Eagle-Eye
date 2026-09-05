@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
@@ -9,13 +9,21 @@ from app import crud
 from app.api.deps import CurrentUser, SessionDep, get_current_active_superuser
 from app.core import security
 from app.core.audit import write_audit_log
+from app.core.captcha import verify_captcha
 from app.core.config import settings
 from app.core.rate_limit import (
     login_rate_limiter,
     password_recovery_rate_limiter,
     password_reset_rate_limiter,
 )
-from app.models import Message, NewPassword, Token, UserPublic, UserUpdate
+from app.models import (
+    Message,
+    NewPassword,
+    PasswordRecoveryRequest,
+    Token,
+    UserPublic,
+    UserUpdate,
+)
 from app.utils import (
     generate_password_reset_token,
     generate_reset_password_email,
@@ -88,9 +96,11 @@ def test_token(current_user: CurrentUser) -> Any:
 
 @router.post(
     "/password-recovery/{email}",
-    dependencies=[Depends(password_recovery_rate_limiter)],
+    dependencies=[Depends(password_recovery_rate_limiter), Depends(verify_captcha)],
 )
-def recover_password(email: str, session: SessionDep) -> Message:
+def recover_password(
+    email: str, session: SessionDep, _body: PasswordRecoveryRequest = Body(default_factory=PasswordRecoveryRequest)
+) -> Message:
     """
     Password Recovery
     """
@@ -115,7 +125,7 @@ def recover_password(email: str, session: SessionDep) -> Message:
 
 @router.post(
     "/reset-password/",
-    dependencies=[Depends(password_reset_rate_limiter)],
+    dependencies=[Depends(password_reset_rate_limiter), Depends(verify_captcha)],
 )
 def reset_password(session: SessionDep, body: NewPassword) -> Message:
     """

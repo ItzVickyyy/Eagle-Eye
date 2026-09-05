@@ -82,12 +82,38 @@ class Settings(BaseSettings):
     # backend/app/core/rate_limit.py for the fail-open fallback rules.
     REDIS_URL: str | None = None
 
+    # CAPTCHA (Cloudflare Turnstile). When CAPTCHA_ENABLED is true, the four
+    # public-submission endpoints (signup, password-recovery, password-reset,
+    # contact) require a valid Turnstile token in the request body. In test
+    # environments CAPTCHA_ENABLED defaults to false so existing flows are not
+    # broken; in production it should be set to true with both keys populated.
+    # See backend/app/core/captcha.py for the verification rules and the
+    # fail-closed fallback when the secret is missing in production.
+    CAPTCHA_ENABLED: bool = False
+    TURNSTILE_SITE_KEY: str | None = None
+    TURNSTILE_SECRET_KEY: str | None = None
+
     EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
 
     @computed_field  # type: ignore[prop-decorator]
     @property
     def emails_enabled(self) -> bool:
         return bool(self.SMTP_HOST and self.EMAILS_FROM_EMAIL)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def captcha_required(self) -> bool:
+        """Whether the CAPTCHA dependency must actively verify a token.
+
+        ``CAPTCHA_ENABLED`` is the operator-facing switch. The hidden
+        ``_captcha_runtime_required`` override lets the test suite (and
+        ad-hoc operator overrides) force the dependency to be active even
+        when ``CAPTCHA_ENABLED`` is False, so negative-path tests can
+        exercise the verification path without enabling it globally.
+        """
+        if getattr(self, "_captcha_runtime_required", False):
+            return True
+        return bool(self.CAPTCHA_ENABLED)
 
     EMAIL_TEST_USER: EmailStr = "test@example.com"
     FIRST_SUPERUSER: EmailStr

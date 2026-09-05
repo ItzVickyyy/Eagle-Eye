@@ -10,6 +10,7 @@ import { z } from "zod"
 
 import { LoginService } from "@/client"
 import { AuthLayout } from "@/components/Common/AuthLayout"
+import { Turnstile } from "@/components/Common/Turnstile"
 import {
   Form,
   FormControl,
@@ -21,7 +22,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { isLoggedIn } from "@/hooks/useAuth"
+import { useTurnstileToken } from "@/hooks/useTurnstileToken"
 import useCustomToast from "@/hooks/useCustomToast"
+import { getTurnstileSiteKey } from "@/lib/captcha"
 import { handleError } from "@/utils"
 
 const formSchema = z.object({
@@ -56,10 +59,16 @@ function RecoverPassword() {
     },
   })
   const { showSuccessToast, showErrorToast } = useCustomToast()
+  const captcha = useTurnstileToken({
+    onExpire: () => {
+      form.setError("root", { message: "CAPTCHA expired, please verify again" })
+    },
+  })
 
   const recoverPassword = async (data: FormData) => {
     await LoginService.recoverPassword({
       path: { email: data.email },
+      body: { captcha_token: captcha.token ?? null },
     })
   }
 
@@ -68,12 +77,17 @@ function RecoverPassword() {
     onSuccess: () => {
       showSuccessToast("Password recovery email sent successfully")
       form.reset()
+      captcha.reset()
     },
     onError: handleError.bind(showErrorToast),
   })
 
   const onSubmit = async (data: FormData) => {
     if (mutation.isPending) return
+    if (getTurnstileSiteKey() !== "" && !captcha.token) {
+      form.setError("root", { message: "Please complete the CAPTCHA" })
+      return
+    }
     mutation.mutate(data)
   }
 
@@ -107,6 +121,22 @@ function RecoverPassword() {
                 </FormItem>
               )}
             />
+
+            <Turnstile
+              siteKey={getTurnstileSiteKey()}
+              onVerify={captcha.onVerify}
+              onExpire={captcha.onExpire}
+            />
+
+            {form.formState.errors.root?.message ? (
+              <p
+                data-testid="form-root-error"
+                role="alert"
+                className="text-destructive text-sm"
+              >
+                {form.formState.errors.root.message}
+              </p>
+            ) : null}
 
             <LoadingButton
               type="submit"

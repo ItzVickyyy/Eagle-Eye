@@ -459,3 +459,253 @@ def test_default_login_limiter_is_in_memory_when_redis_url_unset(
 
     assert _get_redis_url() in (None, "")
     assert type(login_rate_limiter).__name__ == "InMemoryRateLimiter"
+
+
+# ---------------------------------------------------------------------------
+# 7. Cloudflare Turnstile CAPTCHA
+# ---------------------------------------------------------------------------
+# All tests use CAPTCHA_ENABLED=False (default) unless explicitly noted.
+# The ``_captcha_runtime_required`` override forces the dependency active
+# without touching the global flag, so negative-path tests can exercise
+# verification without breaking every other test in the suite.
+
+
+@pytest.fixture
+def captcha_enabled() -> object:
+    """Enable CAPTCHA verification for the duration of one test.
+
+    Sets a dummy server-side secret so the ``misconfigured`` branch is
+    not triggered, and restores the original ``_captcha_runtime_required``
+    flag and secret on teardown. All provider calls are mocked per-test so
+    no real network traffic ever leaves the suite.
+    """
+    original_runtime = getattr(settings, "_captcha_runtime_required", False)
+    original_secret = settings.TURNSTILE_SECRET_KEY
+    settings._captcha_runtime_required = True  # type: ignore[attr-defined]
+    # Dummy value so the misconfiguration branch is not hit; the provider
+    # call itself is always mocked in these tests.
+    if not settings.TURNSTILE_SECRET_KEY:
+        settings.TURNSTILE_SECRET_KEY = "dummy-test-secret"
+    try:
+        yield
+    finally:
+        settings._captcha_runtime_required = original_runtime  # type: ignore[attr-defined]
+        settings.TURNSTILE_SECRET_KEY = original_secret
+
+
+def _mock_verify(monkeypatch: pytest.MonkeyPatch, *, ok: bool, error_code: str | None) -> None:
+    """Replace the Turnstile siteverify call with a deterministic fake."""
+
+    async def _fake_verify(**_kwargs: object) -> tuple[bool, str | None]:
+        return ok, error_code
+
+    monkeypatch.setattr(
+        "app.core.captcha._verify_with_turnstile",
+        _fake_verify,
+    )
+
+
+def _signup_payload(
+    captcha_token: str = "test-token-123",
+) -> dict[str, object]:
+    return {
+        "email": random_email(),
+        "password": random_lower_string(),
+        "full_name": "Test User",
+        "captcha_token": captcha_token,
+    }
+
+
+def test_signup_bypasses_captcha_when_disabled(client: TestClient) -> None:
+    """With CAPTCHA_ENABLED=False (default), signup must work without a token."""
+    payload = _signup_payload()
+    payload.pop("captcha_token")
+    r = client.post(f"{settings.API_V1_STR}/users/signup", json=payload)
+    assert r.status_code == 200
+
+
+def test_signup_rejects_missing_token_when_enabled(
+    client: TestClient,
+    captcha_enabled: None,  # noqa: ARG001
+) -> None:
+    """When CAPTCHA is required, omitting the token must return 403."""
+    payload = _signup_payload()
+    payload.pop("captcha_token")
+    r = client.post(f"{settings.API_V1_STR}/users/signup", json=payload)
+    assert r.status_code == 403
+    assert r.json()["detail"] == "CAPTCHA token is required"
+
+
+def test_signup_rejects_invalid_token_when_enabled(
+    client: TestClient,
+    captcha_enabled: None,  # noqa: ARG001
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A non-empty but invalid token must fail verification (fail-closed)."""
+    _mock_verify(monkeypatch, ok=False, error_code="invalid-input-response")
+    r = client.post(
+        f"{settings.API_V1_STR}/users/signup",
+        json=_signup_payload(captcha_token="totally-invalid"),
+    )
+    assert r.status_code == 403
+    assert r.json()["detail"] == "CAPTCHA verification failed"
+
+
+def test_signup_accepts_valid_token_when_enabled(
+    client: TestClient,
+    captcha_enabled: None,  # noqa: ARG001
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A valid token must pass verification and let signup proceed."""
+    _mock_verify(monkeypatch, ok=True, error_code=None)
+    payload = _signup_payload(captcha_token="valid-token")
+    r = client.post(f"{settings.API_V1_STR}/users/signup", json=payload)
+    assert r.status_code == 200
+    assert r.json()["email"] == payload["email"]
+
+
+def test_signup_rejects_empty_token_string_when_enabled(
+    client: TestClient,
+    captcha_enabled: None,  # noqa: ARG001
+) -> None:
+    """An empty string token is treated as missing."""
+    r = client.post(
+        f"{settings.API_V1_STR}/users/signup",
+        json=_signup_payload(captcha_token=""),
+    )
+    assert r.status_code == 403
+    assert r.json()["detail"] == "CAPTCHA token is required"
+
+
+def test_signup_fail_closed_when_secret_missing(client: TestClient) -> None:
+    """CAPTCHA_ENABLED=True but TURNSTILE_SECRET_KEY unset → 403 (fail-closed)."""
+    original_runtime = getattr(settings, "_captcha_runtime_required", False)
+    original_secret = settings.TURNSTILE_SECRET_KEY
+    settings._captcha_runtime_required = True  # type: ignore[attr-defined]
+    settings.TURNSTILE_SECRET_KEY = None
+    try:
+        r = client.post(
+            f"{settings.API_V1_STR}/users/signup",
+            json=_signup_payload(),
+        )
+        assert r.status_code == 403
+        assert "misconfigured" in r.json()["detail"]
+    finally:
+        settings._captcha_runtime_required = original_runtime  # type: ignore[attr-defined]
+        settings.TURNSTILE_SECRET_KEY = original_secret
+
+
+def test_captcha_token_not_in_error_logs(
+    client: TestClient,
+    captcha_enabled: None,  # noqa: ARG001
+    caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Even on verification failure, the raw token must never appear in logs."""
+    _mock_verify(monkeypatch, ok=False, error_code="invalid-input-response")
+    sentinel = "SENSITIVE-TOKEN-XYZ"
+    with caplog.at_level("INFO"):
+        r = client.post(
+            f"{settings.API_V1_STR}/users/signup",
+            json=_signup_payload(captcha_token=sentinel),
+        )
+    assert r.status_code == 403
+    assert sentinel not in caplog.text
+
+
+def test_captcha_token_not_in_error_response_body(
+    client: TestClient,
+    captcha_enabled: None,  # noqa: ARG001
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The token must never be echoed back in the error response."""
+    _mock_verify(monkeypatch, ok=False, error_code="invalid-input-response")
+    sentinel = "SECRET-TOKEN-123"
+    r = client.post(
+        f"{settings.API_V1_STR}/users/signup",
+        json=_signup_payload(captcha_token=sentinel),
+    )
+    assert r.status_code == 403
+    body = r.json()
+    assert sentinel not in body.get("detail", "")
+    # Ensure the raw token never leaked into any JSON key/value
+    text = r.text
+    assert sentinel not in text
+
+
+def test_login_access_token_unchanged_without_captcha(client: TestClient, db: Session) -> None:
+    """POST /login/access-token must NOT require captcha (backward compat)."""
+    _, email, password = create_security_test_user(db)
+    r = client.post(
+        f"{settings.API_V1_STR}/login/access-token",
+        data={"username": email, "password": password},
+    )
+    assert r.status_code == 200
+    assert "access_token" in r.json()
+
+
+def test_password_recovery_bypasses_captcha_when_disabled(client: TestClient) -> None:
+    """Password-recovery must work without captcha when CAPTCHA is off."""
+    r = client.post(
+        f"{settings.API_V1_STR}/password-recovery/{random_email()}",
+    )
+    # 200 or 404 are both acceptable (email may not exist); 403 is not.
+    assert r.status_code != 403
+
+
+def test_contact_bypasses_captcha_when_disabled(client: TestClient) -> None:
+    """Contact form must work without captcha when CAPTCHA is off."""
+    r = client.post(
+        f"{settings.API_V1_STR}/contact/",
+        json={
+            "name": "Test",
+            "email": random_email(),
+            "subject": "Hello",
+            "message": "Test message content",
+        },
+    )
+    assert r.status_code != 403
+
+
+def test_rate_limiter_before_captcha(
+    client: TestClient,
+    captcha_enabled: None,  # noqa: ARG001
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Rate limiter must reject before captcha runs (429, not 403)."""
+    _mock_verify(monkeypatch, ok=True, error_code=None)
+    from app.core.rate_limit import signup_rate_limiter
+
+    signup_rate_limiter.force_enable_in_tests = True
+    signup_rate_limiter.reset()
+    try:
+        # Exhaust the limiter
+        for _ in range(20):
+            client.post(
+                f"{settings.API_V1_STR}/users/signup",
+                json=_signup_payload(),
+            )
+        # Next call must 429 (rate limiter fires first)
+        r = client.post(
+            f"{settings.API_V1_STR}/users/signup",
+            json=_signup_payload(),
+        )
+        assert r.status_code == 429
+    finally:
+        signup_rate_limiter.force_enable_in_tests = False
+        signup_rate_limiter.reset()
+
+
+def test_captcha_transport_error_fail_closed(
+    client: TestClient,
+    captcha_enabled: None,  # noqa: ARG001
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Provider transport error must fail closed (403, not 5xx)."""
+    _mock_verify(monkeypatch, ok=False, error_code="network")
+    r = client.post(
+        f"{settings.API_V1_STR}/users/signup",
+        json=_signup_payload(captcha_token="any"),
+    )
+    assert r.status_code == 403
+    assert r.json()["detail"] == "CAPTCHA verification failed"

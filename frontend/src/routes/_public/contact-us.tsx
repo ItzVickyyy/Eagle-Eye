@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 
 import { ContactService } from "@/client"
+import { Turnstile } from "@/components/Common/Turnstile"
 import {
   Form,
   FormControl,
@@ -17,7 +18,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { Textarea } from "@/components/ui/textarea"
+import { useTurnstileToken } from "@/hooks/useTurnstileToken"
 import useCustomToast from "@/hooks/useCustomToast"
+import { getTurnstileSiteKey } from "@/lib/captcha"
 
 export const Route = createFileRoute("/_public/contact-us")({
   component: ContactPage,
@@ -39,6 +42,13 @@ type ContactFormData = z.infer<typeof contactSchema>
 
 function ContactPage() {
   const { showSuccessToast, showErrorToast } = useCustomToast()
+  const captcha = useTurnstileToken({
+    onExpire: () => {
+      form.setError("root", {
+        message: "CAPTCHA expired, please verify again",
+      })
+    },
+  })
   const form = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
     mode: "onBlur",
@@ -46,7 +56,7 @@ function ContactPage() {
   })
 
   const contactMutation = useMutation({
-    mutationFn: (data: ContactFormData) =>
+    mutationFn: (data: ContactFormData & { captcha_token?: string | null }) =>
       ContactService.submitContactForm({ body: data }),
     onSuccess: (res: any) => {
       showSuccessToast(
@@ -55,6 +65,7 @@ function ContactPage() {
           "Your message has been sent successfully!",
       )
       form.reset()
+      captcha.reset()
     },
     onError: (err: any) => {
       showErrorToast(err.message || "Failed to send message. Please try again.")
@@ -62,7 +73,11 @@ function ContactPage() {
   })
 
   const onSubmit = (data: ContactFormData) => {
-    contactMutation.mutate(data)
+    if (getTurnstileSiteKey() !== "" && !captcha.token) {
+      form.setError("root", { message: "Please complete the CAPTCHA" })
+      return
+    }
+    contactMutation.mutate({ ...data, captcha_token: captcha.token ?? null })
   }
 
   return (
@@ -186,6 +201,22 @@ function ContactPage() {
                   </FormItem>
                 )}
               />
+
+              <Turnstile
+                siteKey={getTurnstileSiteKey()}
+                onVerify={captcha.onVerify}
+                onExpire={captcha.onExpire}
+              />
+
+              {form.formState.errors.root?.message ? (
+                <p
+                  data-testid="form-root-error"
+                  role="alert"
+                  className="text-destructive text-sm"
+                >
+                  {form.formState.errors.root.message}
+                </p>
+              ) : null}
 
               <LoadingButton
                 type="submit"

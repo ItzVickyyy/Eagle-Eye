@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import col, func, select
 
 from app.api.deps import AdminUser, SessionDep
+from app.core.captcha import verify_captcha
 from app.core.config import settings
 from app.core.flags import enforce_contact_form_enabled
 from app.core.rate_limit import contact_rate_limiter
@@ -26,6 +27,7 @@ router = APIRouter(prefix="/contact", tags=["contact"])
     dependencies=[
         Depends(contact_rate_limiter),
         Depends(enforce_contact_form_enabled),
+        Depends(verify_captcha),
     ],
 )
 def submit_contact_form(

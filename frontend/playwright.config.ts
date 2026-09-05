@@ -91,5 +91,11 @@ export default defineConfig({
         command: 'bun run dev',
         url: baseURL,
         reuseExistingServer: !process.env.CI,
+        // Force CAPTCHA off during Playwright runs so E2E tests can
+        // exercise signup/recover/reset/contact forms without solving a
+        // real Turnstile puzzle. The backend's CAPTCHA_ENABLED flag
+        // defaults to False anyway; this guards against a local .env
+        // that has the flag turned on.
+        env: { CAPTCHA_ENABLED: 'False' },
       },
 });

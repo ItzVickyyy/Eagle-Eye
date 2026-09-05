@@ -64,6 +64,7 @@ class UserRegister(SQLModel):
     email: EmailStr = Field(max_length=255)
     password: str = Field(min_length=8, max_length=128)
     full_name: str | None = Field(default=None, max_length=255)
+    captcha_token: str | None = Field(default=None, max_length=4096)
 
 
 class UserUpdate(SQLModel):
@@ -432,6 +433,7 @@ class ContactMessageCreate(SQLModel):
     email: EmailStr = Field(max_length=255)
     subject: str | None = Field(default=None, max_length=500)
     message: str = Field(min_length=1, max_length=10000)
+    captcha_token: str | None = Field(default=None, max_length=4096)
 
 
 class ContactMessage(SQLModel, table=True):
@@ -510,6 +512,11 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=128)
+    captcha_token: str | None = Field(default=None, max_length=4096)
+
+
+class PasswordRecoveryRequest(SQLModel):
+    captcha_token: str | None = Field(default=None, max_length=4096)
 
 
 # ---------------------------------------------------------------------------

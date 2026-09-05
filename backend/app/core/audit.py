@@ -52,6 +52,10 @@ REDACT_KEYS = frozenset(
         "database_url",
         "postgres_password",
         "first_superuser_password",
+        "captcha_token",
+        "captcha_response",
+        "cf_turnstile_response",
+        "cf-turnstile-response",
     }
 )
 

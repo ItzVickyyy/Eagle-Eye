@@ -76,6 +76,12 @@ class Settings(BaseSettings):
     MAX_UPLOAD_BYTES_IMAGE: int = 15 * 1024 * 1024  # 15 MiB
     MAX_UPLOAD_BYTES_VIDEO: int = 100 * 1024 * 1024  # 100 MiB
 
+    # Redis (optional). When set, rate limiting uses a Redis-backed sliding
+    # window shared across all backend workers. When unset, each worker
+    # enforces an independent in-memory limit (legacy behavior). See
+    # backend/app/core/rate_limit.py for the fail-open fallback rules.
+    REDIS_URL: str | None = None
+
     EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
 
     @computed_field  # type: ignore[prop-decorator]

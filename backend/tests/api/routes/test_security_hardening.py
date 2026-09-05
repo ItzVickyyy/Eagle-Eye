@@ -1,12 +1,18 @@
 import io
 import uuid
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 
 from app import crud
 from app.core.config import settings
-from app.core.rate_limit import login_rate_limiter
+from app.core.rate_limit import (
+    InMemoryRateLimiter,
+    RedisRateLimiter,
+    _create_limiter,
+    login_rate_limiter,
+)
 from app.main import (
     CONTENT_SECURITY_POLICY,
     HSTS_MAX_AGE_SECONDS,
@@ -415,4 +421,41 @@ def test_rate_limiter_triggers_429(client: TestClient) -> None:
         assert "Retry-After" in r_blocked.headers
     finally:
         login_rate_limiter.force_enable_in_tests = False
-        login_rate_limiter.reset()
+
+
+def test_factory_returns_in_memory_when_redis_url_empty() -> None:
+    """Empty/falsy redis_url must select the in-memory backend."""
+    limiter = _create_limiter(times=5, seconds=60, redis_url="")
+    assert isinstance(limiter, InMemoryRateLimiter)
+    assert limiter is not login_rate_limiter  # factory returns a fresh instance
+
+
+def test_factory_returns_redis_when_redis_url_set() -> None:
+    """A non-empty redis_url must select the Redis backend."""
+    limiter = _create_limiter(times=5, seconds=60, redis_url="redis://localhost:6379/0")
+    assert isinstance(limiter, RedisRateLimiter)
+    # Redis backend must expose the same test hooks the in-memory one does,
+    # so swapping limiters does not break the test suite.
+    assert hasattr(limiter, "force_enable_in_tests")
+    assert hasattr(limiter, "reset")
+    assert callable(limiter.reset)
+
+
+def test_default_login_limiter_is_in_memory_when_redis_url_unset(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The pre-configured `login_rate_limiter` is in-memory by default.
+
+    In CI / pytest the REDIS_URL env var is not set, so the module-level
+    limiters must select the in-memory backend; this guards against an
+    accidental wiring that would have every test require a live Redis.
+    """
+    monkeypatch.delenv("REDIS_URL", raising=False)
+    # Re-read the env without a full module reload: _get_redis_url() reads
+    # os.getenv on every call, so the factory output is correct.  We
+    # assert by class name to avoid class-identity mismatches if the
+    # module is later re-imported elsewhere in the suite.
+    from app.core.rate_limit import _get_redis_url
+
+    assert _get_redis_url() in (None, "")
+    assert type(login_rate_limiter).__name__ == "InMemoryRateLimiter"

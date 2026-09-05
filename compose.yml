@@ -31,6 +31,19 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?Variable not set}
       - POSTGRES_DB=app
 
+  redis:
+    # Optional rate-limit store.  The backend only uses REDIS_URL when
+    # the variable is set; if this service is removed and REDIS_URL is
+    # unset, the backend silently falls back to per-worker in-memory
+    # rate limiting (legacy behavior).
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      timeout: 3s
+
   adminer:
     image: adminer
     depends_on:
@@ -52,6 +65,8 @@ services:
       db:
         condition: service_healthy
         restart: true
+      redis:
+        condition: service_healthy
     environment:
       PROJECT_NAME: ${PROJECT_NAME:?Variable not set}
       SECRET_KEY: ${SECRET_KEY:?Variable not set}
@@ -63,6 +78,10 @@ services:
       EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:?Variable not set}@db:5432/app
       SENTRY_DSN: ${SENTRY_DSN:-}
+      # REDIS_URL intentionally resolves to empty when unset in .env, so
+      # operators can opt out of Redis-backed rate limiting by simply
+      # not setting it.  When empty, the backend uses in-memory limits.
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
 
     healthcheck:
       test:

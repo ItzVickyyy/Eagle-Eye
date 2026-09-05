@@ -31,6 +31,10 @@ services:
     ports:
       - "8080:8080"
 
+  redis:
+    ports:
+      - "6379:6379"
+
   backend:
     ports:
       - "8000:8000"

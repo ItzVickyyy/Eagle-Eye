@@ -34,6 +34,11 @@ services:
   db:
     restart: always
 
+  redis:
+    restart: always
+    volumes:
+      - app-redis-data:/data
+
   adminer:
     restart: always
     labels:
@@ -73,3 +78,7 @@ volumes:
   # Persist local-storage media uploads across container recreates.
   # See the backend.volumes mount above for the matching target.
   app-uploads-data:
+  # Persist Redis snapshot/AOF across container recreates.  Rate-limit
+  # state is otherwise ephemeral and acceptable to lose; the volume is
+  # here so a restarted Redis doesn't have to rebuild state from scratch.
+  app-redis-data:

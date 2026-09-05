@@ -127,3 +127,10 @@ Application (frontend and API): `https://fastapi-project.example.com`
 Interactive API docs: `https://fastapi-project.example.com/docs`
 
 Adminer: `https://adminer.fastapi-project.example.com`
+
+## Backups and Recovery
+
+Database and local media backups are managed with the scripts under
+[`scripts/backup/`](scripts/backup/README.md). See
+[`docs/backup-recovery.md`](docs/backup-recovery.md) for the full procedure,
+retention guidance, and the disaster-recovery runbook.

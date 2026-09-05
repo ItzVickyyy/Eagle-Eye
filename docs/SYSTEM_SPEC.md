@@ -541,7 +541,7 @@ This fixes the "2 shared passwords" problem, preserves Super Admin as the highes
 - Input validation and sanitization (XSS/SQL injection prevention — big upgrade from raw PHP string queries)
 - Password hashing (bcrypt/argon2)
 - Rate limiting on login and contact form
-- Automated backups of the database
+- Automated backups of the database (see [Backup & Recovery Runbook](backup-recovery.md))
 - Accessibility basics (alt text on images, sufficient color contrast, keyboard navigation) — ties back to your original "Accessibility and Inclusivity" literature review section
 
 ---

@@ -17,3 +17,12 @@ backend/app/frontend/
 New folder/
 frontend/src/data/
 backend/uploads/
+
+# Backup artifacts (created by scripts/backup/*).
+# Never commit database dumps or media tarballs.
+/backups/
+*.dump
+*.dump.gz
+*.sql.gz
+*.bak
+

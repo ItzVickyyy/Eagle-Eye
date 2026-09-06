@@ -83,8 +83,8 @@ _MAINTENANCE_ALLOWLIST_PREFIXES: tuple[str, ...] = (
     "/api/v1/settings/",
     # Uploaded media and the static frontend (so the SPA can render the
     # operator-facing maintenance notice).
-    "/uploads",
-    "/assets",
+    "/uploads/",
+    "/assets/",
     "/favicon.ico",
 )
 

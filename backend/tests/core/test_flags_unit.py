@@ -73,17 +73,20 @@ class TestIsAllowedInMaintenance:
         assert _is_allowed_in_maintenance("/api/v1/settings/some_key") is True
 
     def test_uploads_assets(self) -> None:
-        # SUSPECTED DEFECT: _MAINTENANCE_ALLOWLIST_PREFIXES contains
-        # "/uploads" and "/assets" without trailing slashes, but
-        # _is_allowed_in_maintenance only prefix-matches entries ending in "/".
-        # Exact-match "/uploads" and "/assets" return True, but
-        # "/uploads/photo.jpg" and "/assets/main.js" return False.
-        # These assertions document the ACTUAL current behavior.
-        assert _is_allowed_in_maintenance("/uploads") is True
-        assert _is_allowed_in_maintenance("/assets") is True
-        assert _is_allowed_in_maintenance("/uploads/photo.jpg") is False  # DEFECT
-        assert _is_allowed_in_maintenance("/assets/main.js") is False  # DEFECT
+        # "/uploads/" and "/assets/" are prefix entries (ending in "/"),
+        # so all descendant paths are allowed during maintenance.
+        assert _is_allowed_in_maintenance("/uploads/") is True
+        assert _is_allowed_in_maintenance("/uploads/photo.jpg") is True
+        assert _is_allowed_in_maintenance("/uploads/nested/deep/img.png") is True
+        assert _is_allowed_in_maintenance("/assets/") is True
+        assert _is_allowed_in_maintenance("/assets/main.js") is True
+        assert _is_allowed_in_maintenance("/assets/css/app.css") is True
         assert _is_allowed_in_maintenance("/favicon.ico") is True
+        # Prefix boundary: similar-looking paths must remain blocked.
+        assert _is_allowed_in_maintenance("/uploads-evil/file") is False
+        assert _is_allowed_in_maintenance("/assets-evil/file") is False
+        # Unrelated paths remain blocked.
+        assert _is_allowed_in_maintenance("/admin") is False
 
     def test_blocked_paths(self) -> None:
         assert _is_allowed_in_maintenance("/api/v1/articles/") is False

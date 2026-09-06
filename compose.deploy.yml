@@ -15,6 +15,8 @@ services:
       - --providers.docker
       # Do not expose all Docker services, only the ones explicitly exposed
       - --providers.docker.exposedbydefault=false
+      # Connect to Docker via read-only socket proxy instead of mounting the socket directly
+      - --providers.docker.endpoint=tcp://socket-proxy:2375
       # Create an entrypoint "http" listening on port 80
       - --entrypoints.http.address=:80
       # Redirect all HTTP traffic to HTTPS

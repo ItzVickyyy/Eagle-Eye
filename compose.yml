@@ -2,20 +2,56 @@ services:
 
   proxy:
     image: traefik:3.6
-    volumes:
-      # Add Docker as a mounted volume, so that Traefik can read the labels of other services
-      - /var/run/docker.sock:/var/run/docker.sock:ro
     command:
       # Enable Docker in Traefik, so that it reads labels from Docker services
       - --providers.docker
       # Do not expose all Docker services, only the ones explicitly exposed
       - --providers.docker.exposedbydefault=false
+      # Connect to Docker via read-only socket proxy instead of mounting the socket directly
+      - --providers.docker.endpoint=tcp://socket-proxy:2375
       # Create an entrypoint "http" listening on port 80
       - --entrypoints.http.address=:80
       # Enable the access log, with HTTP requests
       - --accesslog
       # Enable the Traefik log, for configurations and errors
       - --log
+    # Traefik is reachable on both networks: `default` so it can route to the
+    # backend/adminer, and `proxy` so it can reach socket-proxy.  The proxy
+    # network is the ONLY network on which socket-proxy is reachable.
+    networks:
+      - default
+      - proxy
+
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy@sha256:1f5038b54f06c3e18422902cf00ba21803d1c97805aae032e5e6673d532d3459
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Vendored hardened HAProxy template (byte-identical to upstream plus
+      # deny rules for container archive/export/logs/top/stats/changes/attach).
+      - ./docker-socket-proxy/haproxy.cfg.template:/usr/local/etc/haproxy/haproxy.cfg.template:ro
+    # Only expose the Docker API on the internal Docker network; do NOT publish to the host.
+    # Allow only read-only Docker API endpoints required by Traefik's Docker provider:
+    #   GET /containers/json, GET /containers/{id}/json, GET /events, GET /version, GET /_ping
+    # POST (create/exec/etc.), DELETE, and all mutating operations are blocked.
+    environment:
+      CONTAINERS: 1
+      EVENTS: 1
+      PING: 1
+      VERSION: 1
+      # Explicitly block all mutating Docker API operations
+      POST: 0
+      EXEC: 0
+      BUILD: 0
+      COMMIT: 0
+      IMAGES: 0
+      NETWORKS: 0
+      VOLUMES: 0
+      SWARM: 0
+    # socket-proxy is only attached to the `proxy` network.  No other service
+    # (including db, redis, adminer, backend) is on that network, so only
+    # Traefik can reach the Docker API proxy.
+    networks:
+      - proxy
 
   db:
     image: postgres:18
@@ -116,3 +152,8 @@ services:
 
 volumes:
   app-db-data:
+
+networks:
+  # Dedicated network for Traefik <-> socket-proxy only.  socket-proxy is
+  # unreachable from the default network and from the host.
+  proxy:

@@ -577,6 +577,8 @@ class TokenRevocation(SQLModel, table=True):
        explicit logout.
     """
 
+    __tablename__ = "token_revocations"
+
     jti: str = Field(primary_key=True, max_length=64)
     user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
     revoked_at: datetime = Field(

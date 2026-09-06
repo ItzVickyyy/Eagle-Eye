@@ -393,3 +393,17 @@ def test_create_access_token_contains_jti_and_tv(db: Session) -> None:
     assert payload["tv"] == 7
     assert isinstance(payload["jti"], str) and len(payload["jti"]) > 0
     assert payload["sub"] == str(user.id)
+
+
+# ----------------------------------------------------------------------- #
+# Model mapping regression                                                 #
+# ----------------------------------------------------------------------- #
+
+
+def test_token_revocation_table_name_matches_database() -> None:
+    """SQLModel must map TokenRevocation to ``token_revocations`` (snake_case,
+    plural) to match the Alembic migration.  Without an explicit
+    ``__tablename__`` the default would be ``tokenrevocation``, causing
+    ``psycopg.errors.UndefinedTable`` at runtime.
+    """
+    assert TokenRevocation.__table__.name == "token_revocations"  # type: ignore[attr-defined]

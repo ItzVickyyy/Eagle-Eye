@@ -182,7 +182,8 @@ class HTMLSanitizer(HTMLParser):
 
             clean_attrs.append(f'{attr_lower}="{html.escape(val, quote=True)}"')
 
-        if is_link_blank and not any(a.startswith("rel=") for a in clean_attrs):
+        if is_link_blank:
+            clean_attrs = [a for a in clean_attrs if not a.startswith("rel=")]
             clean_attrs.append('rel="noopener noreferrer"')
 
         attrs_str = (" " + " ".join(clean_attrs)) if clean_attrs else ""

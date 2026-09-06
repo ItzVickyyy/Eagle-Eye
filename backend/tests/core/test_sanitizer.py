@@ -182,3 +182,27 @@ def test_sanitize_html_strips_dangerous_tags_and_content() -> None:
 def test_sanitize_html_handles_empty_or_none() -> None:
     assert sanitize_html("") == ""
     assert sanitize_html(None) == ""
+
+
+def test_sanitize_html_overwrites_opener_rel() -> None:
+    raw = '<a href="https://example.com" target="_blank" rel="opener">Click</a>'
+    result = sanitize_html(raw)
+    assert 'rel="opener"' not in result
+    assert 'rel="noopener noreferrer"' in result
+    assert 'target="_blank"' in result
+    assert 'href="https://example.com"' in result
+
+
+def test_sanitize_html_preserves_existing_noopener_rel() -> None:
+    raw = '<a href="https://example.com" target="_blank" rel="noopener">Click</a>'
+    result = sanitize_html(raw)
+    assert 'rel="noopener noreferrer"' in result
+    assert 'target="_blank"' in result
+    assert 'href="https://example.com"' in result
+
+
+def test_sanitize_html_preserves_non_blank_target_link() -> None:
+    raw = '<a href="https://example.com" rel="nofollow">Link</a>'
+    result = sanitize_html(raw)
+    assert 'rel="nofollow"' in result
+    assert 'href="https://example.com"' in result

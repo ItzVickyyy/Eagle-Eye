@@ -18,13 +18,14 @@ test.describe("Developer isolation", () => {
     adminDevToken = tokens[ADMIN_DEV]
   })
 
-  test("a contributor-developer sees the System Dashboard link", async ({
+  test("a contributor-developer is redirected from /admin to /admin/developer", async ({
     page,
   }) => {
     await setRole(page, developerToken)
     await page.goto("/admin")
+    await page.waitForURL("**/admin/developer")
     await expect(
-      page.getByRole("link", { name: "System Dashboard" }),
+      page.getByRole("heading", { name: "Developer System Dashboard" }),
     ).toBeVisible()
     await expect(page.getByRole("link", { name: "Review Queue" })).toHaveCount(
       0,

@@ -68,7 +68,9 @@ test.describe("Admin management", () => {
     const tokens = await ensureE2EUsers()
     await setRole(page, tokens[CONTRIBUTOR])
     await page.goto("/admin/review-queue")
-    await page.waitForURL("**/admin")
-    await expect(page.getByText("Welcome back")).toBeVisible()
+    await page.waitForURL("**/")
+    await expect(
+      page.getByRole("heading", { name: "Welcome back" }),
+    ).toHaveCount(0)
   })
 })

@@ -1,7 +1,8 @@
 import { expect, test } from "@playwright/test"
+import { apiLogin } from "./utils/userFactory"
 import { waitForEmailHtml } from "./utils/mailpit"
 import { randomEmail, randomPassword } from "./utils/random"
-import { logInUser, signUpNewUser } from "./utils/user"
+import { signUpNewUser } from "./utils/user"
 
 test.use({ storageState: { cookies: [], origins: [] } })
 
@@ -63,8 +64,8 @@ test("User can reset password successfully using the link", async ({
   await page.getByRole("button", { name: "Reset Password" }).click()
   await expect(page.getByText("Password updated successfully")).toBeVisible()
 
-  // Check if the user is able to login with the new password
-  await logInUser(page, email, newPassword)
+  // Verify the new password works via API
+  await apiLogin(email, newPassword)
 })
 
 test("Expired or invalid reset link", async ({ page }) => {

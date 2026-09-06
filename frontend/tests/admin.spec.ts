@@ -1,7 +1,9 @@
 import { expect, type Page, test } from "@playwright/test"
 import { firstSuperuser, firstSuperuserPassword } from "./config.ts"
+import { apiLogin } from "./utils/userFactory"
 import { createUser } from "./utils/privateApi"
 import { randomEmail, randomPassword } from "./utils/random"
+import { setRole } from "./utils/roleAuth"
 import { logInUser } from "./utils/user"
 
 async function findUserRow(page: Page, email: string) {
@@ -217,12 +219,13 @@ test.describe("Admin page access control", () => {
     const password = randomPassword()
 
     await createUser({ email, password })
-    await logInUser(page, email, password)
+    const token = await apiLogin(email, password)
+    await setRole(page, token)
 
     await page.goto("/admin")
 
-    await expect(page.getByRole("heading", { name: "Users" })).not.toBeVisible()
     await expect(page).not.toHaveURL(/\/admin/)
+    await expect(page.getByRole("heading", { name: "Users" })).not.toBeVisible()
   })
 
   test("Superuser can access admin page", async ({ page }) => {

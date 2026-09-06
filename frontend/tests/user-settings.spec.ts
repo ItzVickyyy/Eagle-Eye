@@ -1,10 +1,27 @@
 import { expect, test } from "@playwright/test"
 import { firstSuperuser, firstSuperuserPassword } from "./config.ts"
+import { apiLogin, apiUpdateUser } from "./utils/userFactory"
 import { createUser } from "./utils/privateApi.ts"
 import { randomEmail, randomPassword } from "./utils/random"
+import { setRole } from "./utils/roleAuth"
 import { logInUser, logOutUser } from "./utils/user"
 
 const tabs = ["My Profile", "Password", "Danger Zone"]
+
+/** Creates a throwaway staff (role=admin) user and returns a login token. */
+async function createStaffUser(): Promise<{
+  email: string
+  fullName: string
+  token: string
+}> {
+  const email = randomEmail()
+  const password = randomPassword()
+  const user = await createUser({ email, password })
+  const superToken = await apiLogin(firstSuperuser, firstSuperuserPassword)
+  await apiUpdateUser(superToken, user.id, { role: "admin" })
+  const token = await apiLogin(email, password)
+  return { email, fullName: user.full_name as string, token }
+}
 
 test("My profile tab is active by default", async ({ page }) => {
   await page.goto("/admin/settings")
@@ -17,10 +34,8 @@ test("My profile tab is active by default", async ({ page }) => {
 test.describe("All tabs are visible", () => {
   test.use({ storageState: { cookies: [], origins: [] } })
   test("non-superuser sees all three tabs", async ({ page }) => {
-    const email = randomEmail()
-    const password = randomPassword()
-    await createUser({ email, password })
-    await logInUser(page, email, password)
+    const { token } = await createStaffUser()
+    await setRole(page, token)
     await page.goto("/admin/settings")
     for (const tab of tabs) {
       await expect(page.getByRole("tab", { name: tab })).toBeVisible()
@@ -30,17 +45,15 @@ test.describe("All tabs are visible", () => {
 
 test.describe("Edit user profile", () => {
   test.use({ storageState: { cookies: [], origins: [] } })
-  let email: string
-  let password: string
+  let token: string
 
   test.beforeAll(async () => {
-    email = randomEmail()
-    password = randomPassword()
-    await createUser({ email, password })
+    const staff = await createStaffUser()
+    token = staff.token
   })
 
   test.beforeEach(async ({ page }) => {
-    await logInUser(page, email, password)
+    await setRole(page, token)
     await page.goto("/admin/settings")
     await page.getByRole("tab", { name: "My profile" }).click()
   })
@@ -73,15 +86,12 @@ test.describe("Edit user email", () => {
   test.use({ storageState: { cookies: [], origins: [] } })
 
   test("Edit user email with a valid email", async ({ page }) => {
-    const email = randomEmail()
-    const password = randomPassword()
-    const updatedEmail = randomEmail()
-
-    await createUser({ email, password })
-    await logInUser(page, email, password)
+    const staff = await createStaffUser()
+    await setRole(page, staff.token)
     await page.goto("/admin/settings")
     await page.getByRole("tab", { name: "My profile" }).click()
 
+    const updatedEmail = randomEmail()
     await page.getByRole("button", { name: "Edit" }).click()
     await page.getByLabel("Email").fill(updatedEmail)
     await page.getByRole("button", { name: "Save" }).click()
@@ -97,11 +107,8 @@ test.describe("Cancel edit actions", () => {
   test.use({ storageState: { cookies: [], origins: [] } })
 
   test("Cancel edit action restores original name", async ({ page }) => {
-    const email = randomEmail()
-    const password = randomPassword()
-    const user = await createUser({ email, password })
-
-    await logInUser(page, email, password)
+    const staff = await createStaffUser()
+    await setRole(page, staff.token)
     await page.goto("/admin/settings")
     await page.getByRole("tab", { name: "My profile" }).click()
     await page.getByRole("button", { name: "Edit" }).click()
@@ -109,16 +116,13 @@ test.describe("Cancel edit actions", () => {
     await page.getByRole("button", { name: "Cancel" }).first().click()
 
     await expect(
-      page.locator("form").getByText(user.full_name as string, { exact: true }),
+      page.locator("form").getByText(staff.fullName, { exact: true }),
     ).toBeVisible()
   })
 
   test("Cancel edit action restores original email", async ({ page }) => {
-    const email = randomEmail()
-    const password = randomPassword()
-    await createUser({ email, password })
-
-    await logInUser(page, email, password)
+    const staff = await createStaffUser()
+    await setRole(page, staff.token)
     await page.goto("/admin/settings")
     await page.getByRole("tab", { name: "My profile" }).click()
     await page.getByRole("button", { name: "Edit" }).click()
@@ -126,7 +130,7 @@ test.describe("Cancel edit actions", () => {
     await page.getByRole("button", { name: "Cancel" }).first().click()
 
     await expect(
-      page.locator("form").getByText(email, { exact: true }),
+      page.locator("form").getByText(staff.email, { exact: true }),
     ).toBeVisible()
   })
 })
@@ -138,9 +142,11 @@ test.describe("Change password", () => {
     const email = randomEmail()
     const password = randomPassword()
     const newPassword = randomPassword()
+    const user = await createUser({ email, password })
+    const superToken = await apiLogin(firstSuperuser, firstSuperuserPassword)
+    await apiUpdateUser(superToken, user.id, { role: "admin" })
 
-    await createUser({ email, password })
-    await logInUser(page, email, password)
+    await setRole(page, await apiLogin(email, password))
 
     await page.goto("/admin/settings")
     await page.getByRole("tab", { name: "Password" }).click()
@@ -164,7 +170,9 @@ test.describe("Change password validation", () => {
   test.beforeAll(async () => {
     email = randomEmail()
     password = randomPassword()
-    await createUser({ email, password })
+    const user = await createUser({ email, password })
+    const superToken = await apiLogin(firstSuperuser, firstSuperuserPassword)
+    await apiUpdateUser(superToken, user.id, { role: "admin" })
   })
 
   test.beforeEach(async ({ page }) => {

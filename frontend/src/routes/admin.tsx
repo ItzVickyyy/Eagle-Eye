@@ -7,7 +7,16 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { UsersService } from "@/client"
 import { isLoggedIn } from "@/hooks/useAuth"
+
+const isStaffAdmin = (user: {
+  is_superuser?: boolean
+  role?: string | null
+}) =>
+  Boolean(user.is_superuser) ||
+  user.role === "super_admin" ||
+  user.role === "admin"
 
 export const Route = createFileRoute("/admin")({
   component: Layout,
@@ -17,6 +26,30 @@ export const Route = createFileRoute("/admin")({
         to: "/login",
       })
     }
+
+    let user
+    try {
+      user = (await UsersService.readUserMe()).data
+    } catch {
+      localStorage.removeItem("access_token")
+      throw redirect({
+        to: "/login",
+      })
+    }
+
+    if (isStaffAdmin(user)) {
+      return
+    }
+
+    if (user.is_developer) {
+      throw redirect({
+        to: "/admin/developer",
+      })
+    }
+
+    throw redirect({
+      to: "/",
+    })
   },
 })
 

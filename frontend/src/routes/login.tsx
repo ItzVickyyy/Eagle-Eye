@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
 import useAuth, { isLoggedIn } from "@/hooks/useAuth"
+import { UsersService } from "@/client"
 
 const formSchema = z.object({
   username: z.email({ message: "Invalid email address" }),
@@ -35,11 +36,30 @@ type FormData = z.infer<typeof formSchema>
 export const Route = createFileRoute("/login")({
   component: Login,
   beforeLoad: async () => {
-    if (isLoggedIn()) {
-      throw redirect({
-        to: "/admin",
-      })
+    if (!isLoggedIn()) {
+      return
     }
+
+    let user
+    try {
+      user = (await UsersService.readUserMe()).data
+    } catch {
+      localStorage.removeItem("access_token")
+      return
+    }
+
+    const isStaffAdmin =
+      Boolean(user.is_superuser) ||
+      user.role === "super_admin" ||
+      user.role === "admin"
+
+    if (isStaffAdmin) {
+      throw redirect({ to: "/admin" })
+    }
+    if (user.is_developer) {
+      throw redirect({ to: "/admin/developer" })
+    }
+    throw redirect({ to: "/" })
   },
   head: () => ({
     meta: [

@@ -13,19 +13,19 @@ test.describe("Contributor workflow", () => {
     contributorToken = tokens[CONTRIBUTOR]
   })
 
-  test("contributor sees only contributor-level sidebar navigation", async ({
+  test("contributor is redirected out of the admin shell", async ({
     page,
   }) => {
     await setRole(page, contributorToken)
     await page.goto("/admin")
-    await expect(page.getByText("Welcome back")).toBeVisible()
+    await page.waitForURL("**/")
     await expect(
-      page.getByRole("link", { name: "Articles", exact: true }),
-    ).toBeVisible()
-    await expect(page.getByRole("link", { name: "Review Queue" })).toHaveCount(
-      0,
-    )
+      page.getByRole("heading", { name: "Users" }),
+    ).toHaveCount(0)
     await expect(page.getByRole("link", { name: "Users" })).toHaveCount(0)
+    await expect(
+      page.getByRole("link", { name: "Review Queue" }),
+    ).toHaveCount(0)
     await expect(
       page.getByRole("link", { name: "System Dashboard" }),
     ).toHaveCount(0)

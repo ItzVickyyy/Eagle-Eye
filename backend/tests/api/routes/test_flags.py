@@ -18,12 +18,10 @@ from __future__ import annotations
 
 import uuid
 
-import pytest
 from fastapi.testclient import TestClient
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from app import crud
-from app.core import db as app_db
 from app.core.config import settings
 from app.core.flags import (
     DEFAULT_FLAG_VALUES,
@@ -33,48 +31,13 @@ from app.core.flags import (
     FLAG_PUBLIC_COMMENTS_ENABLED,
 )
 from app.models import (
-    Article,
-    ArticleCreate,
     ArticleStatus,
-    Category,
-    CategoryCreate,
     SiteSetting,
     UserCreate,
-    UserPublic,
     UserRole,
 )
-from tests.conftest import test_engine
 from tests.utils.user import authentication_token_from_email
 from tests.utils.utils import random_email, random_lower_string
-
-
-# ---------------------------------------------------------------------------
-# Engine alignment
-# ---------------------------------------------------------------------------
-#
-# ``MaintenanceModeMiddleware`` reads the active flag via a fresh session
-# opened against ``app.core.db.engine``. Under pytest, ``tests.conftest`` wires
-# route handlers to a sqlite ``test_engine`` via ``app.dependency_overrides``,
-# but ``app.core.db.engine`` itself is still the engine built at import time
-# from ``settings.DATABASE_URL`` (a Postgres URL in this checkout's ``.env``).
-# The two engines target different databases, so flag writes performed in the
-# test session would never reach the middleware.
-#
-# To keep this test module the only place where the alignment is forced, we
-# install a module-scoped autouse fixture that points ``app.core.db.engine``
-# at the shared sqlite ``test_engine`` for the duration of the module and
-# restores the original engine on teardown. This is a test-only binding; the
-# application code, middleware logic, allowlist, and 503 response are still
-# fully exercised.
-@pytest.fixture(scope="module", autouse=True)
-def _align_middleware_engine():
-    original_engine = app_db.engine
-    app_db.engine = test_engine
-    try:
-        yield
-    finally:
-        app_db.engine = original_engine
-
 
 # ---------------------------------------------------------------------------
 # Test fixtures / helpers
@@ -161,7 +124,8 @@ def _make_article_with_admin(
         },
     )
     assert art_resp.status_code == 200, art_resp.text
-    return art_resp.json()["id"]
+    article_id: str = art_resp.json()["id"]
+    return article_id
 
 
 # ---------------------------------------------------------------------------

@@ -12,6 +12,7 @@ from sqlmodel import Session
 from app.core import security
 from app.core.config import settings
 from app.core.db import engine
+from app.core.token_store import is_token_revoked
 from app.models import TokenPayload, User, UserRole
 
 reusable_oauth2 = OAuth2PasswordBearer(
@@ -27,6 +28,39 @@ def get_db() -> Generator[Session]:
 
 SessionDep = Annotated[Session, Depends(get_db)]
 TokenDep = Annotated[str | None, Depends(reusable_oauth2)]
+
+
+def _enforce_token_not_revoked(
+    session: Session,
+    token: str,  # noqa: ARG001 — kept for symmetry / future audit logging
+    token_data: TokenPayload,
+    user: User,
+) -> None:
+    """Reject tokens revoked by either layer (per-jti or per-user version).
+
+    The two layers are:
+
+    * ``User.token_version``: a single counter on the user. If the token's
+      ``tv`` claim is missing or below the current value the token was
+      issued before the user's last password change / reset and is invalid.
+    * ``token_revocations``: explicit ``jti`` denylist. Used by
+      ``POST /auth/logout``.
+
+    Both checks use the same 401-with-``Could not validate credentials``
+    error so the caller cannot tell them apart.
+    """
+    if token_data.tv is None or token_data.tv != user.token_version:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if token_data.jti and is_token_revoked(session, token_data.jti):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 
 def get_current_user(session: SessionDep, token: TokenDep) -> User:
@@ -62,6 +96,7 @@ def get_current_user(session: SessionDep, token: TokenDep) -> User:
         raise HTTPException(status_code=404, detail="User not found")
     if not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
+    _enforce_token_not_revoked(session, token, token_data, user)
     return user
 
 
@@ -80,8 +115,10 @@ def get_optional_current_user(session: SessionDep, token: TokenDep) -> User | No
             return None
         user_id = uuid.UUID(str(token_data.sub))
         user = session.get(User, user_id)
-        if user and user.is_active:
-            return user
+        if not user or not user.is_active:
+            return None
+        _enforce_token_not_revoked(session, token, token_data, user)
+        return user
     except Exception:
         return None
     return None

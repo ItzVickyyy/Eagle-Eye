@@ -10,7 +10,9 @@ from starlette.responses import Response
 
 from app.api.main import api_router
 from app.core.config import settings
+from app.core.db import engine
 from app.core.flags import MaintenanceModeMiddleware
+from app.core.token_store import prune_revocations
 
 FRONTEND_DIR = Path(__file__).parent / "frontend"
 # Local upload directory. Resolved to an absolute path under the
@@ -142,6 +144,28 @@ async def add_security_headers(
 
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+
+@app.on_event("startup")
+def _prune_expired_token_revocations() -> None:
+    """Drop stale ``token_revocations`` rows on application start.
+
+    Rows with ``expires_at <= now()`` are no longer authoritative, but
+    keeping them around bloats the table; the hot path already filters
+    on ``expires_at > now()`` so this is purely a GC pass. Failures are
+    logged and swallowed so a transient DB issue at startup does not
+    prevent the app from booting.
+    """
+    import logging
+
+    from sqlmodel import Session
+
+    log = logging.getLogger(__name__)
+    try:
+        with Session(engine) as session:
+            prune_revocations(session)
+    except Exception:  # pragma: no cover - best-effort GC
+        log.exception("Token revocation startup prune failed")
 
 if FRONTEND_DIR.exists():
     app.frontend("/", directory=FRONTEND_DIR)

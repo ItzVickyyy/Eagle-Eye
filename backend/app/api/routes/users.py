@@ -17,6 +17,7 @@ from app.core.config import settings
 from app.core.flags import enforce_public_signup_enabled
 from app.core.rate_limit import signup_rate_limiter
 from app.core.security import get_password_hash, verify_password
+from app.core.token_store import bump_token_version
 from app.models import (
     Message,
     UpdatePassword,
@@ -133,6 +134,15 @@ def update_password_me(
         )
     hashed_password = get_password_hash(body.new_password)
     current_user.hashed_password = hashed_password
+    bump_token_version(session=session, user=current_user)
+    write_audit_log(
+        session=session,
+        event="auth.password_changed",
+        component="auth",
+        actor=current_user,
+        success=True,
+        message="Password updated; all other sessions invalidated",
+    )
     session.add(current_user)
     session.commit()
     return Message(message="Password updated successfully")
@@ -256,7 +266,26 @@ def update_user(
     elif "is_active" in pending and pending["is_active"] != db_user.is_active:
         event = "user.activated" if pending["is_active"] else "user.deactivated"
 
+    password_rotated = "password" in pending
+
     db_user = crud.update_user(session=session, db_user=db_user, user_in=user_in)
+
+    if password_rotated:
+        bump_token_version(session=session, user=db_user)
+        write_audit_log(
+            session=session,
+            event="auth.password_changed_by_admin",
+            component="auth",
+            actor=current_user,
+            target_type="user",
+            target_id=str(db_user.id),
+            success=True,
+            message=(
+                f"Admin {current_user.email} rotated password for "
+                f"{db_user.email}; all of that user's sessions invalidated"
+            ),
+        )
+
     if event:
         write_audit_log(
             session=session,
@@ -268,6 +297,7 @@ def update_user(
             success=True,
             message=f"Changed user {db_user.email} ({event})",
         )
+    if event or password_rotated:
         session.commit()
     return db_user
 

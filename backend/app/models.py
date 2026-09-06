@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 from enum import StrEnum
 
 from pydantic import EmailStr
-from sqlalchemy import DateTime, Text
+from sqlalchemy import Column, DateTime, Integer, Text
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -97,6 +97,10 @@ class User(UserBase, table=True):
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    token_version: int = Field(
+        default=0,
+        sa_column=Column(Integer, nullable=False, server_default="0"),
     )
     articles: list[Article] = Relationship(
         back_populates="author", cascade_delete=True
@@ -507,6 +511,8 @@ class Token(SQLModel):
 
 class TokenPayload(SQLModel):
     sub: str | None = None
+    jti: str | None = None
+    tv: int | None = None
 
 
 class NewPassword(SQLModel):
@@ -548,3 +554,39 @@ class AuditLog(SQLModel, table=True):
     success: bool = True
     # Public, redacted human-readable summary. Never contains secrets.
     message: str = Field(max_length=2048)
+
+
+# ---------------------------------------------------------------------------
+# Token Revocation (JWT logout / per-jti denylist)
+# ---------------------------------------------------------------------------
+
+
+class TokenRevocation(SQLModel, table=True):
+    """Per-jti denylist for access tokens.
+
+    Rows are written on ``POST /auth/logout`` and pruned on application
+    startup. The hot path is filtered by ``expires_at > now()`` so the table
+    only contains entries that are still authoritative.
+
+    Revocation is layered:
+
+    1. Per-user ``token_version`` (``User.token_version``) invalidates ALL
+       sessions for a user in a single write, used on password change and
+       password reset.
+    2. Per-jti rows in this table invalidate a specific session, used on
+       explicit logout.
+    """
+
+    jti: str = Field(primary_key=True, max_length=64)
+    user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+    revoked_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    # When the underlying JWT expires. Hot path filters out rows where
+    # ``expires_at <= now()``; ``prune_revocations`` removes them on startup.
+    expires_at: datetime = Field(
+        sa_type=DateTime(timezone=True),  # type: ignore
+        index=True,
+    )
+    reason: str = Field(default="logout", max_length=50)

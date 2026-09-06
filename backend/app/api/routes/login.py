@@ -1,12 +1,14 @@
 from datetime import timedelta
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Body, Depends, HTTPException
-from fastapi.responses import HTMLResponse
+import jwt
+from fastapi import APIRouter, Body, Depends, HTTPException, status
+from fastapi.responses import HTMLResponse, Response
 from fastapi.security import OAuth2PasswordRequestForm
+from jwt.exceptions import InvalidTokenError
 
 from app import crud
-from app.api.deps import CurrentUser, SessionDep, get_current_active_superuser
+from app.api.deps import CurrentUser, SessionDep, TokenDep, get_current_active_superuser
 from app.core import security
 from app.core.audit import write_audit_log
 from app.core.captcha import verify_captcha
@@ -16,11 +18,13 @@ from app.core.rate_limit import (
     password_recovery_rate_limiter,
     password_reset_rate_limiter,
 )
+from app.core.token_store import bump_token_version, revoke_token
 from app.models import (
     Message,
     NewPassword,
     PasswordRecoveryRequest,
     Token,
+    TokenPayload,
     UserPublic,
     UserUpdate,
 )
@@ -81,7 +85,9 @@ def login_access_token(
     session.commit()
     return Token(
         access_token=security.create_access_token(
-            user.id, expires_delta=access_token_expires
+            user.id,
+            expires_delta=access_token_expires,
+            token_version=user.token_version,
         )
     )
 
@@ -92,6 +98,56 @@ def test_token(current_user: CurrentUser) -> Any:
     Test access token
     """
     return current_user
+
+
+@router.post("/auth/logout", status_code=status.HTTP_204_NO_CONTENT)
+def logout(
+    session: SessionDep,
+    token: TokenDep,
+    current_user: CurrentUser,
+) -> Response:
+    """Revoke the access token presented with this request.
+
+    The current token is added to the per-jti denylist; all other sessions
+    for the same user remain valid. Use the password-change endpoints to
+    invalidate every session at once.
+    """
+    if token is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+        )
+    try:
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+        )
+        token_data = TokenPayload(**payload)
+    except (InvalidTokenError, Exception):
+        # The dependency already validated the token, but a failure here
+        # would still be a 401.
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+        )
+    if token_data.jti:
+        expires_at = security.decode_token_exp(token)
+        revoke_token(
+            session=session,
+            jti=token_data.jti,
+            user_id=current_user.id,
+            expires_at=expires_at,
+            reason="logout",
+        )
+    write_audit_log(
+        session=session,
+        event="auth.logout",
+        component="auth",
+        actor=current_user,
+        success=True,
+        message="User logged out",
+    )
+    session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post(
@@ -146,6 +202,17 @@ def reset_password(session: SessionDep, body: NewPassword) -> Message:
         db_user=user,
         user_in=user_in_update,
     )
+    # A password reset invalidates ALL of the user's active sessions.
+    bump_token_version(session=session, user=user)
+    write_audit_log(
+        session=session,
+        event="auth.password_reset_completed",
+        component="auth",
+        actor=user,
+        success=True,
+        message="Password reset completed; all sessions invalidated",
+    )
+    session.commit()
     return Message(message="Password updated successfully")
 
 

@@ -63,8 +63,8 @@ _MAINTENANCE_ALLOWLIST_PREFIXES: tuple[str, ...] = (
     # Authentication must remain available so developers/admins can sign in
     # while the public site is offline.
     "/api/v1/login/",
-    "/api/v1/password-recovery",
-    "/api/v1/reset-password",
+    "/api/v1/password-recovery/",
+    "/api/v1/reset-password/",
     # Developer tooling and audit surfaces.
     "/api/v1/developer/",
     # OpenAPI / docs for the operator running the deployment.

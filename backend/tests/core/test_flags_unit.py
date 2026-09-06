@@ -96,6 +96,33 @@ class TestIsAllowedInMaintenance:
     def test_trailing_slash_prefix_only(self) -> None:
         assert _is_allowed_in_maintenance("/api/v1/openapi.jsonx") is False
 
+    def test_password_recovery_descendants_allowed(self) -> None:
+        # "/api/v1/password-recovery/" is a prefix entry (ending in "/"),
+        # so the endpoint and all descendant paths stay reachable during
+        # maintenance (e.g. POST /api/v1/password-recovery/{email}).
+        assert _is_allowed_in_maintenance("/api/v1/password-recovery/") is True
+        assert _is_allowed_in_maintenance(
+            "/api/v1/password-recovery/user@example.com"
+        ) is True
+        assert _is_allowed_in_maintenance(
+            "/api/v1/password-recovery/x/nested"
+        ) is True
+
+    def test_reset_password_descendants_allowed(self) -> None:
+        # POST /api/v1/reset-password/ and its descendants stay reachable.
+        assert _is_allowed_in_maintenance("/api/v1/reset-password/") is True
+        assert _is_allowed_in_maintenance("/api/v1/reset-password/token") is True
+
+    def test_recovery_lookalike_paths_remain_blocked(self) -> None:
+        # Path boundary: lookalikes must NOT match the allowlist prefix.
+        assert _is_allowed_in_maintenance("/api/v1/password-recovery-evil/foo") is False
+        assert _is_allowed_in_maintenance("/api/v1/reset-password-evil/foo") is False
+        # Superuser-only HTML-content endpoint is out of the password-recovery
+        # prefix and must remain blocked during maintenance.
+        assert _is_allowed_in_maintenance(
+            "/api/v1/password-recovery-html-content/user@example.com"
+        ) is False
+
 
 # ---------------------------------------------------------------------------
 # is_maintenance_active

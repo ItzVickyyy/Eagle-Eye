@@ -273,6 +273,22 @@ def test_security_headers_present(client: TestClient) -> None:
     assert r.headers.get("Referrer-Policy") == "strict-origin-when-cross-origin"
     assert r.headers.get("Content-Security-Policy") == CONTENT_SECURITY_POLICY
     assert r.headers.get("Permissions-Policy") == PERMISSIONS_POLICY
+    assert r.headers.get("Cross-Origin-Opener-Policy") == "same-origin"
+    assert r.headers.get("Cross-Origin-Resource-Policy") == "same-origin"
+
+
+def test_coop_corp_present_on_public_docs_response(client: TestClient) -> None:
+    """COOP and CORP must be emitted on a non-API public response too.
+
+    ``/docs`` is the FastAPI-built Swagger UI; it is unauthenticated, returns
+    200, and is served through the same HTTP middleware chain as the API
+    routes. This guards against a future refactor that, for example, mounts a
+    sub-app with its own middleware and silently drops these headers.
+    """
+    r = client.get("/docs")
+    assert r.status_code == 200
+    assert r.headers.get("Cross-Origin-Opener-Policy") == "same-origin"
+    assert r.headers.get("Cross-Origin-Resource-Policy") == "same-origin"
 
 
 def test_csp_forbids_remote_scripts_and_arbitrary_iframes() -> None:

@@ -135,6 +135,19 @@ async def add_security_headers(
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Content-Security-Policy"] = CONTENT_SECURITY_POLICY
     response.headers["Permissions-Policy"] = PERMISSIONS_POLICY
+    # Cross-Origin-Opener-Policy: same-origin isolates the top-level browsing
+    # context so cross-origin windows opened via ``window.open`` (or by
+    # ``target="_blank"`` links) cannot reach back into ``window.opener``.
+    # Safe for this app: the only cross-origin window interactions are
+    # user-clicked external links (``rel="noopener noreferrer"``), and the
+    # auth flow is email/password plus a Cloudflare Turnstile iframe, which
+    # is not affected by COOP (iframes are not top-level browsing contexts).
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    # Cross-Origin-Resource-Policy: same-origin prevents other origins from
+    # embedding or fetching this app's responses (including ``/uploads/``
+    # static assets) as subresources. Legitimate same-origin loads (the SPA
+    # bundle, API JSON, uploaded media rendered in articles) are unaffected.
+    response.headers["Cross-Origin-Resource-Policy"] = "same-origin"
     if _is_https(request):
         response.headers["Strict-Transport-Security"] = (
             f"max-age={HSTS_MAX_AGE_SECONDS}"

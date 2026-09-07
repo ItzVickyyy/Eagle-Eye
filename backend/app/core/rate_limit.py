@@ -252,6 +252,7 @@ def _make_limiters() -> dict[str, InMemoryRateLimiter | RedisRateLimiter]:
         "signup": _create_limiter(times=20, seconds=60, redis_url=redis_url),
         "contact": _create_limiter(times=15, seconds=60, redis_url=redis_url),
         "comment": _create_limiter(times=30, seconds=60, redis_url=redis_url),
+        "password_change": _create_limiter(times=10, seconds=60, redis_url=redis_url),
     }
 
 
@@ -262,3 +263,4 @@ password_reset_rate_limiter = _limiters["password_reset"]
 signup_rate_limiter = _limiters["signup"]
 contact_rate_limiter = _limiters["contact"]
 comment_rate_limiter = _limiters["comment"]
+password_change_rate_limiter = _limiters["password_change"]

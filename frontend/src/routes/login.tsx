@@ -8,7 +8,9 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 
 import type { Body_login_login_access_token as AccessToken } from "@/client"
+import { UsersService } from "@/client"
 import { AuthLayout } from "@/components/Common/AuthLayout"
+import { Turnstile } from "@/components/Common/Turnstile"
 import {
   Form,
   FormControl,
@@ -21,7 +23,8 @@ import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
 import useAuth, { isLoggedIn } from "@/hooks/useAuth"
-import { UsersService } from "@/client"
+import { useTurnstileToken } from "@/hooks/useTurnstileToken"
+import { getTurnstileSiteKey } from "@/lib/captcha"
 
 const formSchema = z.object({
   username: z.email({ message: "Invalid email address" }),
@@ -72,6 +75,11 @@ export const Route = createFileRoute("/login")({
 
 function Login() {
   const { loginMutation } = useAuth()
+  const captcha = useTurnstileToken({
+    onExpire: () => {
+      form.setError("root", { message: "CAPTCHA expired, please verify again" })
+    },
+  })
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     mode: "onBlur",
@@ -84,7 +92,11 @@ function Login() {
 
   const onSubmit = (data: FormData) => {
     if (loginMutation.isPending) return
-    loginMutation.mutate(data)
+    if (getTurnstileSiteKey() !== "" && !captcha.token) {
+      form.setError("root", { message: "Please complete the CAPTCHA" })
+      return
+    }
+    loginMutation.mutate({ data, captchaToken: captcha.token ?? undefined })
   }
 
   return (
@@ -150,6 +162,22 @@ function Login() {
             <LoadingButton type="submit" loading={loginMutation.isPending}>
               Log In
             </LoadingButton>
+
+            <Turnstile
+              siteKey={getTurnstileSiteKey()}
+              onVerify={captcha.onVerify}
+              onExpire={captcha.onExpire}
+            />
+
+            {form.formState.errors.root?.message ? (
+              <p
+                data-testid="form-root-error"
+                role="alert"
+                className="text-destructive text-sm"
+              >
+                {form.formState.errors.root.message}
+              </p>
+            ) : null}
           </div>
 
           <p className="text-center text-xs text-muted-foreground">

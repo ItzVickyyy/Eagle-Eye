@@ -182,6 +182,7 @@ class TestModuleLimiters:
             "signup",
             "contact",
             "comment",
+            "password_change",
         }
         assert set(_limiters.keys()) == expected
 

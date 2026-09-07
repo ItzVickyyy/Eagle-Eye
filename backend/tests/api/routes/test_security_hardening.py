@@ -458,6 +458,46 @@ def test_rate_limiter_triggers_429(client: TestClient) -> None:
         login_rate_limiter.force_enable_in_tests = False
 
 
+def test_password_change_rate_limiter_triggers_429(
+    client: TestClient, db: Session
+) -> None:
+    """PATCH /users/me/password must reject bulk attempts after the limit (10)."""
+    from app.core.rate_limit import password_change_rate_limiter
+    from tests.utils.user import user_authentication_headers
+
+    _, email, password = create_security_test_user(db)
+    headers = user_authentication_headers(client=client, email=email, password=password)
+
+    password_change_rate_limiter.force_enable_in_tests = True
+    password_change_rate_limiter.reset()
+
+    payload = {
+        "current_password": "wrongpassword123",
+        "new_password": "brandnewpassword123",
+    }
+    try:
+        # Perform 10 calls (limit is 10) - each returns 400 (wrong password)
+        for _ in range(10):
+            r = client.patch(
+                f"{settings.API_V1_STR}/users/me/password",
+                headers=headers,
+                json=payload,
+            )
+            assert r.status_code == 400
+
+        # 11th call must return 429 Too Many Requests
+        r_blocked = client.patch(
+            f"{settings.API_V1_STR}/users/me/password",
+            headers=headers,
+            json=payload,
+        )
+        assert r_blocked.status_code == 429
+        assert "Too many requests" in r_blocked.json()["detail"]
+        assert "Retry-After" in r_blocked.headers
+    finally:
+        password_change_rate_limiter.force_enable_in_tests = False
+
+
 def test_factory_returns_in_memory_when_redis_url_empty() -> None:
     """Empty/falsy redis_url must select the in-memory backend."""
     limiter = _create_limiter(times=5, seconds=60, redis_url="")
@@ -670,6 +710,73 @@ def test_login_access_token_unchanged_without_captcha(client: TestClient, db: Se
     r = client.post(
         f"{settings.API_V1_STR}/login/access-token",
         data={"username": email, "password": password},
+    )
+    assert r.status_code == 200
+    assert "access_token" in r.json()
+
+
+def test_login_rejects_missing_token_when_enabled(
+    client: TestClient,
+    db: Session,
+    captcha_enabled: None,  # noqa: ARG001
+) -> None:
+    """Login is form-encoded, so without a header token it must 403 when enabled."""
+    _, email, password = create_security_test_user(db)
+    r = client.post(
+        f"{settings.API_V1_STR}/login/access-token",
+        data={"username": email, "password": password},
+    )
+    assert r.status_code == 403
+    assert r.json()["detail"] == "CAPTCHA token is required"
+
+
+def test_login_rejects_empty_header_token_when_enabled(
+    client: TestClient,
+    db: Session,
+    captcha_enabled: None,  # noqa: ARG001
+) -> None:
+    """A blank X-Captcha-Token header is treated as a missing token."""
+    _, email, password = create_security_test_user(db)
+    r = client.post(
+        f"{settings.API_V1_STR}/login/access-token",
+        data={"username": email, "password": password},
+        headers={"X-Captcha-Token": "   "},
+    )
+    assert r.status_code == 403
+    assert r.json()["detail"] == "CAPTCHA token is required"
+
+
+def test_login_rejects_invalid_token_when_enabled(
+    client: TestClient,
+    db: Session,
+    captcha_enabled: None,  # noqa: ARG001
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A non-empty but invalid header token must fail verification (fail-closed)."""
+    _mock_verify(monkeypatch, ok=False, error_code="invalid-input-response")
+    _, email, password = create_security_test_user(db)
+    r = client.post(
+        f"{settings.API_V1_STR}/login/access-token",
+        data={"username": email, "password": password},
+        headers={"X-Captcha-Token": "totally-invalid"},
+    )
+    assert r.status_code == 403
+    assert r.json()["detail"] == "CAPTCHA verification failed"
+
+
+def test_login_accepts_valid_header_token_when_enabled(
+    client: TestClient,
+    db: Session,
+    captcha_enabled: None,  # noqa: ARG001
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A valid X-Captcha-Token header must pass and let login proceed."""
+    _mock_verify(monkeypatch, ok=True, error_code=None)
+    _, email, password = create_security_test_user(db)
+    r = client.post(
+        f"{settings.API_V1_STR}/login/access-token",
+        data={"username": email, "password": password},
+        headers={"X-Captcha-Token": "valid-token"},
     )
     assert r.status_code == 200
     assert "access_token" in r.json()

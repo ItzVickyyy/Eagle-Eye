@@ -15,7 +15,7 @@ from app.core.audit import write_audit_log
 from app.core.captcha import verify_captcha
 from app.core.config import settings
 from app.core.flags import enforce_public_signup_enabled
-from app.core.rate_limit import signup_rate_limiter
+from app.core.rate_limit import password_change_rate_limiter, signup_rate_limiter
 from app.core.security import get_password_hash, verify_password
 from app.core.token_store import bump_token_version
 from app.models import (
@@ -118,7 +118,11 @@ def update_user_me(
     return current_user
 
 
-@router.patch("/me/password", response_model=Message)
+@router.patch(
+    "/me/password",
+    response_model=Message,
+    dependencies=[Depends(password_change_rate_limiter)],
+)
 def update_password_me(
     *, session: SessionDep, body: UpdatePassword, current_user: CurrentUser
 ) -> Any:

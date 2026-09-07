@@ -154,16 +154,20 @@ async def verify_captcha(request: Request) -> None:
     # call ``request.json()`` here. If a body model has not been declared
     # and the request has no body, we treat the token as missing.
     token: str | None = None
-    try:
-        body = await request.json()
-    except Exception:
-        body = None
-    if isinstance(body, dict):
-        for key in ("captcha_token", "cf-turnstile-response"):
-            value = body.get(key)
-            if isinstance(value, str) and value.strip():
-                token = value.strip()
-                break
+    header_token = request.headers.get("x-captcha-token")
+    if isinstance(header_token, str) and header_token.strip():
+        token = header_token.strip()
+    else:
+        try:
+            body = await request.json()
+        except Exception:
+            body = None
+        if isinstance(body, dict):
+            for key in ("captcha_token", "cf-turnstile-response"):
+                value = body.get(key)
+                if isinstance(value, str) and value.strip():
+                    token = value.strip()
+                    break
 
     if not token:
         raise HTTPException(

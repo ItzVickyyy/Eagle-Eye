@@ -3,7 +3,6 @@ import { useNavigate } from "@tanstack/react-router"
 
 import {
   type Body_login_login_access_token as AccessToken,
-  LoginService,
   type UserPublic,
   type UserRegister,
   UsersService,
@@ -38,15 +37,39 @@ const useAuth = () => {
     },
   })
 
-  const login = async (data: AccessToken) => {
-    const response = await LoginService.loginAccessToken({
-      body: data,
+  const login = async (data: AccessToken, captchaToken?: string) => {
+    const body = new URLSearchParams({
+      username: data.username,
+      password: data.password,
     })
-    localStorage.setItem("access_token", response.data.access_token)
+    const headers: Record<string, string> = {}
+    if (captchaToken) {
+      headers["X-Captcha-Token"] = captchaToken
+    }
+    const response = await fetch("/api/v1/login/access-token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        ...headers,
+      },
+      body: body.toString(),
+    })
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.detail || "Login failed")
+    }
+    const result = await response.json()
+    localStorage.setItem("access_token", result.access_token)
   }
 
   const loginMutation = useMutation({
-    mutationFn: login,
+    mutationFn: ({
+      data,
+      captchaToken,
+    }: {
+      data: AccessToken
+      captchaToken?: string
+    }) => login(data, captchaToken),
     onSuccess: () => {
       navigate({ to: "/admin" })
     },

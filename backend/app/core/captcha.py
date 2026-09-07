@@ -34,6 +34,7 @@ import httpx
 from fastapi import HTTPException, Request, status
 
 from app.core.config import settings
+from app.core.rate_limit import _resolve_client_ip
 
 logger = logging.getLogger(__name__)
 
@@ -60,12 +61,13 @@ def _is_required_now() -> bool:
 
 
 def _client_ip(request: Request) -> str:
-    """Mirror the rate-limiter keying so CAPTCHA failures can be audited."""
-    client_ip = request.client.host if request.client else "unknown"
-    forwarded_for = request.headers.get("x-forwarded-for")
-    if forwarded_for:
-        client_ip = forwarded_for.split(",")[0].strip()
-    return client_ip
+    """Resolve the client IP using the shared trusted-proxy model.
+
+    Reuses the same ``RATE_LIMIT_TRUSTED_PROXIES`` setting and logic as
+    the rate limiter so that both subsystems agree on client identity and
+    an untrusted client cannot spoof ``remoteip`` sent to Turnstile.
+    """
+    return _resolve_client_ip(request, settings.RATE_LIMIT_TRUSTED_PROXIES)
 
 
 async def _verify_with_turnstile(

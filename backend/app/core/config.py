@@ -82,13 +82,14 @@ class Settings(BaseSettings):
     # backend/app/core/rate_limit.py for the fail-open fallback rules.
     REDIS_URL: str | None = None
 
-    # Trusted reverse-proxy peers for X-Forwarded-For (rate-limit identity).
-    # An empty list (the default) means "trust nobody": the rate limiter keys
-    # on the direct socket peer address, so a malicious client cannot spoof
-    # its rate-limit identity by sending a forged X-Forwarded-For header.
-    # When the app is deployed behind a trusted reverse proxy (e.g. Traefik),
-    # operators MUST list that proxy's peer address here so the leftmost
-    # forwarded IP is honored. Format is a JSON array; e.g.
+    # Trusted reverse-proxy peers for X-Forwarded-For (rate-limit & CAPTCHA).
+    # An empty list (the default) means "trust nobody": both the rate limiter
+    # and CAPTCHA client-IP resolution use the direct socket peer address,
+    # so a malicious client cannot spoof its identity by sending a forged
+    # X-Forwarded-For header.  When the app is deployed behind a trusted
+    # reverse proxy (e.g. Traefik), operators MUST list that proxy's peer
+    # address here so the leftmost forwarded IP is honored. Format is a JSON
+    # array; e.g.
     #   RATE_LIMIT_TRUSTED_PROXIES=["172.18.0.2"]
     # Never use an unrestricted wildcard. See backend/app/core/rate_limit.py
     # for the resolution rules.

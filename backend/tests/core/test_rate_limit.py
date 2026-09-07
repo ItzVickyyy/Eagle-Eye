@@ -414,7 +414,7 @@ class TestRedisFailOpen:
         monkeypatch.setattr(settings, "RATE_LIMIT_TRUSTED_PROXIES", [])
         captured: dict[str, Any] = {}
 
-        async def _capture(keys: list[str], _args: list[int]) -> tuple[int, int]:
+        async def _capture(keys: list[str], args: list[int]) -> tuple[int, int]:  # noqa: ARG001
             captured["key"] = keys[0]
             return (1, 0)
 

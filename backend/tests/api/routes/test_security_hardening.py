@@ -740,3 +740,36 @@ def test_captcha_transport_error_fail_closed(
     )
     assert r.status_code == 403
     assert r.json()["detail"] == "CAPTCHA verification failed"
+
+
+def test_signup_forged_xff_does_not_spoof_remoteip(
+    client: TestClient,
+    captcha_enabled: None,  # noqa: ARG001
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """E2E: a forged X-Forwarded-For must not influence the Turnstile remoteip.
+
+    Regression test for the pre-WS7 unconditional XFF trust at
+    ``captcha.py:62-68``.  With an empty trust list the direct socket peer
+    (``"testclient"`` for TestClient) must be sent as ``remoteip`` to
+    Turnstile regardless of what ``X-Forwarded-For`` the client provides.
+    """
+    monkeypatch.setattr(settings, "RATE_LIMIT_TRUSTED_PROXIES", [])
+
+    captured: dict[str, object] = {}
+
+    async def _capture(
+        *, token: str, secret: str, remote_ip: str  # noqa: ARG001
+    ) -> tuple[bool, None]:
+        captured["remote_ip"] = remote_ip
+        return True, None
+
+    monkeypatch.setattr("app.core.captcha._verify_with_turnstile", _capture)
+
+    r = client.post(
+        f"{settings.API_V1_STR}/users/signup",
+        json=_signup_payload(captcha_token="valid-token"),
+        headers={"X-Forwarded-For": "6.6.6.6"},
+    )
+    assert r.status_code == 200
+    assert captured["remote_ip"] == "testclient"

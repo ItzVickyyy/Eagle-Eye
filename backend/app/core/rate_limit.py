@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import ipaddress
+import logging
 import os
 import threading
 import time
@@ -8,8 +10,13 @@ from typing import TYPE_CHECKING
 
 from fastapi import HTTPException, Request, status
 
+from app.core.config import settings
+
 if TYPE_CHECKING:
     import redis.asyncio as aioredis
+
+
+logger = logging.getLogger(__name__)
 
 
 _SLIDING_WINDOW_SCRIPT = """
@@ -29,12 +36,44 @@ return {1, 0}
 """
 
 
-def _client_key(request: Request) -> str:
-    """Return a rate-limit key scoped to client IP + request path."""
-    client_ip = request.client.host if request.client else "unknown"
+def _resolve_client_ip(request: Request, trusted_proxies: list[str]) -> str:
+    """Return the rate-limit identity for ``request``.
+
+    The decision tree:
+
+    * If the immediate socket peer is not in ``trusted_proxies`` (or the
+      request has no peer), ``X-Forwarded-For`` is ignored entirely.  This
+      prevents a direct client from choosing an arbitrary rate-limit
+      identity by sending a forged forwarded header.
+    * If the immediate socket peer IS a trusted proxy, ``X-Forwarded-For``
+      is consulted: the leftmost value is taken (the original client
+      according to the conventional append-only forwarded chain), but it
+      must parse as a valid IPv4 or IPv6 address.  Anything malformed
+      (non-IP, empty, garbage) is rejected and the direct peer is used.
+    """
+    direct_ip = request.client.host if request.client else "unknown"
+    if direct_ip == "unknown" or direct_ip not in trusted_proxies:
+        return direct_ip
     forwarded_for = request.headers.get("x-forwarded-for")
-    if forwarded_for:
-        client_ip = forwarded_for.split(",")[0].strip()
+    if not forwarded_for:
+        return direct_ip
+    candidate = forwarded_for.split(",")[0].strip()
+    if not candidate:
+        return direct_ip
+    try:
+        ipaddress.ip_address(candidate)
+    except ValueError:
+        return direct_ip
+    return candidate
+
+
+def _client_key(request: Request) -> str:
+    """Return a rate-limit key scoped to client IP + request path.
+
+    Honors the operator-configured ``RATE_LIMIT_TRUSTED_PROXIES`` list; see
+    :func:`_resolve_client_ip` for the trust rules.
+    """
+    client_ip = _resolve_client_ip(request, settings.RATE_LIMIT_TRUSTED_PROXIES)
     return f"{client_ip}:{request.url.path}"
 
 
@@ -101,6 +140,11 @@ class RedisRateLimiter:
         self.times = times
         self.seconds = seconds
         self._prefix = "ratelimit"
+        # Used to log the Redis-unavailable transition at most once per
+        # outage per process; redis-py lazily connects so the only signal
+        # we get is the first failed command.  Resetting on a successful
+        # call allows a future outage to be logged again.
+        self._unavailable_logged = False
         import redis.asyncio as aioredis
 
         self._pool: aioredis.Redis = aioredis.from_url(  # type: ignore[assignment]
@@ -124,11 +168,9 @@ class RedisRateLimiter:
         if os.getenv("PYTEST_CURRENT_TEST") and not self.force_enable_in_tests:
             return
 
-        client_ip = request.client.host if request.client else "unknown"
-        forwarded_for = request.headers.get("x-forwarded-for")
-        if forwarded_for:
-            client_ip = forwarded_for.split(",")[0].strip()
-
+        client_ip = _resolve_client_ip(
+            request, settings.RATE_LIMIT_TRUSTED_PROXIES
+        )
         key = f"{self._prefix}:{client_ip}:{request.url.path}"
 
         try:
@@ -136,11 +178,30 @@ class RedisRateLimiter:
                 keys=[key],
                 args=[self.seconds * 1000, self.times, int(time.monotonic() * 1000)],
             )
-        except Exception:
-            # Redis unreachable – fail open (per-IP in-memory is handled by
-            # the factory fallback; reaching here means the factory didn't
-            # swap, so we simply allow the request through).
+        except Exception as exc:
+            # Redis unreachable / command failed.  Fail open so a single
+            # dead Redis box cannot lock every backend worker; the
+            # per-worker in-memory limiter (used when REDIS_URL is unset)
+            # is the operator's documented fallback behaviour.
+            #
+            # The URL and any embedded credentials are deliberately
+            # omitted from the log; only the exception type and a generic
+            # message are emitted.  The warning fires once per outage
+            # transition; if a later request succeeds the flag is reset
+            # so the next outage is logged again.
+            if not self._unavailable_logged:
+                self._unavailable_logged = True
+                logger.warning(
+                    "Redis rate limiting unavailable; failing open. "
+                    "Subsequent failures during this outage will be "
+                    "suppressed until rate limiting recovers.",
+                    exc_info=exc,
+                )
             return
+
+        # Successful call: clear the outage flag so a *future* failure
+        # is logged as a fresh transition.
+        self._unavailable_logged = False
 
         allowed, ttl_ms = result
         if not allowed:
@@ -168,20 +229,22 @@ def _create_limiter(
     return InMemoryRateLimiter(times=times, seconds=seconds)
 
 
-def _get_redis_url() -> str | None:
-    """Resolve ``REDIS_URL`` from the environment without importing Settings.
+def _resolve_redis_url() -> str | None:
+    """Return the configured Redis URL from application Settings.
 
-    Importing ``app.core.config`` here would trigger a circular import when
-    ``config.py`` eventually imports ``rate_limit`` for a health check or
-    similar.  We read the env var directly; ``pydantic-settings`` will have
-    already loaded ``.env`` into ``os.environ`` by the time this runs.
+    Reads ``settings.REDIS_URL`` (one authoritative source); ``None`` and
+    the empty string are both treated as "Redis is not configured", in
+    which case the factory falls back to per-worker in-memory limiting.
     """
-    return os.getenv("REDIS_URL")
+    url = settings.REDIS_URL
+    if not url:
+        return None
+    return url
 
 
 # Pre-configured rate limiters for security-sensitive endpoints
 def _make_limiters() -> dict[str, InMemoryRateLimiter | RedisRateLimiter]:
-    redis_url = _get_redis_url()
+    redis_url = _resolve_redis_url()
     return {
         "login": _create_limiter(times=20, seconds=60, redis_url=redis_url),
         "password_recovery": _create_limiter(times=10, seconds=60, redis_url=redis_url),

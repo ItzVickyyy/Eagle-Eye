@@ -485,14 +485,10 @@ def test_default_login_limiter_is_in_memory_when_redis_url_unset(
     limiters must select the in-memory backend; this guards against an
     accidental wiring that would have every test require a live Redis.
     """
-    monkeypatch.delenv("REDIS_URL", raising=False)
-    # Re-read the env without a full module reload: _get_redis_url() reads
-    # os.getenv on every call, so the factory output is correct.  We
-    # assert by class name to avoid class-identity mismatches if the
-    # module is later re-imported elsewhere in the suite.
-    from app.core.rate_limit import _get_redis_url
+    monkeypatch.setattr(settings, "REDIS_URL", None)
+    from app.core.rate_limit import _resolve_redis_url
 
-    assert _get_redis_url() in (None, "")
+    assert _resolve_redis_url() is None
     assert type(login_rate_limiter).__name__ == "InMemoryRateLimiter"
 
 

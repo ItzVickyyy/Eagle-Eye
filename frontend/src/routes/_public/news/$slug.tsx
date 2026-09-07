@@ -95,7 +95,7 @@ function ArticleDetail() {
       })
     },
     onSuccess: () => {
-      showSuccessToast("Comment posted successfully!")
+      showSuccessToast("Comment submitted! It will be visible after moderation.")
       setCommentName("")
       setCommentEmail("")
       setCommentBody("")

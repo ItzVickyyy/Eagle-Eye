@@ -9,6 +9,7 @@ from app.core.flags import enforce_public_comments_enabled
 from app.core.rate_limit import comment_rate_limiter
 from app.models import (
     Article,
+    ArticleStatus,
     Comment,
     CommentCreate,
     CommentPublic,
@@ -90,11 +91,11 @@ def create_comment(
     comment_in: CommentCreate,
 ) -> Any:
     """
-    Submit comment on an article (public reader).
-    Default is approved or pending depending on policy.
+    Submit comment on a published article (public reader).
+    Comments are created as pending and require moderation approval.
     """
     article = session.get(Article, comment_in.article_id)
-    if not article:
+    if not article or article.status != ArticleStatus.published:
         raise HTTPException(status_code=404, detail="Article not found")
 
     comment = Comment(
@@ -102,7 +103,7 @@ def create_comment(
         guest_name=comment_in.guest_name,
         guest_email=comment_in.guest_email,
         body=comment_in.body,
-        status=CommentStatus.approved,  # Auto-approved with moderation deletion capability
+        status=CommentStatus.pending,  # Awaiting moderation approval
     )
     session.add(comment)
     session.commit()

@@ -1,4 +1,4 @@
-# FastAPI Project - Development
+# Eagle Eye - Development
 
 ## Local Development
 

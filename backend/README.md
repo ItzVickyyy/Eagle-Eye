@@ -1,4 +1,4 @@
-# FastAPI Project - Backend
+# Eagle Eye - Backend
 
 ## Requirements
 

@@ -1,5 +1,7 @@
 import uuid
+from typing import Any, cast
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
@@ -504,3 +506,132 @@ def test_search_response_contract_preserved(client: TestClient, superuser_token_
     assert {"data", "count"} <= set(body)
     assert isinstance(body["count"], int)
     assert isinstance(body["data"], list)
+
+
+_VALID_COVER_IMAGE_URLS = [
+    "/uploads/article/cover.png",
+    "https://images.example.com/cover.png",
+    "http://images.example.com/cover.png",
+    "  https://images.example.com/cover.png  ",
+]
+
+_EXPECTED_COVER_IMAGE_URLS = [
+    "/uploads/article/cover.png",
+    "https://images.example.com/cover.png",
+    "http://images.example.com/cover.png",
+    "https://images.example.com/cover.png",
+]
+
+_INVALID_COVER_IMAGE_URLS = [
+    "javascript:alert(1)",
+    "data:text/html,<script>alert(1)</script>",
+    "vbscript:msgbox(1)",
+    "file:///etc/passwd",
+    "blob:https://evil.com/abc",
+    "//evil.com/cover.png",
+    "evil.com/cover.png",
+    "https://user:pass@evil.com/cover.png",
+    "https://evil.com/\x00cover.png",
+    "https://evil.com/\r\nInjected: 1",
+]
+
+
+def _create_article_with_cover(
+    client: TestClient,
+    headers: dict[str, str],
+    cover_image_url: str | None = None,
+) -> dict[str, Any]:
+    payload: dict[str, Any] = {
+        "headline": "Cover Image Validation Test",
+        "slug": f"cover-validation-{random_lower_string()}",
+        "excerpt": "Testing cover image URL validation.",
+        "body": "<p>Test body.</p>",
+        "status": "published",
+    }
+    if cover_image_url is not None:
+        payload["cover_image_url"] = cover_image_url
+    r = client.post(f"{settings.API_V1_STR}/articles/", headers=headers, json=payload)
+    assert r.status_code == 200, r.text
+    return cast(dict[str, Any], r.json())
+
+
+@pytest.mark.parametrize(("cover_image_url", "expected"), list(zip(_VALID_COVER_IMAGE_URLS, _EXPECTED_COVER_IMAGE_URLS, strict=True)))
+def test_create_article_with_valid_cover_image_url(
+    client: TestClient, superuser_token_headers: dict[str, str], cover_image_url: str, expected: str
+) -> None:
+    created = _create_article_with_cover(client, superuser_token_headers, cover_image_url)
+    assert created["cover_image_url"] == expected
+
+
+def test_create_article_without_cover_image_url(client: TestClient, superuser_token_headers: dict[str, str]) -> None:
+    created = _create_article_with_cover(client, superuser_token_headers)
+    assert created["cover_image_url"] is None
+
+
+def test_create_article_with_blank_cover_image_url_set_to_none(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    created = _create_article_with_cover(client, superuser_token_headers, "")
+    assert created["cover_image_url"] is None
+
+
+@pytest.mark.parametrize("cover_image_url", _INVALID_COVER_IMAGE_URLS)
+def test_create_article_rejects_invalid_cover_image_url(
+    client: TestClient, superuser_token_headers: dict[str, str], cover_image_url: str
+) -> None:
+    payload: dict[str, Any] = {
+        "headline": "Cover Image Validation Test",
+        "slug": f"cover-validation-{random_lower_string()}",
+        "excerpt": "Testing cover image URL validation.",
+        "body": "<p>Test body.</p>",
+        "status": "published",
+        "cover_image_url": cover_image_url,
+    }
+    r = client.post(f"{settings.API_V1_STR}/articles/", headers=superuser_token_headers, json=payload)
+    assert r.status_code == 422
+
+
+def test_update_article_with_valid_cover_image_url(client: TestClient, superuser_token_headers: dict[str, str]) -> None:
+    created = _create_article_with_cover(client, superuser_token_headers, "/uploads/original.png")
+    assert created["cover_image_url"] == "/uploads/original.png"
+    r = client.patch(
+        f"{settings.API_V1_STR}/articles/{created['id']}",
+        headers=superuser_token_headers,
+        json={"cover_image_url": "https://new.example.com/cover.png"},
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["cover_image_url"] == "https://new.example.com/cover.png"
+    r = client.patch(
+        f"{settings.API_V1_STR}/articles/{created['id']}",
+        headers=superuser_token_headers,
+        json={"headline": "Updated headline only"},
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["cover_image_url"] == "https://new.example.com/cover.png"
+
+
+def test_update_article_with_blank_cover_image_url_clears_cover_image(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    created = _create_article_with_cover(client, superuser_token_headers, "/uploads/original.png")
+    assert created["cover_image_url"] == "/uploads/original.png"
+    r = client.patch(
+        f"{settings.API_V1_STR}/articles/{created['id']}",
+        headers=superuser_token_headers,
+        json={"cover_image_url": ""},
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["cover_image_url"] is None
+
+
+@pytest.mark.parametrize("cover_image_url", _INVALID_COVER_IMAGE_URLS)
+def test_update_article_rejects_invalid_cover_image_url(
+    client: TestClient, superuser_token_headers: dict[str, str], cover_image_url: str
+) -> None:
+    created = _create_article_with_cover(client, superuser_token_headers, "/uploads/original.png")
+    r = client.patch(
+        f"{settings.API_V1_STR}/articles/{created['id']}",
+        headers=superuser_token_headers,
+        json={"cover_image_url": cover_image_url},
+    )
+    assert r.status_code == 422

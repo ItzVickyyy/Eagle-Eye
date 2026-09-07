@@ -228,6 +228,16 @@ class ArticleCreate(SQLModel):
     status: ArticleStatus = Field(default=ArticleStatus.draft)
     tag_ids: list[int] = Field(default_factory=list)
 
+    @field_validator("cover_image_url")
+    @classmethod
+    def _validate_cover_image_url(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        if not value:
+            return None
+        return _validate_media_file_url(value)
+
 
 class ArticleUpdate(SQLModel):
     headline: str | None = Field(default=None, min_length=1, max_length=500)
@@ -238,6 +248,16 @@ class ArticleUpdate(SQLModel):
     category_id: int | None = None
     status: ArticleStatus | None = None
     tag_ids: list[int] | None = None
+
+    @field_validator("cover_image_url")
+    @classmethod
+    def _validate_cover_image_url(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        if not value:
+            return None
+        return _validate_media_file_url(value)
 
 
 class Article(ArticleBase, table=True):

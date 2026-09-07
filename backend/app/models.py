@@ -447,7 +447,15 @@ class ClubMemberBase(SQLModel):
 
 
 class ClubMemberCreate(ClubMemberBase):
-    pass
+    @field_validator("photo_url")
+    @classmethod
+    def _validate_photo_url(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        if not value:
+            return None
+        return _validate_media_file_url(value)
 
 
 class ClubMemberUpdate(SQLModel):
@@ -460,6 +468,16 @@ class ClubMemberUpdate(SQLModel):
     is_officer: bool | None = None
     is_active: bool | None = None
     sort_order: int | None = None
+
+    @field_validator("photo_url")
+    @classmethod
+    def _validate_photo_url(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        if not value:
+            return None
+        return _validate_media_file_url(value)
 
 
 class ClubMember(ClubMemberBase, table=True):

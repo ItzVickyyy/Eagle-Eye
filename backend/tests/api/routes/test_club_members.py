@@ -1,3 +1,6 @@
+from typing import Any, cast
+
+import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 
@@ -193,3 +196,169 @@ def test_read_active_members_order_by_last_name(
     active = [m for m in data["data"] if m["first_name"] in ("Zeta", "Alpha")]
     last_names = [m["last_name"] for m in active]
     assert last_names == sorted(last_names)
+
+
+_VALID_PHOTO_URLS = [
+    "/uploads/foo.jpg",
+    "/assets/foo.png",
+    " /assets/leading-trailing.png ",
+    "https://images.example.com/photo.png",
+    "http://images.example.com/photo.png",
+]
+_EXPECTED_PHOTO_URLS = [
+    "/uploads/foo.jpg",
+    "/assets/foo.png",
+    "/assets/leading-trailing.png",
+    "https://images.example.com/photo.png",
+    "http://images.example.com/photo.png",
+]
+
+_INVALID_PHOTO_URLS = [
+    "javascript:alert(1)",
+    "data:text/html,<script>alert(1)</script>",
+    "vbscript:msgbox(1)",
+    "file:///etc/passwd",
+    "blob:https://evil.com/abc",
+    "//evil.com/photo.png",
+    "evil.com/photo.png",
+    "https://user:pass@evil.com/photo.png",
+    "https://evil.com/\x00photo.png",
+    "https://evil.com/\r\nInjected: 1",
+]
+
+_BLANK_PHOTO_URLS = ["", "   ", "\t", "\n"]
+
+
+def _create_member_with_photo(
+    client: TestClient,
+    headers: dict[str, str],
+    photo_url: str | None = None,
+) -> dict[str, Any]:
+    payload: dict[str, Any] = {
+        "first_name": "Photo",
+        "last_name": "Member",
+        "position": "Treasurer",
+    }
+    if photo_url is not None:
+        payload["photo_url"] = photo_url
+    r = client.post(
+        f"{settings.API_V1_STR}/club-members/", headers=headers, json=payload
+    )
+    assert r.status_code == 200, r.text
+    return cast(dict[str, Any], r.json())
+
+
+@pytest.mark.parametrize(
+    ("photo_url", "expected"),
+    list(zip(_VALID_PHOTO_URLS, _EXPECTED_PHOTO_URLS, strict=True)),
+)
+def test_create_member_with_valid_photo_url(
+    client: TestClient,
+    superuser_token_headers: dict[str, str],
+    photo_url: str,
+    expected: str,
+) -> None:
+    created = _create_member_with_photo(client, superuser_token_headers, photo_url)
+    assert created["photo_url"] == expected
+
+
+def test_create_member_without_photo_url(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    created = _create_member_with_photo(client, superuser_token_headers)
+    assert created["photo_url"] is None
+
+
+@pytest.mark.parametrize("photo_url", _BLANK_PHOTO_URLS)
+def test_create_member_with_blank_photo_url_set_to_none(
+    client: TestClient, superuser_token_headers: dict[str, str], photo_url: str
+) -> None:
+    created = _create_member_with_photo(client, superuser_token_headers, photo_url)
+    assert created["photo_url"] is None
+
+
+@pytest.mark.parametrize("photo_url", _INVALID_PHOTO_URLS)
+def test_create_member_rejects_invalid_photo_url(
+    client: TestClient, superuser_token_headers: dict[str, str], photo_url: str
+) -> None:
+    payload: dict[str, Any] = {
+        "first_name": "Photo",
+        "last_name": "Member",
+        "position": "Treasurer",
+        "photo_url": photo_url,
+    }
+    r = client.post(
+        f"{settings.API_V1_STR}/club-members/",
+        headers=superuser_token_headers,
+        json=payload,
+    )
+    assert r.status_code == 422
+
+
+def test_update_member_with_valid_photo_url(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    created = _create_member_with_photo(
+        client, superuser_token_headers, "/uploads/original.png"
+    )
+    assert created["photo_url"] == "/uploads/original.png"
+    r = client.patch(
+        f"{settings.API_V1_STR}/club-members/{created['id']}",
+        headers=superuser_token_headers,
+        json={"photo_url": "https://new.example.com/photo.png"},
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["photo_url"] == "https://new.example.com/photo.png"
+    r = client.patch(
+        f"{settings.API_V1_STR}/club-members/{created['id']}",
+        headers=superuser_token_headers,
+        json={"first_name": "Updated"},
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["photo_url"] == "https://new.example.com/photo.png"
+
+
+def test_update_member_without_photo_url_preserves_existing(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    created = _create_member_with_photo(
+        client, superuser_token_headers, "/uploads/original.png"
+    )
+    r = client.patch(
+        f"{settings.API_V1_STR}/club-members/{created['id']}",
+        headers=superuser_token_headers,
+        json={"first_name": "Renamed"},
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["photo_url"] == "/uploads/original.png"
+
+
+def test_update_member_with_blank_photo_url_clears_photo(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    created = _create_member_with_photo(
+        client, superuser_token_headers, "/uploads/original.png"
+    )
+    assert created["photo_url"] == "/uploads/original.png"
+    r = client.patch(
+        f"{settings.API_V1_STR}/club-members/{created['id']}",
+        headers=superuser_token_headers,
+        json={"photo_url": ""},
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["photo_url"] is None
+
+
+@pytest.mark.parametrize("photo_url", _INVALID_PHOTO_URLS)
+def test_update_member_rejects_invalid_photo_url(
+    client: TestClient, superuser_token_headers: dict[str, str], photo_url: str
+) -> None:
+    created = _create_member_with_photo(
+        client, superuser_token_headers, "/uploads/original.png"
+    )
+    r = client.patch(
+        f"{settings.API_V1_STR}/club-members/{created['id']}",
+        headers=superuser_token_headers,
+        json={"photo_url": photo_url},
+    )
+    assert r.status_code == 422

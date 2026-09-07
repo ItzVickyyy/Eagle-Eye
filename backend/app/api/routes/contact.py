@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import col, func, select
 
 from app.api.deps import AdminUser, SessionDep
+from app.core.audit import write_audit_log
 from app.core.captcha import verify_captcha
 from app.core.config import settings
 from app.core.flags import enforce_contact_form_enabled
@@ -79,7 +80,9 @@ def read_contact_messages(
     count = session.exec(
         select(func.count()).select_from(statement.subquery())
     ).one()
-    messages = session.exec(statement.offset(skip).limit(limit)).all()
+    # O5: cap client-controlled limit to a server-defined maximum (200).
+    safe_limit = max(1, min(int(limit), 200))
+    messages = session.exec(statement.offset(skip).limit(safe_limit)).all()
     messages_public = [ContactMessagePublic.model_validate(m) for m in messages]
     return ContactMessagesPublic(data=messages_public, count=count)
 
@@ -144,7 +147,7 @@ def delete_contact_message(
     *,
     session: SessionDep,
     id: int,
-    _current_user: AdminUser,
+    current_user: AdminUser,
 ) -> Message:
     """
     Delete contact message (Admin / Super Admin).
@@ -152,6 +155,16 @@ def delete_contact_message(
     msg = session.get(ContactMessage, id)
     if not msg:
         raise HTTPException(status_code=404, detail="Message not found")
+    write_audit_log(
+        session=session,
+        event="contact_message.deleted",
+        component="contact",
+        actor=current_user,
+        target_type="contact_message",
+        target_id=str(msg.id),
+        success=True,
+        message=f"Contact message deleted (from {msg.email})",
+    )
     session.delete(msg)
     session.commit()
     return Message(message="Message deleted successfully")

@@ -47,8 +47,10 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     count_statement = select(func.count()).select_from(User)
     count = session.exec(count_statement).one()
 
+    # O5: cap client-controlled limit to a server-defined maximum (200).
+    safe_limit = max(1, min(int(limit), 200))
     statement = (
-        select(User).order_by(col(User.created_at).desc()).offset(skip).limit(limit)
+        select(User).order_by(col(User.created_at).desc()).offset(skip).limit(safe_limit)
     )
     users = session.exec(statement).all()
 

@@ -196,7 +196,10 @@ def read_articles(
             col(Article.created_at).desc(),
         ]
     )
-    statement = statement.order_by(*order).offset(skip).limit(limit)
+    # O5: cap client-controlled limit to a server-defined maximum (200) so
+    # a single request cannot page through the entire table.
+    safe_limit = max(1, min(int(limit), 200))
+    statement = statement.order_by(*order).offset(skip).limit(safe_limit)
 
     articles = session.exec(statement).all()
     articles_public = [ArticlePublic.model_validate(art) for art in articles]
@@ -221,9 +224,27 @@ def get_review_queue(
     count_statement = select(func.count()).select_from(statement.subquery())
     count = session.exec(count_statement).one()
 
-    articles = session.exec(statement.offset(skip).limit(limit)).all()
+    # O5: cap client-controlled limit to a server-defined maximum (200).
+    safe_limit = max(1, min(int(limit), 200))
+    articles = session.exec(statement.offset(skip).limit(safe_limit)).all()
     articles_public = [ArticlePublic.model_validate(art) for art in articles]
     return ArticlesPublic(data=articles_public, count=count)
+
+
+def _can_view_unpublished_article(article: Article, current_user: User | None) -> bool:
+    """Whether ``current_user`` is allowed to read a non-published article.
+
+    The codebase has no reviewer-assignment model, so the only supported
+    reader of an unpublished article is its author. Anyone else — including
+    unrelated admins, super-admins, and developers — is treated as
+    unauthorized.
+
+    Callers must raise ``HTTPException(404)`` when this returns ``False`` so
+    the article's existence is not disclosed.
+    """
+    if current_user is None:
+        return False
+    return article.author_id == current_user.id
 
 
 @router.get("/slug/{slug}", response_model=ArticleDetailPublic)
@@ -240,15 +261,10 @@ def get_article_by_slug(
     if not article:
         raise HTTPException(status_code=404, detail="Article not found")
 
-    # Visibility check
+    # Visibility check: non-published articles are author-only.
     if article.status != ArticleStatus.published:
-        if not current_user:
+        if not _can_view_unpublished_article(article, current_user):
             raise HTTPException(status_code=404, detail="Article not found")
-        if not (
-            is_admin_or_above(current_user)
-            or article.author_id == current_user.id
-        ):
-            raise HTTPException(status_code=403, detail="Not authorized to view this draft")
     else:
         # Increment views
         article.views_count += 1
@@ -286,14 +302,10 @@ def get_article_by_id(
     if not article:
         raise HTTPException(status_code=404, detail="Article not found")
 
+    # Visibility check: non-published articles are author-only.
     if article.status != ArticleStatus.published:
-        if not current_user:
+        if not _can_view_unpublished_article(article, current_user):
             raise HTTPException(status_code=404, detail="Article not found")
-        if not (
-            is_admin_or_above(current_user)
-            or article.author_id == current_user.id
-        ):
-            raise HTTPException(status_code=403, detail="Not authorized")
 
     author = session.get(User, article.author_id)
     category = session.get(Category, article.category_id) if article.category_id else None
@@ -426,6 +438,7 @@ def update_article(
         new_status = update_dict["status"]
         if not is_admin and new_status in (ArticleStatus.published, ArticleStatus.archived):
             update_dict["status"] = ArticleStatus.pending
+        new_status = update_dict["status"]
 
         if new_status == ArticleStatus.published and not article.date_published:
             article.date_published = datetime.now(UTC)

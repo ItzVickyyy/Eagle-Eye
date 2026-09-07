@@ -7,6 +7,7 @@ from sqlmodel import Session, select
 
 from app.core.config import settings
 from app.models import (
+    Article,
     ArticleTag,
     Category,
     Tag,
@@ -635,3 +636,331 @@ def test_update_article_rejects_invalid_cover_image_url(
         json={"cover_image_url": cover_image_url},
     )
     assert r.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# D1 regression: unpublished-article visibility is author-only
+# ---------------------------------------------------------------------------
+#
+# The codebase has no reviewer-assignment model, so the contract is:
+#   published  -> anyone (anonymous included)
+#   draft/pending/archived -> author only; everyone else gets 404
+#
+# These tests cover both the slug and ID read endpoints and the full role
+# matrix: author, unrelated contributor, unrelated admin, unrelated
+# super-admin, unrelated developer, and anonymous.
+
+
+def _make_user_with_role(
+    client: TestClient,
+    db: Session,
+    *,
+    role: UserRole,
+    is_superuser: bool = False,
+    is_developer: bool = False,
+) -> dict[str, str]:
+    """Create a fresh user with the given role and return auth headers."""
+    email = random_email()
+    password = random_lower_string()
+    from app import crud
+    user_in = UserCreate(
+        email=email,
+        password=password,
+        role=role,
+        is_superuser=is_superuser,
+        is_developer=is_developer,
+    )
+    crud.create_user(session=db, user_create=user_in)
+    return authentication_token_from_email(
+        client=client, email=email, db=db
+    )
+
+
+def _create_draft_article(
+    client: TestClient,
+    headers: dict[str, str],
+    slug: str,
+) -> dict[str, Any]:
+    data = {
+        "headline": f"Draft {slug}",
+        "slug": slug,
+        "body": "Draft body content",
+        "status": "draft",
+    }
+    r = client.post(
+        f"{settings.API_V1_STR}/articles/",
+        headers=headers,
+        json=data,
+    )
+    assert r.status_code == 200, r.text
+    return r.json()
+
+
+def _create_published_article(
+    client: TestClient,
+    headers: dict[str, str],
+    slug: str,
+) -> dict[str, Any]:
+    data = {
+        "headline": f"Published {slug}",
+        "slug": slug,
+        "body": "Published body content",
+        "status": "published",
+    }
+    r = client.post(
+        f"{settings.API_V1_STR}/articles/",
+        headers=headers,
+        json=data,
+    )
+    assert r.status_code == 200, r.text
+    return r.json()
+
+
+def test_d1_author_can_retrieve_own_draft_by_slug(
+    client: TestClient, db: Session
+) -> None:
+    author_headers = _make_user_with_role(client, db, role=UserRole.contributor)
+    created = _create_draft_article(client, author_headers, "d1-author-slug")
+
+    r = client.get(
+        f"{settings.API_V1_STR}/articles/slug/{created['slug']}",
+        headers=author_headers,
+    )
+    assert r.status_code == 200
+    assert r.json()["id"] == created["id"]
+
+
+def test_d1_author_can_retrieve_own_draft_by_id(
+    client: TestClient, db: Session
+) -> None:
+    author_headers = _make_user_with_role(client, db, role=UserRole.contributor)
+    created = _create_draft_article(client, author_headers, "d1-author-id")
+
+    r = client.get(
+        f"{settings.API_V1_STR}/articles/{created['id']}",
+        headers=author_headers,
+    )
+    assert r.status_code == 200
+    assert r.json()["id"] == created["id"]
+
+
+def test_d1_unrelated_contributor_cannot_retrieve_draft(
+    client: TestClient, db: Session
+) -> None:
+    author_headers = _make_user_with_role(client, db, role=UserRole.contributor)
+    other_headers = _make_user_with_role(client, db, role=UserRole.contributor)
+
+    created = _create_draft_article(client, author_headers, "d1-unrelated-contrib")
+
+    r = client.get(
+        f"{settings.API_V1_STR}/articles/slug/{created['slug']}",
+        headers=other_headers,
+    )
+    assert r.status_code == 404
+
+    r = client.get(
+        f"{settings.API_V1_STR}/articles/{created['id']}",
+        headers=other_headers,
+    )
+    assert r.status_code == 404
+
+
+def test_d1_unrelated_admin_cannot_retrieve_draft(
+    client: TestClient, db: Session
+) -> None:
+    author_headers = _make_user_with_role(client, db, role=UserRole.contributor)
+    admin_headers = _make_user_with_role(client, db, role=UserRole.admin)
+
+    created = _create_draft_article(client, author_headers, "d1-unrelated-admin")
+
+    r = client.get(
+        f"{settings.API_V1_STR}/articles/slug/{created['slug']}",
+        headers=admin_headers,
+    )
+    assert r.status_code == 404
+
+    r = client.get(
+        f"{settings.API_V1_STR}/articles/{created['id']}",
+        headers=admin_headers,
+    )
+    assert r.status_code == 404
+
+
+def test_d1_unrelated_super_admin_cannot_retrieve_draft(
+    client: TestClient, db: Session, superuser_token_headers: dict[str, str]
+) -> None:
+    author_headers = _make_user_with_role(client, db, role=UserRole.contributor)
+
+    created = _create_draft_article(client, author_headers, "d1-unrelated-superadmin")
+
+    # superuser_token_headers is settings.FIRST_SUPERUSER, an unrelated super admin
+    r = client.get(
+        f"{settings.API_V1_STR}/articles/slug/{created['slug']}",
+        headers=superuser_token_headers,
+    )
+    assert r.status_code == 404
+
+    r = client.get(
+        f"{settings.API_V1_STR}/articles/{created['id']}",
+        headers=superuser_token_headers,
+    )
+    assert r.status_code == 404
+
+
+def test_d1_unrelated_developer_cannot_retrieve_draft(
+    client: TestClient, db: Session
+) -> None:
+    author_headers = _make_user_with_role(client, db, role=UserRole.contributor)
+    dev_headers = _make_user_with_role(
+        client, db, role=UserRole.contributor, is_developer=True
+    )
+
+    created = _create_draft_article(client, author_headers, "d1-unrelated-dev")
+
+    r = client.get(
+        f"{settings.API_V1_STR}/articles/slug/{created['slug']}",
+        headers=dev_headers,
+    )
+    assert r.status_code == 404
+
+    r = client.get(
+        f"{settings.API_V1_STR}/articles/{created['id']}",
+        headers=dev_headers,
+    )
+    assert r.status_code == 404
+
+
+def test_d1_anonymous_cannot_retrieve_draft(
+    client: TestClient, db: Session
+) -> None:
+    author_headers = _make_user_with_role(client, db, role=UserRole.contributor)
+    created = _create_draft_article(client, author_headers, "d1-anon")
+
+    r = client.get(f"{settings.API_V1_STR}/articles/slug/{created['slug']}")
+    assert r.status_code == 404
+
+    r = client.get(f"{settings.API_V1_STR}/articles/{created['id']}")
+    assert r.status_code == 404
+
+
+def test_d1_unauthorized_returns_404_not_403(
+    client: TestClient, db: Session
+) -> None:
+    author_headers = _make_user_with_role(client, db, role=UserRole.contributor)
+    other_headers = _make_user_with_role(client, db, role=UserRole.admin)
+
+    created = _create_draft_article(client, author_headers, "d1-404-not-403")
+
+    r = client.get(
+        f"{settings.API_V1_STR}/articles/slug/{created['slug']}",
+        headers=other_headers,
+    )
+    assert r.status_code == 404
+    assert r.status_code != 403
+
+    r = client.get(
+        f"{settings.API_V1_STR}/articles/{created['id']}",
+        headers=other_headers,
+    )
+    assert r.status_code == 404
+    assert r.status_code != 403
+
+
+def test_d1_published_articles_remain_publicly_accessible(
+    client: TestClient, db: Session, superuser_token_headers: dict[str, str]
+) -> None:
+    other_headers = _make_user_with_role(client, db, role=UserRole.admin)
+
+    # Contributors cannot create published articles (route coerces to pending),
+    # so use the superuser fixture to produce a real published article.
+    created = _create_published_article(
+        client, superuser_token_headers, "d1-published-still-public"
+    )
+
+    # anonymous
+    r = client.get(f"{settings.API_V1_STR}/articles/slug/{created['slug']}")
+    assert r.status_code == 200, r.text
+    assert r.json()["id"] == created["id"]
+
+    r = client.get(f"{settings.API_V1_STR}/articles/{created['id']}")
+    assert r.status_code == 200, r.text
+    assert r.json()["id"] == created["id"]
+
+    # unrelated admin
+    r = client.get(
+        f"{settings.API_V1_STR}/articles/slug/{created['slug']}",
+        headers=other_headers,
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["id"] == created["id"]
+
+
+def test_d5_contributor_patch_publish_coerces_and_keeps_date_published_null(
+    client: TestClient, db: Session
+) -> None:
+    """Contributor PATCH with status=published must be coerced to pending
+    AND must NOT set date_published. Invariant: date_published IS NOT NULL
+    implies status == published.
+    """
+    author_headers = _make_user_with_role(client, db, role=UserRole.contributor)
+    created = _create_draft_article(client, author_headers, "d5-contributor-coerce")
+
+    assert created["date_published"] is None
+    assert created["status"] == "draft"
+
+    r = client.patch(
+        f"{settings.API_V1_STR}/articles/{created['id']}",
+        headers=author_headers,
+        json={"status": "published"},
+    )
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["status"] == "pending", (
+        "Contributor must have status coerced from 'published' to 'pending'"
+    )
+    assert body["date_published"] is None, (
+        "Contributor PATCH must NOT set date_published when status is coerced"
+    )
+
+    db.expire_all()
+    persisted = db.exec(
+        select(Article).where(Article.id == uuid.UUID(created["id"]))
+    ).one()
+    assert persisted.status.value == "pending"
+    assert persisted.date_published is None, (
+        "Persisted row must have date_published=NULL after coerced PATCH"
+    )
+
+
+def test_d5_admin_patch_publish_sets_date_published(
+    client: TestClient, db: Session
+) -> None:
+    """Admin PATCH with status=published must succeed and set date_published.
+    Invariant: date_published IS NOT NULL implies status == published.
+    """
+    admin_headers = _make_user_with_role(
+        client, db, role=UserRole.admin, is_superuser=False
+    )
+    created = _create_draft_article(client, admin_headers, "d5-admin-publish")
+
+    assert created["date_published"] is None
+    assert created["status"] == "draft"
+
+    r = client.patch(
+        f"{settings.API_V1_STR}/articles/{created['id']}",
+        headers=admin_headers,
+        json={"status": "published"},
+    )
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["status"] == "published"
+    assert body["date_published"] is not None, (
+        "Admin PATCH status=published must set date_published"
+    )
+
+    db.expire_all()
+    persisted = db.exec(
+        select(Article).where(Article.id == uuid.UUID(created["id"]))
+    ).one()
+    assert persisted.status.value == "published"
+    assert persisted.date_published is not None

@@ -267,9 +267,13 @@ def test_object_level_article_ownership(client: TestClient, db: Session) -> None
     db.commit()
     db.refresh(art_a)
 
-    # 1. User B CANNOT read User A's draft article by UUID
+    # 1. User B CANNOT read User A's draft article by UUID.
+    # Per the D1 contract, non-published articles are author-only and any
+    # non-author (including unrelated contributors) is given a 404 — the
+    # same response a non-existent article would receive — to avoid leaking
+    # the article's existence.
     r_read_b = client.get(f"{settings.API_V1_STR}/articles/{art_a.id}", headers=headers_b)
-    assert r_read_b.status_code == 403
+    assert r_read_b.status_code == 404
 
     # 2. User B CANNOT edit User A's draft article
     r_edit_b = client.patch(
@@ -295,11 +299,15 @@ def test_object_level_article_ownership(client: TestClient, db: Session) -> None
     assert r_edit_a.status_code == 200
     assert r_edit_a.json()["headline"] == "Updated by A"
 
-    # 5. Admin CAN read and edit User A's article
+    # 5. Admin CANNOT read User A's draft article.
+    # Per the D1 contract, non-published articles are author-only. Admins
+    # have no implicit override on the read endpoint; admins continue to
+    # have edit/delete authority (covered by other tests). A non-author
+    # including an unrelated admin receives a 404, not 200 or 403.
     r_read_admin = client.get(
         f"{settings.API_V1_STR}/articles/{art_a.id}", headers=headers_admin
     )
-    assert r_read_admin.status_code == 200
+    assert r_read_admin.status_code == 404
 
 
 def test_object_level_media_ownership(client: TestClient, db: Session) -> None:

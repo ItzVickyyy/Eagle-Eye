@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException
 from sqlmodel import col, func, select
 
 from app.api.deps import AdminUser, SessionDep, SuperAdminUser
+from app.core.audit import write_audit_log
 from app.models import (
     ClubMember,
     ClubMemberCreate,
@@ -50,7 +51,9 @@ def read_all_members(
         col(ClubMember.last_name).asc(),
     )
     count = session.exec(select(func.count()).select_from(ClubMember)).one()
-    members = session.exec(statement.offset(skip).limit(limit)).all()
+    # O5: cap client-controlled limit to a server-defined maximum (200).
+    safe_limit = max(1, min(int(limit), 200))
+    members = session.exec(statement.offset(skip).limit(safe_limit)).all()
     members_public = [ClubMemberPublic.model_validate(m) for m in members]
     return ClubMembersPublic(data=members_public, count=count)
 
@@ -100,7 +103,7 @@ def delete_club_member(
     *,
     session: SessionDep,
     id: int,
-    _current_user: SuperAdminUser,
+    current_user: SuperAdminUser,
 ) -> Message:
     """
     Delete club member (Super Admin).
@@ -108,6 +111,16 @@ def delete_club_member(
     member = session.get(ClubMember, id)
     if not member:
         raise HTTPException(status_code=404, detail="Club member not found")
+    write_audit_log(
+        session=session,
+        event="club_member.deleted",
+        component="club_member",
+        actor=current_user,
+        target_type="club_member",
+        target_id=str(member.id),
+        success=True,
+        message=f"Club member deleted ({member.first_name} {member.last_name})",
+    )
     session.delete(member)
     session.commit()
     return Message(message="Club member deleted successfully")

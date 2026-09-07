@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException
 from sqlmodel import select
 
 from app.api.deps import SessionDep, SuperAdminUser
+from app.core.audit import write_audit_log
 from app.models import (
     Message,
     SiteSetting,
@@ -62,7 +63,7 @@ def delete_site_setting(
     *,
     session: SessionDep,
     key: str,
-    _current_user: SuperAdminUser,
+    current_user: SuperAdminUser,
 ) -> Message:
     """
     Delete a site setting (Super Admin).
@@ -70,6 +71,16 @@ def delete_site_setting(
     setting = session.get(SiteSetting, key)
     if not setting:
         raise HTTPException(status_code=404, detail="Setting not found")
+    write_audit_log(
+        session=session,
+        event="site_setting.deleted",
+        component="site_setting",
+        actor=current_user,
+        target_type="site_setting",
+        target_id=setting.key,
+        success=True,
+        message=f"Site setting deleted ({setting.key})",
+    )
     session.delete(setting)
     session.commit()
     return Message(message="Setting deleted successfully")

@@ -57,7 +57,9 @@ def read_media_items(
     """
     statement = select(Media).order_by(col(Media.created_at).desc())
     count = session.exec(select(func.count()).select_from(Media)).one()
-    media_list = session.exec(statement.offset(skip).limit(limit)).all()
+    # O5: cap client-controlled limit to a server-defined maximum (200).
+    safe_limit = max(1, min(int(limit), 200))
+    media_list = session.exec(statement.offset(skip).limit(safe_limit)).all()
     media_public = [MediaPublic.model_validate(m) for m in media_list]
     return MediasPublic(data=media_public, count=count)
 

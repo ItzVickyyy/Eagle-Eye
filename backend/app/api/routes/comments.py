@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import col, func, select
 
 from app.api.deps import AdminUser, SessionDep
+from app.core.audit import write_audit_log
 from app.core.flags import enforce_public_comments_enabled
 from app.core.rate_limit import comment_rate_limiter
 from app.models import (
@@ -43,7 +44,9 @@ def get_article_comments(
     count = session.exec(
         select(func.count()).select_from(statement.subquery())
     ).one()
-    comments = session.exec(statement.offset(skip).limit(limit)).all()
+    # O5: cap client-controlled limit to a server-defined maximum (200).
+    safe_limit = max(1, min(int(limit), 200))
+    comments = session.exec(statement.offset(skip).limit(safe_limit)).all()
     comments_public = [CommentPublic.model_validate(c) for c in comments]
     return CommentsPublic(data=comments_public, count=count)
 
@@ -66,7 +69,9 @@ def get_all_comments(
     count = session.exec(
         select(func.count()).select_from(statement.subquery())
     ).one()
-    comments = session.exec(statement.offset(skip).limit(limit)).all()
+    # O5: cap client-controlled limit to a server-defined maximum (200).
+    safe_limit = max(1, min(int(limit), 200))
+    comments = session.exec(statement.offset(skip).limit(safe_limit)).all()
     comments_public = []
     for c in comments:
         cp = CommentPublic.model_validate(c)
@@ -138,7 +143,7 @@ def delete_comment(
     *,
     session: SessionDep,
     id: int,
-    _current_user: AdminUser,
+    current_user: AdminUser,
 ) -> Message:
     """
     Delete comment (Admin / Super Admin).
@@ -146,6 +151,16 @@ def delete_comment(
     comment = session.get(Comment, id)
     if not comment:
         raise HTTPException(status_code=404, detail="Comment not found")
+    write_audit_log(
+        session=session,
+        event="comment.deleted",
+        component="comment",
+        actor=current_user,
+        target_type="comment",
+        target_id=str(comment.id),
+        success=True,
+        message=f"Comment deleted (article_id={comment.article_id})",
+    )
     session.delete(comment)
     session.commit()
     return Message(message="Comment deleted successfully")

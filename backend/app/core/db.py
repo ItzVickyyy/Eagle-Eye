@@ -7,6 +7,7 @@ from app.core.config import settings
 from app.models import (
     Article,
     ArticleStatus,
+    ArticleTag,
     Category,
     ClubMember,
     SiteSetting,
@@ -188,5 +189,28 @@ def init_db(session: Session) -> None:
         ]
         for a in sample_articles:
             session.add(a)
+
+        # D3 remediation: attach a few sample tags to the seeded articles so
+        # the public list/detail responses show non-empty `tags` arrays on
+        # first boot. Only attaches tags to articles that don't already have
+        # any (idempotent re-runs of init_db).
+        session.flush()
+        if not session.exec(select(ArticleTag)).first():
+            tag_lookup = {
+                t.name: t
+                for t in session.exec(select(Tag)).all()
+                if t.id is not None
+            }
+            article_tag_map: list[tuple[Article, list[str]]] = [
+                (sample_articles[0], ["Campus", "Editorial"]),
+                (sample_articles[1], ["Intramurals", "Achievement"]),
+                (sample_articles[2], ["CDLB", "Achievement"]),
+                (sample_articles[3], ["Student Life", "CDLB"]),
+            ]
+            for article, tag_names in article_tag_map:
+                for name in tag_names:
+                    tag = tag_lookup.get(name)
+                    if tag is not None:
+                        session.add(ArticleTag(article_id=article.id, tag_id=tag.id))
 
     session.commit()

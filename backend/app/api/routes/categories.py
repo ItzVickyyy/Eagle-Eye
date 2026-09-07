@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException
 from sqlmodel import col, func, select
 
 from app.api.deps import AdminUser, SessionDep, SuperAdminUser
+from app.core.audit import write_audit_log
 from app.models import (
     CategoriesPublic,
     Category,
@@ -23,7 +24,9 @@ def read_categories(session: SessionDep, skip: int = 0, limit: int = 100) -> Any
     """
     statement = select(Category).order_by(col(Category.name).asc())
     count = session.exec(select(func.count()).select_from(Category)).one()
-    categories = session.exec(statement.offset(skip).limit(limit)).all()
+    # O5: cap client-controlled limit to a server-defined maximum (200).
+    safe_limit = max(1, min(int(limit), 200))
+    categories = session.exec(statement.offset(skip).limit(safe_limit)).all()
     categories_public = [CategoryPublic.model_validate(c) for c in categories]
     return CategoriesPublic(data=categories_public, count=count)
 
@@ -105,7 +108,7 @@ def delete_category(
     *,
     session: SessionDep,
     id: int,
-    _current_user: SuperAdminUser,
+    current_user: SuperAdminUser,
 ) -> Message:
     """
     Delete category (Super Admin).
@@ -114,6 +117,16 @@ def delete_category(
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
 
+    write_audit_log(
+        session=session,
+        event="category.deleted",
+        component="category",
+        actor=current_user,
+        target_type="category",
+        target_id=str(category.id),
+        success=True,
+        message=f"Category deleted ({category.name})",
+    )
     session.delete(category)
     session.commit()
     return Message(message="Category deleted successfully")

@@ -16,7 +16,7 @@ services:
       # Enable the Traefik log, for configurations and errors
       - --log
     # Traefik is reachable on both networks: `default` so it can route to the
-    # backend/adminer, and `proxy` so it can reach socket-proxy.  The proxy
+    # backend, and `proxy` so it can reach socket-proxy.  The proxy
     # network is the ONLY network on which socket-proxy is reachable.
     networks:
       - default
@@ -48,7 +48,7 @@ services:
       VOLUMES: 0
       SWARM: 0
     # socket-proxy is only attached to the `proxy` network.  No other service
-    # (including db, redis, adminer, backend) is on that network, so only
+    # (including db, redis, backend) is on that network, so only
     # Traefik can reach the Docker API proxy.
     networks:
       - proxy
@@ -79,21 +79,6 @@ services:
       retries: 5
       start_period: 10s
       timeout: 3s
-
-  adminer:
-    image: adminer
-    depends_on:
-      - db
-    environment:
-      - ADMINER_DESIGN=pepa-linha-dark
-    labels:
-      # Enable Traefik for this service
-      - traefik.enable=true
-      # Route HTTP traffic for the Adminer subdomain
-      - traefik.http.routers.adminer-http.rule=Host(`adminer.${DOMAIN:-localhost}`)
-      - traefik.http.routers.adminer-http.entrypoints=http
-      # Define the port inside of the Docker service to use
-      - traefik.http.services.adminer.loadbalancer.server.port=8080
 
   backend:
     image: backend:latest

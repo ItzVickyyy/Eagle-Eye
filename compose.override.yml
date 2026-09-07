@@ -30,8 +30,21 @@ services:
       - "5432:5432"
 
   adminer:
+    image: adminer
+    depends_on:
+      - db
+    environment:
+      - ADMINER_DESIGN=pepa-linha-dark
     ports:
       - "8080:8080"
+    labels:
+      # Enable Traefik for this service
+      - traefik.enable=true
+      # Route HTTP traffic for the Adminer subdomain
+      - traefik.http.routers.adminer-http.rule=Host(`adminer.${DOMAIN:-localhost}`)
+      - traefik.http.routers.adminer-http.entrypoints=http
+      # Define the port inside of the Docker service to use
+      - traefik.http.services.adminer.loadbalancer.server.port=8080
 
   redis:
     ports:

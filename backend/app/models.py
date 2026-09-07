@@ -1,8 +1,10 @@
+import re
 import uuid
 from datetime import UTC, datetime
 from enum import StrEnum
+from urllib.parse import urlparse
 
-from pydantic import EmailStr
+from pydantic import EmailStr, field_validator
 from sqlalchemy import Column, DateTime, Integer, Text
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -297,6 +299,32 @@ class ArticlesPublic(SQLModel):
 # ---------------------------------------------------------------------------
 
 
+_ALLOWED_FILE_URL_SCHEMES = frozenset({"http", "https"})
+_CONTROL_CHAR_RE = re.compile(r"[\x00-\x1f\x7f]")
+
+
+def _validate_media_file_url(value: str) -> str:
+    value = value.strip()
+    if not value:
+        raise ValueError("file_url must not be empty")
+    if _CONTROL_CHAR_RE.search(value):
+        raise ValueError("file_url must not contain control characters")
+    if value.startswith("//"):
+        raise ValueError("file_url must not be a protocol-relative URL")
+    parsed = urlparse(value)
+    scheme = parsed.scheme.lower()
+    if scheme:
+        if scheme not in _ALLOWED_FILE_URL_SCHEMES:
+            raise ValueError(f"unsupported file_url scheme: '{parsed.scheme}:'")
+        if parsed.username or parsed.password:
+            raise ValueError("file_url must not contain embedded credentials")
+    elif not value.startswith("/"):
+        raise ValueError(
+            "file_url must be a root-relative path or an absolute http(s) URL"
+        )
+    return value
+
+
 class MediaBase(SQLModel):
     file_url: str = Field(max_length=2048)
     file_type: str = Field(max_length=50)
@@ -304,6 +332,11 @@ class MediaBase(SQLModel):
 
 class MediaCreate(MediaBase):
     article_id: uuid.UUID | None = None
+
+    @field_validator("file_url")
+    @classmethod
+    def _validate_file_url(cls, value: str) -> str:
+        return _validate_media_file_url(value)
 
 
 class Media(MediaBase, table=True):

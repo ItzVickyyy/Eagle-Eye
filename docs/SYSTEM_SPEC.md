@@ -627,7 +627,7 @@ A legacy capability must be explicitly marked **preserved**, **modernized**, **i
 ## 6. Data Model (Draft ERD Summary)
 
 **users**
-- id, first_name, last_name, email, password_hash, club_role (super_admin/admin/contributor), system_access (developer or none; implementation may use a dedicated flag/relationship), profile_picture, department, position_title, created_at
+- id, first_name, last_name, email, password_hash, club_role (super_admin/admin/contributor), system_access (developer or none; implementation uses `is_developer` bool flag), profile_picture (DEFERRED — not yet implemented), department, position_title, created_at
 
 **articles**
 - id, headline, slug, author_id (FK → users), category_id (FK), cover_image_url, body (rich text/JSON or markdown), status (draft/pending/published/archived), date_published, views_count, created_at, updated_at

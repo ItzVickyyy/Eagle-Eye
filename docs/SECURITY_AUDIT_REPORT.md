@@ -691,7 +691,7 @@ The Eagle Eye application, audited through `docs/SYSTEM_SPEC.md` §5–§10 on t
 * The one P3 SHOULD hardening identified during the audit (O5, pagination caps) is **closed** and regression-tested.
 * All audited spec sections **PASS** at the MUST level.
 * The remaining 10 P3 items are **observations and one remaining SHOULD-level improvement (O9)**, none of which are security vulnerabilities by the spec's own classification.
-* One SHOULD item (O9, Mailpit) remains as **OPEN — DEFERRED REMEDIATION** for a future hardening pass.
+* O9 (Mailpit provisioning) is **CLOSED** — `compose.override.yml` already provides the service (see §11.2).
 * The Reviewer / ReviewAssignment SPEC GAP is recorded as an **architectural follow-up** out of scope for this audit.
 
 **Final assessment:** PASS at the spec's MUST level; suitable to continue further development work, with the P3 remediation order in §13 available as a backlog.

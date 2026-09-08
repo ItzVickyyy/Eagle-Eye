@@ -152,7 +152,7 @@ Cross-referenced against `docs/release-readiness-audit.md` PART D / PART I at ba
 | S2 | Permissions-Policy header missing | P2 | **OPEN** | Same file — no `Permissions-Policy` set |
 | S3 | HSTS header missing | P2 | **OPEN** | Same file — no `Strict-Transport-Security` (only relevant behind TLS terminator) |
 | S4 | Login rate limiter per-IP (in-memory, single-process) | P2 | **OPEN** | `core/rate_limit.py:InMemoryRateLimiter` (in-process, single Uvicorn worker). Production multi-worker scale-out requires Redis-backed limiter; Redis is already in `compose.yml` but not used. |
-| S5 | CAPTCHA on signup/recover | P2 | **OPEN (mitigated)** | No CAPTCHA wired; mitigated by `enforce_public_signup_enabled` runtime flag (off-by-default in prod) + rate limiter on recover/reset |
+| S5 | CAPTCHA on signup/recover | P2 | **RESOLVED** | Cloudflare Turnstile wired via `verify_captcha` dependency on signup, password-recovery, password-reset, and contact endpoints; `CAPTCHA_ENABLED` defaults to `False` (dev/test), set to `True` + keys in production; fail-closed (403) when enabled but secret missing |
 | S6 | `boto3` declared in `pyproject.toml` but not in `uv.lock` | P2 | **OPEN (low impact)** | `core/storage.py` uses lazy import — boto3 not loaded at runtime unless S3 backend selected; the regression in `uv.lock` does not affect code paths |
 | S7 | JWT revocation list absent | P3 | **OPEN** | `core/security.py` — stateless HS256 JWT, no revocation DB; `ACCESS_TOKEN_EXPIRE_MINUTES=11520` (8 days) — long-lived |
 | S8 | `DUMMY_HASH` constant in `crud.py` | P3 | **OPEN (intentional)** | Anti-timing-attack: verifies against constant hash on user-not-found to equalize timing |

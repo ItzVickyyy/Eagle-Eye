@@ -102,7 +102,7 @@ Status legend: **PASS** = working with evidence · **PARTIAL** = code present, g
 | S4 | Login rate limiter per-IP (in-memory, single-process) | P2 | **OPEN** | `core/rate_limit.py:InMemoryRateLimiter` (in-process) — works for single Uvicorn worker, will NOT enforce across multiple gunicorn/uvicorn workers or replicas. Production must use Redis-backed limiter (Redis is already in `compose.yml`) |
 | S5 | CAPTCHA on signup/recover | P2 | **OPEN** | No CAPTCHA wired; mitigated by `allow_public_signup` flag (off-by-default in prod) + rate limiter on recover/reset |
 | S6 | `boto3` declared in `pyproject.toml` but not in `uv.lock` | P2 | **OPEN (low impact)** | `core/storage.py` uses lazy import — boto3 not loaded at runtime unless S3 backend selected; the regression in `uv.lock` does not affect code paths |
-| S7 | JWT revocation list absent | P3 | **OPEN** | `core/security.py` — stateless HS256 JWT, no revocation DB; tokens valid until expiry (60 min access, unknown refresh window) |
+| S7 | JWT revocation list absent | P3 | **OPEN** | `core/security.py` — stateless HS256 JWT, no revocation DB; tokens valid until expiry (`ACCESS_TOKEN_EXPIRE_MINUTES=11520`, i.e. 8 days); no refresh-token mechanism exists |
 | S8 | `DUMMY_HASH` constant in `crud.py:45` | P3 | **OPEN (intentional)** | Anti-timing-attack: verifies against constant hash on user-not-found to equalize timing |
 | S9 | Playwright test flakiness (4 known flakes) | P3 | **OPEN** | None are application defects — all environmental/selector timing |
 | S10 | `private.router` mounted only when `FASTAPI_ENV=development` | INFO | **PROPERLY GATED** | `api/main.py:47-48` — conditional include, default `FASTAPI_ENV=None` keeps it out |

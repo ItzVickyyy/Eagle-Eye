@@ -392,8 +392,8 @@ RPO (recovery point objective) for you. As a rule of thumb:
 
 A logical Postgres dump **contains**:
 
-- The `users` table, including password **hashes** (bcrypt) and email
-  addresses.
+- The `users` table, including password **hashes** (Argon2 with bcrypt
+  legacy via `pwdlib`) and email addresses.
 - The `contact_message` table (name, email, message body).
 - Any data the application stores (article drafts, comments, etc.).
 

@@ -487,7 +487,7 @@ The clamp uses `int(limit)` because the pre-clamp validation already coerces `li
 
 **Description:** `compose.yml` does not provision a Mailpit service, even though `docs/SYSTEM_SPEC.md` §9 lists Mailpit for outbound-email testing in development.
 
-**Remediation decision:** Resolved without further code change. `compose.override.yml` (lines 90-94) already defines a `mailpit` service, and the `backend` service in the same file is wired with `SMTP_HOST=mailpit`, `SMTP_PORT=1025`, `SMTP_TLS=False`. Live verification: container `eagle-eye-mailpit-1` reports `healthy`; the Mailpit web UI on `http://localhost:8025` returns HTTP 200; contact-form and password-recovery emails have already been live-verified in the release-readiness audit (see `docs/release-readiness-audit.md` and `docs/release-readiness-audit-phase2.md`). The original audit observation was based on inspection of `compose.yml` only; the override file was missed.
+**Remediation decision:** Resolved without further code change. `compose.override.yml` (lines 90-94) already defines a `mailpit` service, and the `backend` service in the same file is wired with `SMTP_HOST=mailpit`, `SMTP_PORT=1025`, `SMTP_TLS=False`. Live verification: container `eagle-eye-mailpit-1` reports `healthy`; the Mailpit web UI on `http://localhost:8025` returns HTTP 200; contact-form and password-recovery emails have been live-verified. The original audit observation was based on inspection of `compose.yml` only; the override file was missed.
 
 **Status:** CLOSED — RESOLVED (no code change required).
 
@@ -525,7 +525,7 @@ The clamp uses `int(limit)` because the pre-clamp validation already coerces `li
 | `settings.py` | `DELETE /settings/{id}` | `site_setting.deleted` (uses `setting.key` as `target_id`) |
 | `contact.py` | `DELETE /contact/{id}` | `contact_message.deleted` |
 
-**Remediation decision:** SHOULD-level improvement worth taking. The `app.core.audit.write_audit_log` helper is already used elsewhere in the codebase (see `articles.py:485-497, 509-534`), and the de-facto policy recorded in `docs/release-readiness-audit.md` (line 118) treats all state-changing endpoints as audit-logged. Implementing the missing 6 events is low-risk and strengthens the trail.
+**Remediation decision:** SHOULD-level improvement worth taking. The `app.core.audit.write_audit_log` helper is already used elsewhere in the codebase (see `articles.py:485-497, 509-534`), and the de-facto policy treats all state-changing endpoints as audit-logged. Implementing the missing 6 events is low-risk and strengthens the trail.
 
 **Implementation:** All 6 endpoints now import `write_audit_log` and call it immediately before `session.delete()` (single atomic transaction). The dependency-injected user (`_current_user`) was renamed to `current_user` so it can be passed as `actor=...` to the helper. See file/line references in the `Implementation` table of §11.2 above.
 

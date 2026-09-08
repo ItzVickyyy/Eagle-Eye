@@ -2,7 +2,7 @@
 
 Eagle Eye is a personal rebuild of the CDLB Media Club news site, originally
 built as a Grade 12 Practical Research project. This version is rebuilt
-on a modern, production-grade stack, directly aligned with the v4 system specification.
+on a modern, production-grade stack, directly aligned with the v5 system specification.
 
 The full system specification lives in [`docs/SYSTEM_SPEC.md`](./docs/SYSTEM_SPEC.md).
 

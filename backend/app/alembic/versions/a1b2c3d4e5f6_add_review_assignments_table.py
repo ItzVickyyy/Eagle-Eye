@@ -1,7 +1,7 @@
 """add review_assignments table
 
 Revision ID: a1b2c3d4e5f6
-Revises: 0580729d33ac
+Revises: f6a7b8c9d0e1
 Create Date: 2026-09-10 12:00:00.000000
 
 """
@@ -12,7 +12,7 @@ import sqlmodel.sql.sqltypes
 
 # revision identifiers, used by Alembic.
 revision = 'a1b2c3d4e5f6'
-down_revision = '0580729d33ac'
+down_revision = 'f6a7b8c9d0e1'
 branch_labels = None
 depends_on = None
 
@@ -20,10 +20,10 @@ depends_on = None
 def upgrade():
     op.create_table(
         'reviewassignment',
-        sa.Column('id', sqlmodel.sql.sqltypes.GUID(), server_default=sa.text('gen_random_uuid()'), nullable=False),
-        sa.Column('article_id', sqlmodel.sql.sqltypes.GUID(), nullable=False),
-        sa.Column('reviewer_id', sqlmodel.sql.sqltypes.GUID(), nullable=False),
-        sa.Column('assigned_by', sqlmodel.sql.sqltypes.GUID(), nullable=False),
+        sa.Column('id', sa.UUID(), server_default=sa.text('gen_random_uuid()'), nullable=False),
+        sa.Column('article_id', sa.UUID(), nullable=False),
+        sa.Column('reviewer_id', sa.UUID(), nullable=False),
+        sa.Column('assigned_by', sa.UUID(), nullable=False),
         sa.Column('status', sa.String(length=20), server_default='active', nullable=False),
         sa.Column('notes', sa.String(length=2000), nullable=True),
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),

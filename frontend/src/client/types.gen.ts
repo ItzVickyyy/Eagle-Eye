@@ -847,6 +847,80 @@ export type PrivateUserCreate = {
 };
 
 /**
+ * ReviewAssignmentCreate
+ */
+export type ReviewAssignmentCreate = {
+    /**
+     * Article Id
+     */
+    article_id: string;
+    /**
+     * Reviewer Id
+     */
+    reviewer_id: string;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+};
+
+/**
+ * ReviewAssignmentDetailPublic
+ */
+export type ReviewAssignmentDetailPublic = {
+    /**
+     * Article Id
+     */
+    article_id: string;
+    /**
+     * Reviewer Id
+     */
+    reviewer_id: string;
+    /**
+     * Assigned By
+     */
+    assigned_by: string;
+    status?: ReviewAssignmentStatus;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Created At
+     */
+    created_at?: string | null;
+    /**
+     * Updated At
+     */
+    updated_at?: string | null;
+    reviewer?: UserPublic | null;
+    assigned_by_user?: UserPublic | null;
+};
+
+/**
+ * ReviewAssignmentStatus
+ */
+export type ReviewAssignmentStatus = 'active' | 'completed' | 'declined';
+
+/**
+ * ReviewAssignmentsPublic
+ */
+export type ReviewAssignmentsPublic = {
+    /**
+     * Data
+     */
+    data: Array<ReviewAssignmentDetailPublic>;
+    /**
+     * Count
+     */
+    count: number;
+};
+
+/**
  * SiteSettingCreate
  */
 export type SiteSettingCreate = {
@@ -1358,6 +1432,22 @@ export type loginTestTokenResponses = {
 };
 
 export type loginTestTokenResponse = loginTestTokenResponses[keyof loginTestTokenResponses];
+
+export type loginLogoutData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/logout';
+};
+
+export type loginLogoutResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type loginLogoutResponse = loginLogoutResponses[keyof loginLogoutResponses];
 
 export type loginRecoverPasswordData = {
     body?: PasswordRecoveryRequest;
@@ -3064,6 +3154,107 @@ export type utilsHealthCheckResponses = {
 };
 
 export type utilsHealthCheckResponse = utilsHealthCheckResponses[keyof utilsHealthCheckResponses];
+
+export type reviewAssignmentsListAssignmentsForArticleData = {
+    body?: never;
+    path: {
+        /**
+         * Article Id
+         */
+        article_id: string;
+    };
+    query?: never;
+    url: '/api/v1/review-assignments/article/{article_id}';
+};
+
+export type reviewAssignmentsListAssignmentsForArticleErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type reviewAssignmentsListAssignmentsForArticleError = reviewAssignmentsListAssignmentsForArticleErrors[keyof reviewAssignmentsListAssignmentsForArticleErrors];
+
+export type reviewAssignmentsListAssignmentsForArticleResponses = {
+    /**
+     * Successful Response
+     */
+    200: ReviewAssignmentsPublic;
+};
+
+export type reviewAssignmentsListAssignmentsForArticleResponse = reviewAssignmentsListAssignmentsForArticleResponses[keyof reviewAssignmentsListAssignmentsForArticleResponses];
+
+export type reviewAssignmentsCreateAssignmentData = {
+    body: ReviewAssignmentCreate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/review-assignments/';
+};
+
+export type reviewAssignmentsCreateAssignmentErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type reviewAssignmentsCreateAssignmentError = reviewAssignmentsCreateAssignmentErrors[keyof reviewAssignmentsCreateAssignmentErrors];
+
+export type reviewAssignmentsCreateAssignmentResponses = {
+    /**
+     * Successful Response
+     */
+    200: ReviewAssignmentDetailPublic;
+};
+
+export type reviewAssignmentsCreateAssignmentResponse = reviewAssignmentsCreateAssignmentResponses[keyof reviewAssignmentsCreateAssignmentResponses];
+
+export type reviewAssignmentsRemoveAssignmentData = {
+    body?: never;
+    path: {
+        /**
+         * Assignment Id
+         */
+        assignment_id: string;
+    };
+    query?: never;
+    url: '/api/v1/review-assignments/{assignment_id}';
+};
+
+export type reviewAssignmentsRemoveAssignmentErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type reviewAssignmentsRemoveAssignmentError = reviewAssignmentsRemoveAssignmentErrors[keyof reviewAssignmentsRemoveAssignmentErrors];
+
+export type reviewAssignmentsRemoveAssignmentResponses = {
+    /**
+     * Successful Response
+     */
+    200: Message;
+};
+
+export type reviewAssignmentsRemoveAssignmentResponse = reviewAssignmentsRemoveAssignmentResponses[keyof reviewAssignmentsRemoveAssignmentResponses];
+
+export type reviewAssignmentsListMyAssignmentsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/review-assignments/my-assignments';
+};
+
+export type reviewAssignmentsListMyAssignmentsResponses = {
+    /**
+     * Successful Response
+     */
+    200: ReviewAssignmentsPublic;
+};
+
+export type reviewAssignmentsListMyAssignmentsResponse = reviewAssignmentsListMyAssignmentsResponses[keyof reviewAssignmentsListMyAssignmentsResponses];
 
 export type privateCreateUserData = {
     body: PrivateUserCreate;

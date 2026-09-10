@@ -8,10 +8,12 @@ import {
   ListChecks,
   RotateCcw,
   User,
+  UserPlus,
 } from "lucide-react"
 import { useState } from "react"
 
 import { ArticlesService, UsersService } from "@/client"
+import { ReviewerAssignmentDialog } from "@/components/Admin/reviewer-assignment-dialog"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -48,6 +50,7 @@ function ReviewQueue() {
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const queryClient = useQueryClient()
   const [selectedArticle, setSelectedArticle] = useState<any | null>(null)
+  const [assignmentDialogArticle, setAssignmentDialogArticle] = useState<any | null>(null)
 
   const { data: queueRes, isLoading } = useQuery({
     queryKey: ["review-queue"],
@@ -186,6 +189,16 @@ function ReviewQueue() {
                       <FileEdit className="size-4" />
                       Edit
                     </Link>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setAssignmentDialogArticle(article)}
+                    className="gap-1.5"
+                  >
+                    <UserPlus className="size-4" />
+                    Assign
                   </Button>
 
                   <LoadingButton
@@ -327,6 +340,13 @@ function ReviewQueue() {
           )}
         </DialogContent>
       </Dialog>
+
+      <ReviewerAssignmentDialog
+        articleId={assignmentDialogArticle?.id || ""}
+        articleHeadline={assignmentDialogArticle?.headline || ""}
+        open={!!assignmentDialogArticle}
+        onOpenChange={(open) => !open && setAssignmentDialogArticle(null)}
+      />
     </div>
   )
 }

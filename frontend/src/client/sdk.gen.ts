@@ -2,7 +2,7 @@
 
 import { type Client, formDataBodySerializer, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { analyticsGetAnalyticsOverviewData, analyticsGetAnalyticsOverviewResponses, articlesCreateArticleData, articlesCreateArticleErrors, articlesCreateArticleResponses, articlesDeleteArticleData, articlesDeleteArticleErrors, articlesDeleteArticleResponses, articlesGetArticleByIdData, articlesGetArticleByIdErrors, articlesGetArticleByIdResponses, articlesGetArticleBySlugData, articlesGetArticleBySlugErrors, articlesGetArticleBySlugResponses, articlesGetReviewQueueData, articlesGetReviewQueueErrors, articlesGetReviewQueueResponses, articlesReadArticlesData, articlesReadArticlesErrors, articlesReadArticlesResponses, articlesUpdateArticleData, articlesUpdateArticleErrors, articlesUpdateArticleResponses, categoriesCreateCategoryData, categoriesCreateCategoryErrors, categoriesCreateCategoryResponses, categoriesDeleteCategoryData, categoriesDeleteCategoryErrors, categoriesDeleteCategoryResponses, categoriesReadCategoriesData, categoriesReadCategoriesErrors, categoriesReadCategoriesResponses, categoriesReadCategoryData, categoriesReadCategoryErrors, categoriesReadCategoryResponses, categoriesUpdateCategoryData, categoriesUpdateCategoryErrors, categoriesUpdateCategoryResponses, clubMembersCreateClubMemberData, clubMembersCreateClubMemberErrors, clubMembersCreateClubMemberResponses, clubMembersDeleteClubMemberData, clubMembersDeleteClubMemberErrors, clubMembersDeleteClubMemberResponses, clubMembersReadActiveMembersData, clubMembersReadActiveMembersResponses, clubMembersReadAllMembersData, clubMembersReadAllMembersErrors, clubMembersReadAllMembersResponses, clubMembersUpdateClubMemberData, clubMembersUpdateClubMemberErrors, clubMembersUpdateClubMemberResponses, commentsCreateCommentData, commentsCreateCommentErrors, commentsCreateCommentResponses, commentsDeleteCommentData, commentsDeleteCommentErrors, commentsDeleteCommentResponses, commentsGetAllCommentsData, commentsGetAllCommentsErrors, commentsGetAllCommentsResponses, commentsGetArticleCommentsData, commentsGetArticleCommentsErrors, commentsGetArticleCommentsResponses, commentsUpdateCommentStatusData, commentsUpdateCommentStatusErrors, commentsUpdateCommentStatusResponses, contactDeleteContactMessageData, contactDeleteContactMessageErrors, contactDeleteContactMessageResponses, contactGetContactMessageData, contactGetContactMessageErrors, contactGetContactMessageResponses, contactMarkMessageReadData, contactMarkMessageReadErrors, contactMarkMessageReadResponses, contactMarkMessageUnreadData, contactMarkMessageUnreadErrors, contactMarkMessageUnreadResponses, contactReadContactMessagesData, contactReadContactMessagesErrors, contactReadContactMessagesResponses, contactSubmitContactFormData, contactSubmitContactFormErrors, contactSubmitContactFormResponses, developerGetFeatureFlagsData, developerGetFeatureFlagsResponses, developerGetSystemDiagnosticsData, developerGetSystemDiagnosticsResponses, developerGetSystemHealthData, developerGetSystemHealthResponses, developerGetSystemLogsData, developerGetSystemLogsErrors, developerGetSystemLogsResponses, developerUpdateFeatureFlagsData, developerUpdateFeatureFlagsErrors, developerUpdateFeatureFlagsResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, mediaDeleteMediaData, mediaDeleteMediaErrors, mediaDeleteMediaResponses, mediaReadMediaItemsData, mediaReadMediaItemsErrors, mediaReadMediaItemsResponses, mediaRegisterMediaData, mediaRegisterMediaErrors, mediaRegisterMediaResponses, mediaUploadFileData, mediaUploadFileErrors, mediaUploadFileResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, settingsDeleteSiteSettingData, settingsDeleteSiteSettingErrors, settingsDeleteSiteSettingResponses, settingsGetSiteSettingData, settingsGetSiteSettingErrors, settingsGetSiteSettingResponses, settingsGetSiteSettingsData, settingsGetSiteSettingsResponses, settingsSetSiteSettingData, settingsSetSiteSettingErrors, settingsSetSiteSettingResponses, tagsCreateTagData, tagsCreateTagErrors, tagsCreateTagResponses, tagsDeleteTagData, tagsDeleteTagErrors, tagsDeleteTagResponses, tagsReadTagsData, tagsReadTagsErrors, tagsReadTagsResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses } from './types.gen';
+import type { analyticsGetAnalyticsOverviewData, analyticsGetAnalyticsOverviewResponses, articlesCreateArticleData, articlesCreateArticleErrors, articlesCreateArticleResponses, articlesDeleteArticleData, articlesDeleteArticleErrors, articlesDeleteArticleResponses, articlesGetArticleByIdData, articlesGetArticleByIdErrors, articlesGetArticleByIdResponses, articlesGetArticleBySlugData, articlesGetArticleBySlugErrors, articlesGetArticleBySlugResponses, articlesGetReviewQueueData, articlesGetReviewQueueErrors, articlesGetReviewQueueResponses, articlesReadArticlesData, articlesReadArticlesErrors, articlesReadArticlesResponses, articlesUpdateArticleData, articlesUpdateArticleErrors, articlesUpdateArticleResponses, categoriesCreateCategoryData, categoriesCreateCategoryErrors, categoriesCreateCategoryResponses, categoriesDeleteCategoryData, categoriesDeleteCategoryErrors, categoriesDeleteCategoryResponses, categoriesReadCategoriesData, categoriesReadCategoriesErrors, categoriesReadCategoriesResponses, categoriesReadCategoryData, categoriesReadCategoryErrors, categoriesReadCategoryResponses, categoriesUpdateCategoryData, categoriesUpdateCategoryErrors, categoriesUpdateCategoryResponses, clubMembersCreateClubMemberData, clubMembersCreateClubMemberErrors, clubMembersCreateClubMemberResponses, clubMembersDeleteClubMemberData, clubMembersDeleteClubMemberErrors, clubMembersDeleteClubMemberResponses, clubMembersReadActiveMembersData, clubMembersReadActiveMembersResponses, clubMembersReadAllMembersData, clubMembersReadAllMembersErrors, clubMembersReadAllMembersResponses, clubMembersUpdateClubMemberData, clubMembersUpdateClubMemberErrors, clubMembersUpdateClubMemberResponses, commentsCreateCommentData, commentsCreateCommentErrors, commentsCreateCommentResponses, commentsDeleteCommentData, commentsDeleteCommentErrors, commentsDeleteCommentResponses, commentsGetAllCommentsData, commentsGetAllCommentsErrors, commentsGetAllCommentsResponses, commentsGetArticleCommentsData, commentsGetArticleCommentsErrors, commentsGetArticleCommentsResponses, commentsUpdateCommentStatusData, commentsUpdateCommentStatusErrors, commentsUpdateCommentStatusResponses, contactDeleteContactMessageData, contactDeleteContactMessageErrors, contactDeleteContactMessageResponses, contactGetContactMessageData, contactGetContactMessageErrors, contactGetContactMessageResponses, contactMarkMessageReadData, contactMarkMessageReadErrors, contactMarkMessageReadResponses, contactMarkMessageUnreadData, contactMarkMessageUnreadErrors, contactMarkMessageUnreadResponses, contactReadContactMessagesData, contactReadContactMessagesErrors, contactReadContactMessagesResponses, contactSubmitContactFormData, contactSubmitContactFormErrors, contactSubmitContactFormResponses, developerGetFeatureFlagsData, developerGetFeatureFlagsResponses, developerGetSystemDiagnosticsData, developerGetSystemDiagnosticsResponses, developerGetSystemHealthData, developerGetSystemHealthResponses, developerGetSystemLogsData, developerGetSystemLogsErrors, developerGetSystemLogsResponses, developerUpdateFeatureFlagsData, developerUpdateFeatureFlagsErrors, developerUpdateFeatureFlagsResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginLogoutData, loginLogoutResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, mediaDeleteMediaData, mediaDeleteMediaErrors, mediaDeleteMediaResponses, mediaReadMediaItemsData, mediaReadMediaItemsErrors, mediaReadMediaItemsResponses, mediaRegisterMediaData, mediaRegisterMediaErrors, mediaRegisterMediaResponses, mediaUploadFileData, mediaUploadFileErrors, mediaUploadFileResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, reviewAssignmentsCreateAssignmentData, reviewAssignmentsCreateAssignmentErrors, reviewAssignmentsCreateAssignmentResponses, reviewAssignmentsListAssignmentsForArticleData, reviewAssignmentsListAssignmentsForArticleErrors, reviewAssignmentsListAssignmentsForArticleResponses, reviewAssignmentsListMyAssignmentsData, reviewAssignmentsListMyAssignmentsResponses, reviewAssignmentsRemoveAssignmentData, reviewAssignmentsRemoveAssignmentErrors, reviewAssignmentsRemoveAssignmentResponses, settingsDeleteSiteSettingData, settingsDeleteSiteSettingErrors, settingsDeleteSiteSettingResponses, settingsGetSiteSettingData, settingsGetSiteSettingErrors, settingsGetSiteSettingResponses, settingsGetSiteSettingsData, settingsGetSiteSettingsResponses, settingsSetSiteSettingData, settingsSetSiteSettingErrors, settingsSetSiteSettingResponses, tagsCreateTagData, tagsCreateTagErrors, tagsCreateTagResponses, tagsDeleteTagData, tagsDeleteTagErrors, tagsDeleteTagResponses, tagsReadTagsData, tagsReadTagsErrors, tagsReadTagsResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -52,6 +52,23 @@ export class LoginService {
     }
     
     /**
+     * Logout
+     *
+     * Revoke the access token presented with this request.
+     *
+     * The current token is added to the per-jti denylist; all other sessions
+     * for the same user remain valid. Use the password-change endpoints to
+     * invalidate every session at once.
+     */
+    public static logout<ThrowOnError extends boolean = true>(options?: Options<loginLogoutData, ThrowOnError>) {
+        return (options?.client ?? client).post<loginLogoutResponses, unknown, ThrowOnError>({
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/auth/logout',
+            ...options
+        });
+    }
+    
+    /**
      * Recover Password
      *
      * Password Recovery
@@ -60,7 +77,11 @@ export class LoginService {
         return (options.client ?? client).post<loginRecoverPasswordResponses, loginRecoverPasswordErrors, ThrowOnError>({
             responseType: 'json',
             url: '/api/v1/password-recovery/{email}',
-            ...options
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
         });
     }
     
@@ -528,8 +549,8 @@ export class CommentsService {
     /**
      * Create Comment
      *
-     * Submit comment on an article (public reader).
-     * Default is approved or pending depending on policy.
+     * Submit comment on a published article (public reader).
+     * Comments are created as pending and require moderation approval.
      */
     public static createComment<ThrowOnError extends boolean = true>(options: Options<commentsCreateCommentData, ThrowOnError>) {
         return (options.client ?? client).post<commentsCreateCommentResponses, commentsCreateCommentErrors, ThrowOnError>({
@@ -994,6 +1015,75 @@ export class UtilsService {
         return (options?.client ?? client).get<utilsHealthCheckResponses, unknown, ThrowOnError>({
             responseType: 'json',
             url: '/api/v1/utils/health-check/',
+            ...options
+        });
+    }
+}
+
+export class ReviewAssignmentsService {
+    /**
+     * List Assignments For Article
+     *
+     * List review assignments for a specific article.
+     * Requires admin privileges.
+     */
+    public static assignmentsListAssignmentsForArticle<ThrowOnError extends boolean = true>(options: Options<reviewAssignmentsListAssignmentsForArticleData, ThrowOnError>) {
+        return (options.client ?? client).get<reviewAssignmentsListAssignmentsForArticleResponses, reviewAssignmentsListAssignmentsForArticleErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/review-assignments/article/{article_id}',
+            ...options
+        });
+    }
+    
+    /**
+     * Create Assignment
+     *
+     * Assign a reviewer to an article.
+     * - Only admins can create assignments.
+     * - Article must be in pending status.
+     * - Only one active assignment per article.
+     * - Reviewer must be an admin or contributor.
+     * - Cannot assign the article's own author as reviewer.
+     */
+    public static assignmentsCreateAssignment<ThrowOnError extends boolean = true>(options: Options<reviewAssignmentsCreateAssignmentData, ThrowOnError>) {
+        return (options.client ?? client).post<reviewAssignmentsCreateAssignmentResponses, reviewAssignmentsCreateAssignmentErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/review-assignments/',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    /**
+     * Remove Assignment
+     *
+     * Remove (cancel) a review assignment.
+     * Only admins can remove assignments.
+     */
+    public static assignmentsRemoveAssignment<ThrowOnError extends boolean = true>(options: Options<reviewAssignmentsRemoveAssignmentData, ThrowOnError>) {
+        return (options.client ?? client).delete<reviewAssignmentsRemoveAssignmentResponses, reviewAssignmentsRemoveAssignmentErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/review-assignments/{assignment_id}',
+            ...options
+        });
+    }
+    
+    /**
+     * List My Assignments
+     *
+     * List review assignments for the current user (as reviewer).
+     */
+    public static assignmentsListMyAssignments<ThrowOnError extends boolean = true>(options?: Options<reviewAssignmentsListMyAssignmentsData, ThrowOnError>) {
+        return (options?.client ?? client).get<reviewAssignmentsListMyAssignmentsResponses, unknown, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/review-assignments/my-assignments',
             ...options
         });
     }

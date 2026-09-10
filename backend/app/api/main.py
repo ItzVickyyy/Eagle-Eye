@@ -11,6 +11,7 @@ from app.api.routes import (
     login,
     media,
     private,
+    review_assignments,
     tags,
     users,
     utils,
@@ -34,6 +35,7 @@ api_router.include_router(site_settings.router)
 api_router.include_router(media.router)
 api_router.include_router(analytics.router)
 api_router.include_router(utils.router)
+api_router.include_router(review_assignments.router)
 
 # SECURITY: the /api/v1/private/* routes are dev-only helpers for bootstrapping
 # users from the test suite and CLI scripts. They have NO authentication. They

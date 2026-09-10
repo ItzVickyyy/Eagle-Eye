@@ -184,7 +184,7 @@
 | ID | Description | Classification |
 |---|---|---|
 | ~~S4~~ | ~~In-memory rate limiter only~~ — RETRACTED: Redis-backed sliding window IS implemented (`backend/app/core/rate_limit.py`) and wired by default (`REDIS_URL=redis://redis:6379/0` in compose.yml). Fail-open to in-memory only if Redis unavailable. | RETRACTED |
-| ReviewAssignment | Specified in SYSTEM_SPEC but not implemented as a model | SPEC GAP (document, don't invent) |
+| ~~ReviewAssignment~~ | ~~Specified in SYSTEM_SPEC but not implemented as a model~~ — IMPLEMENTED (Implementation 19): ReviewAssignment model, API, migration, frontend UI, tests. | RESOLVED |
 
 ---
 
@@ -194,6 +194,7 @@
 |---|---|
 | `backend/app/main.py` | FastAPI application factory, CSP headers, lifespan |
 | `backend/app/api/deps.py` | Authentication/authorization dependencies |
+| `backend/app/api/routes/review_assignments.py` | Review assignment CRUD endpoints |
 | `backend/app/core/config.py` | Settings with pydantic-settings, startup validation |
 | `backend/app/core/security.py` | JWT, password hashing, token revocation |
 | `backend/app/core/captcha.py` | Cloudflare Turnstile verification |

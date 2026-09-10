@@ -31,6 +31,12 @@ class ArticleStatus(StrEnum):
     archived = "archived"
 
 
+class ReviewAssignmentStatus(StrEnum):
+    active = "active"
+    completed = "completed"
+    declined = "declined"
+
+
 class CommentStatus(StrEnum):
     pending = "pending"
     approved = "approved"
@@ -109,6 +115,16 @@ class User(UserBase, table=True):
     )
     media: list[Media] = Relationship(
         back_populates="uploaded_by_user", cascade_delete=True
+    )
+    review_assignments: list[ReviewAssignment] = Relationship(
+        back_populates="reviewer",
+        sa_relationship_kwargs={"foreign_keys": "[ReviewAssignment.reviewer_id]"},
+        cascade_delete=True,
+    )
+    review_assignments_made: list[ReviewAssignment] = Relationship(
+        back_populates="assigned_by_user",
+        sa_relationship_kwargs={"foreign_keys": "[ReviewAssignment.assigned_by]"},
+        cascade_delete=True,
     )
 
 
@@ -291,6 +307,9 @@ class Article(ArticleBase, table=True):
     comments: list[Comment] = Relationship(
         back_populates="article", cascade_delete=True
     )
+    review_assignments: list[ReviewAssignment] = Relationship(
+        back_populates="article", cascade_delete=True
+    )
 
 
 class ArticlePublic(ArticleBase):
@@ -311,6 +330,70 @@ class ArticleDetailPublic(ArticlePublic):
 
 class ArticlesPublic(SQLModel):
     data: list[ArticlePublic]
+    count: int
+
+
+# ---------------------------------------------------------------------------
+# ReviewAssignment Models
+# ---------------------------------------------------------------------------
+
+
+class ReviewAssignmentBase(SQLModel):
+    article_id: uuid.UUID = Field(
+        foreign_key="article.id", nullable=False, ondelete="CASCADE"
+    )
+    reviewer_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE"
+    )
+    assigned_by: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE"
+    )
+    status: ReviewAssignmentStatus = Field(default=ReviewAssignmentStatus.active)
+    notes: str | None = Field(default=None, max_length=2000)
+
+
+class ReviewAssignmentCreate(SQLModel):
+    article_id: uuid.UUID
+    reviewer_id: uuid.UUID
+    notes: str | None = None
+
+
+class ReviewAssignment(ReviewAssignmentBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    updated_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    article: Article | None = Relationship(
+        back_populates="review_assignments"
+    )
+    reviewer: User | None = Relationship(
+        back_populates="review_assignments",
+        sa_relationship_kwargs={"foreign_keys": "[ReviewAssignment.reviewer_id]"},
+    )
+    assigned_by_user: User | None = Relationship(
+        back_populates="review_assignments_made",
+        sa_relationship_kwargs={"foreign_keys": "[ReviewAssignment.assigned_by]"},
+    )
+
+
+class ReviewAssignmentPublic(ReviewAssignmentBase):
+    id: uuid.UUID
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+
+class ReviewAssignmentDetailPublic(ReviewAssignmentPublic):
+    reviewer: UserPublic | None = None
+    assigned_by_user: UserPublic | None = None
+
+
+class ReviewAssignmentsPublic(SQLModel):
+    data: list[ReviewAssignmentDetailPublic]
     count: int
 
 

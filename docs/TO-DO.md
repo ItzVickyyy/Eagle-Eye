@@ -12,7 +12,7 @@ These items should be resolved before any production release is considered compl
 
 - [ ] **Verify production deployment.** CI has a `deploy` workflow targeting FastAPI Cloud and a `deploy-docker-compose` workflow targeting a self-hosted runner. Confirm these are connected to a real environment, the domain is configured, and the application is reachable end-to-end.
 
-- [ ] **Schedule and verify operational backups.** The backup runbook and scripts (`scripts/backup/`) exist. The operator must schedule automated `pg_dump` and uploads-directory backups, and verify restore procedures. See [`docs/backup-recovery.md`](./backup-recovery.md).
+- [ ] **Schedule and verify operational backups.** The backup scripts (`scripts/backup/`) have been locally verified — `db-backup.sh`, `db-verify.sh`, `db-restore.sh`, `media-backup.sh`, and `media-restore.sh` all pass. The operator must schedule automated `pg_dump` and uploads-directory backups, configure off-host storage, and verify production restore procedures. See [`docs/backup-recovery.md`](./backup-recovery.md).
 
 ---
 

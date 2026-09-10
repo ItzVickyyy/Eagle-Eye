@@ -224,7 +224,7 @@ The audit verified the following security properties, which the implementation u
 | Rate limiting on password recovery/reset/change | PASS | Three dedicated limiters. |
 | CAPTCHA on public submission | PASS | `verify_captcha` dep on signup / password-recovery / password-reset / contact. |
 | HTTPS | OUT OF SCOPE (deployment) | Spec deferred to deployment. |
-| Backups (PostgreSQL + media) | PASS | `docs/backup-recovery.md` + `scripts/backup/`. |
+| Backups (PostgreSQL + media) | PASS (local verification) | Scripts locally verified: backup, verify, and restore all pass. Operational scheduling and off-host storage remain operator responsibility. `docs/backup-recovery.md` + `scripts/backup/`. |
 | Accessibility | OUT OF SCOPE (frontend) | — |
 | Mobile-responsive | OUT OF SCOPE (frontend) | — |
 | CSP | PASS | Live: `default-src 'self'; script-src 'self' https://challenges.cloudflare.com; object-src 'none'; frame-ancestors 'none'`. |

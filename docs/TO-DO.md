@@ -10,8 +10,6 @@ Status markers: `[ ]` not started · `[~]` in progress · `[x]` done
 
 These items should be resolved before any production release is considered complete.
 
-- [ ] **Rotate exposed initial-commit secrets.** The `.env` values committed in `f8dd2e6` are still live in git history. The operator must rotate all credentials (DB password, JWT secret, etc.) before any public deployment. See [`docs/security-remediation.md`](./security-remediation.md).
-
 - [ ] **Verify production deployment.** CI has a `deploy` workflow targeting FastAPI Cloud and a `deploy-docker-compose` workflow targeting a self-hosted runner. Confirm these are connected to a real environment, the domain is configured, and the application is reachable end-to-end.
 
 - [ ] **Schedule and verify operational backups.** The backup runbook and scripts (`scripts/backup/`) exist. The operator must schedule automated `pg_dump` and uploads-directory backups, and verify restore procedures. See [`docs/backup-recovery.md`](./backup-recovery.md).

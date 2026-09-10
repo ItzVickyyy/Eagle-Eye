@@ -6,7 +6,7 @@
       "name": "OmniRoute",
       "options": {
         "baseURL": "http://localhost:20128/v1",
-        "apiKey": "sk-d7bef11aac052919-215f33-a0e462ff"
+        "apiKey": "{env:OPENCODE_API_KEY}"
       },
       "models": {
         "auto": { "name": "auto", "limit": { "context": 200000, "output": 8000 } }

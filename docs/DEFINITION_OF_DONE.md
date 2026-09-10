@@ -12,8 +12,8 @@
 |---|---|---|---|
 | A1 | Master index (`docs/README.md`) | COMPLETE | `docs/README.md` |
 | A2 | Current-state document | COMPLETE | `docs/CURRENT_STATE.md` |
-| A3 | Master matrices (feature/file/dependency/API/DB/security/env/Docker) | COMPLETE | `docs/MASTER_MATRICES.md` |
-| A4 | Architecture diagrams (Mermaid) | COMPLETE | `docs/ARCHITECTURE_DIAGRAMS.md` |
+| A3 | Master matrices (feature/file/dependency/API/DB/security/env/Docker) | COMPLETE | `docs/REQUIREMENTS_MATRIX.md` |
+| A4 | Architecture diagrams (Mermaid) | COMPLETE | `docs/ARCHITECTURE.md` |
 | A5 | Definition-of-done checklist | COMPLETE | **This file** |
 | A6 | Existing docs verified & cross-referenced | COMPLETE | All 9 `.md` files in `docs/` + root/backend/frontend/scripts READMEs |
 
@@ -147,7 +147,7 @@ grep -n "^  [a-z]" compose.yml
 grep -n "times=\|seconds=" backend/app/core/rate_limit.py
 
 # Verify link targets
-ls docs/README.md docs/CURRENT_STATE.md docs/MASTER_MATRICES.md docs/ARCHITECTURE_DIAGRAMS.md docs/DEFINITION_OF_DONE.md
+ls docs/README.md docs/CURRENT_STATE.md docs/REQUIREMENTS_MATRIX.md docs/ARCHITECTURE.md docs/DEFINITION_OF_DONE.md
 
 # Verify doc cross-references
 grep -o '\.\./[a-zA-Z_-]*\.md' docs/README.md | sort -u

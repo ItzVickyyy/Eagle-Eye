@@ -1,4 +1,4 @@
-# Eagle Eye — To-Do
+# Eagle Eye — Roadmap
 
 Actionable remaining work. Completed history lives in [`docs/MILESTONES.md`](./MILESTONES.md).
 
@@ -12,7 +12,7 @@ These items should be resolved before any production release is considered compl
 
 - [ ] **Verify production deployment.** CI has a `deploy` workflow targeting FastAPI Cloud and a `deploy-docker-compose` workflow targeting a self-hosted runner. Confirm these are connected to a real environment, the domain is configured, and the application is reachable end-to-end.
 
-- [ ] **Schedule and verify operational backups.** The backup scripts (`scripts/backup/`) have been locally verified — `db-backup.sh`, `db-verify.sh`, `db-restore.sh`, `media-backup.sh`, and `media-restore.sh` all pass. The operator must schedule automated `pg_dump` and uploads-directory backups, configure off-host storage, and verify production restore procedures. See [`docs/backup-recovery.md`](./backup-recovery.md).
+- [ ] **Schedule and verify operational backups.** The backup scripts (`scripts/backup/`) have been locally verified — `db-backup.sh`, `db-verify.sh`, `db-restore.sh`, `media-backup.sh`, and `media-restore.sh` all pass. The operator must schedule automated `pg_dump` and uploads-directory backups, configure off-host storage, and verify production restore procedures. See [`docs/BACKUP_RECOVERY.md`](./BACKUP_RECOVERY.md).
 
 ---
 
@@ -30,7 +30,7 @@ These items should be resolved before any production release is considered compl
 
 - [ ] **Review archive-management UX.** Confirm the admin archive workflow (archive/restore) is fully surfaced in the admin UI and that archived articles are handled correctly in public listing filters.
 
-- [ ] **Address remaining P3 / SHOULD-level security observations.** No open vulnerabilities exist, but the security audit surfaced P3 observations and SHOULD-level hardening items that are not yet resolved. See [`docs/SECURITY_AUDIT_REPORT.md`](./SECURITY_AUDIT_REPORT.md).
+- [ ] **Address remaining P3 / SHOULD-level security observations.** No open vulnerabilities exist, but the security audit surfaced P3 observations and SHOULD-level hardening items that are not yet resolved. See [`docs/SECURITY_MEASURES.md`](./SECURITY_MEASURES.md).
 
 ---
 
@@ -51,4 +51,4 @@ These items should be resolved before any production release is considered compl
 ---
 
 > Work already completed is recorded in [`docs/MILESTONES.md`](./MILESTONES.md).
-> Technical system details live in [`docs/SYSTEM_SPEC.md`](./SYSTEM_SPEC.md).
+> Technical system details live in [`docs/SYSTEM_SPECIFICATION.md`](./SYSTEM_SPECIFICATION.md).

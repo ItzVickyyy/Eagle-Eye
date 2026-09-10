@@ -112,16 +112,16 @@ Added preventive environment-file safeguards (repo audit confirmed `.env` and `f
 - Added `.env.example` template files (placeholders only)
 - Added `scripts/guard-secrets.sh` pre-commit guard
 
-No secrets were exposed through the repository's history, so no rotation is required — see [`docs/security-remediation.md`](./security-remediation.md).
+No secrets were exposed through the repository's history, so no rotation is required — see [`docs/SECURITY_MEASURES.md`](./SECURITY_MEASURES.md).
 
 ---
 
 ## Authoritative Documentation
 
-**`1d629c2`** — docs: rewrite SYSTEM_SPEC.md as authoritative current-system specification
+**`1d629c2`** — docs: rewrite SYSTEM_SPEC.md as authoritative current-system specification (file is now `docs/SYSTEM_SPECIFICATION.md`)
 
-Rewrote `docs/SYSTEM_SPEC.md` from a design proposal into a verified, evidence-based specification of the system as it actually exists. Covers architecture, all API routes, security posture, RBAC, rate limiting, feature flags, media handling, CI/CD, and data model. This document now serves as the single authoritative technical reference for Eagle Eye.
+Rewrote `docs/SYSTEM_SPECIFICATION.md` from a design proposal into a verified, evidence-based specification of the system as it actually exists. Covers architecture, all API routes, security posture, RBAC, rate limiting, feature flags, media handling, CI/CD, and data model. This document now serves as the single authoritative technical reference for Eagle Eye.
 
 ---
 
-> For remaining and planned work, see [`docs/TO-DO.md`](./TO-DO.md).
+> For remaining and planned work, see [`docs/ROADMAP.md`](./ROADMAP.md).

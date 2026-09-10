@@ -8,11 +8,23 @@
 ## Documentation Map
 
 | Document | Purpose | Audience |
-|---|---|---|
-| [`SYSTEM_SPEC.md`](SYSTEM_SPEC.md) | Full system specification (v5) — scope, roles, features, data model, sitemap, acceptance criteria, legacy parity rules | All |
-| [`SECURITY_AUDIT_REPORT.md`](SECURITY_AUDIT_REPORT.md) | 2026-09-08 security audit — 20 requirements evaluated, all PASS (no open P0/P1) | Security reviewers |
-| [`security-remediation.md`](security-remediation.md) | Secrets safeguard record — verified `.env` never committed, `.env.example` templates, `guard-secrets.sh` | Security / DevOps |
-| [`backup-recovery.md`](backup-recovery.md) | Backup & recovery runbook — `pg_dump` database backups, `uploads/` file backups, restore procedures | Operations |
+|----------|---------|----------|
+| [`SYSTEM_SPECIFICATION.md`](SYSTEM_SPECIFICATION.md) | Authoritative technical specification — architecture, API surface, security, RBAC, data model | All |
+| [`SECURITY_MEASURES.md`](SECURITY_MEASURES.md) | Security posture, audit findings, environment-file safeguards | Security reviewers / DevOps |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) | Mermaid diagrams of system architecture, data flow, deployment topology | Architects / contributors |
+| [`BACKUP_RECOVERY.md`](BACKUP_RECOVERY.md) | Backup & recovery runbook — `pg_dump` database backups, `uploads/` file backups, restore procedures | Operations |
+| [`CURRENT_STATE.md`](CURRENT_STATE.md) | Current application state — verified features, environments, service URLs | Developers / contributors |
+| [`REQUIREMENTS_MATRIX.md`](REQUIREMENTS_MATRIX.md) | Feature-to-file, dependency, API, DB, security, environment, and Docker matrices | Developers / QA |
+| [`MILESTONES.md`](MILESTONES.md) | Historical record of completed work with verified commit hashes | All |
+| [`ROADMAP.md`](ROADMAP.md) | Remaining and planned work, prioritized by implementation sequence | Developers |
+| [`DEFINITION_OF_DONE.md`](DEFINITION_OF_DONE.md) | Release-readiness checklist — all artifacts required before production deployment | Developers / reviewers |
+
+---
+
+## Related Documentation (outside `docs/`)
+
+| Document | Purpose | Audience |
+|----------|---------|----------|
 | [Root `README.md`](../README.md) | Project overview, stack, quick start, domain models | Developers, contributors |
 | [`development.md`](../development.md) | Local development setup — Docker Compose, FastAPI, Vite, Mailpit | Developers |
 | [`deployment.md`](../deployment.md) | FastAPI Cloud deployment guide | Deployers |
@@ -25,31 +37,13 @@
 
 ## Reading Order (recommended)
 
-1. **New to the project?** Start with the [root README](../README.md), then [`SYSTEM_SPEC.md`](SYSTEM_SPEC.md).
+1. **New to the project?** Start with the [root README](../README.md), then [`SYSTEM_SPECIFICATION.md`](SYSTEM_SPECIFICATION.md).
 2. **Setting up locally?** See [`development.md`](../development.md) and [`backend/README.md`](../backend/README.md).
 3. **Deploying?** Choose [`deployment.md`](../deployment.md) (FastAPI Cloud) or [`deployment-docker-compose.md`](../deployment-docker-compose.md) (self-hosted).
-4. **Security review?** Read [`SECURITY_AUDIT_REPORT.md`](SECURITY_AUDIT_REPORT.md) then [`security-remediation.md`](security-remediation.md).
-5. **Operations?** See [`backup-recovery.md`](backup-recovery.md) and [`scripts/backup/README.md`](../scripts/backup/README.md).
-
----
-
-## Cross-Reference: Stale Audit Baselines (Archived)
-
-The two release-readiness audit documents were deleted as part of the current documentation audit (uncommitted working-tree changes). They contained stale baselines (`d32fa60` and `d967664`) with outdated stack claims (React 19 + Mantine 7). The live truth for security posture is `SECURITY_AUDIT_REPORT.md` (2026-09-08, HEAD `792c43c`).
-
----
-
-## Documentation Gaps Identified (Phase C)
-
-These gaps were identified during the cross-reference phase and are addressed by the docs in this directory:
-
-| Gap | Resolution |
-|---|---|
-| No `docs/README.md` master index | **This file** |
-| No current-state document | [`CURRENT_STATE.md`](CURRENT_STATE.md) |
-| No master matrices | [`MASTER_MATRICES.md`](MASTER_MATRICES.md) |
-| No architecture diagrams | [`ARCHITECTURE_DIAGRAMS.md`](ARCHITECTURE_DIAGRAMS.md) |
-| No definition-of-done checklist | [`DEFINITION_OF_DONE.md`](DEFINITION_OF_DONE.md) |
+4. **Security review?** Read [`SECURITY_MEASURES.md`](SECURITY_MEASURES.md).
+5. **Operations?** See [`BACKUP_RECOVERY.md`](BACKUP_RECOVERY.md) and [`scripts/backup/README.md`](../scripts/backup/README.md).
+6. **Architecture diagrams?** See [`ARCHITECTURE.md`](ARCHITECTURE.md).
+7. **What's done / what's next?** [`MILESTONES.md`](MILESTONES.md) for history, [`ROADMAP.md`](ROADMAP.md) for upcoming work.
 
 ---
 
@@ -65,8 +59,8 @@ When documentation conflicts with reality, resolve in this order:
 6. Manifests / lockfiles (`pyproject.toml`, `uv.lock`, `bun.lock`)
 7. CI / GitHub Actions
 8. Runtime behavior (actual container output)
-9. `SYSTEM_SPEC.md`
-10. Security audit reports
+9. [`SYSTEM_SPECIFICATION.md`](SYSTEM_SPECIFICATION.md)
+10. [`SECURITY_MEASURES.md`](SECURITY_MEASURES.md)
 11. Other documentation
 12. Git history
 13. Comments
@@ -77,7 +71,7 @@ When documentation conflicts with reality, resolve in this order:
 ## Fact Labels Used in This Documentation
 
 | Label | Meaning |
-|---|---|
+|-------|---------|
 | **CONFIRMED FACT** | Verified against source code, runtime behavior, or authoritative config |
 | **STRONG INFERENCE** | Supported by multiple evidence sources but not directly verified |
 | **UNKNOWN** | Requires verification; not yet confirmed |

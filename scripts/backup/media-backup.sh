@@ -10,7 +10,7 @@
 #
 # What this does NOT cover
 #   - S3-compatible object storage. Those backups are the responsibility of
-#     the storage provider (R2, B2, S3, MinIO). See docs/backup-recovery.md.
+#     the storage provider (R2, B2, S3, MinIO). See docs/BACKUP_RECOVERY.md.
 #
 # Safety
 #   - Refuses to overwrite an existing file unless --force is passed.

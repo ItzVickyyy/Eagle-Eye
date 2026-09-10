@@ -135,5 +135,5 @@ from the server (e.g. via `psql`) or over a private network only.
 
 Database and local media backups are managed with the scripts under
 [`scripts/backup/`](scripts/backup/README.md). See
-[`docs/backup-recovery.md`](docs/backup-recovery.md) for the full procedure,
+[`docs/BACKUP_RECOVERY.md`](docs/BACKUP_RECOVERY.md) for the full procedure,
 retention guidance, and the disaster-recovery runbook.

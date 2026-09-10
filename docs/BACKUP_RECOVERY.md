@@ -479,10 +479,10 @@ The safeguard. Either:
 
 - [`scripts/backup/README.md`](../scripts/backup/README.md) — short usage
   reference.
-- [`docs/SYSTEM_SPEC.md` §5.6](./SYSTEM_SPEC.md) — system-wide acceptance
+- [`docs/SYSTEM_SPECIFICATION.md` §5.6](./SYSTEM_SPECIFICATION.md) — system-wide acceptance
   criteria, including the "automated backups of the database" requirement
   this document operationalizes.
-- [`docs/security-remediation.md`](./security-remediation.md) —
+- [`docs/SECURITY_MEASURES.md`](./SECURITY_MEASURES.md) —
   application-side security context for handling the data that ends up
   in backup artifacts.
 - [`deployment-docker-compose.md`](../deployment-docker-compose.md) —

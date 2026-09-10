@@ -78,12 +78,12 @@ Default local dev login (configured in `.env`):
 
 | Document | Purpose |
 |----------|---------|
-| [`docs/SYSTEM_SPEC.md`](./docs/SYSTEM_SPEC.md) | Authoritative technical specification — architecture, API surface, security, RBAC, data model |
+| [`docs/SYSTEM_SPECIFICATION.md`](./docs/SYSTEM_SPECIFICATION.md) | Authoritative technical specification — architecture, API surface, security, RBAC, data model |
 | [`docs/MILESTONES.md`](./docs/MILESTONES.md) | Historical record of completed work with verified commit hashes |
-| [`docs/TO-DO.md`](./docs/TO-DO.md) | Remaining and planned work |
-| [`docs/ARCHITECTURE_DIAGRAMS.md`](./docs/ARCHITECTURE_DIAGRAMS.md) | Mermaid diagrams of system architecture |
-| [`docs/SECURITY_AUDIT_REPORT.md`](./docs/SECURITY_AUDIT_REPORT.md) | Security audit findings and status |
-| [`docs/backup-recovery.md`](./docs/backup-recovery.md) | Backup and recovery runbook |
+| [`docs/ROADMAP.md`](./docs/ROADMAP.md) | Remaining and planned work |
+| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | Mermaid diagrams of system architecture |
+| [`docs/SECURITY_MEASURES.md`](./docs/SECURITY_MEASURES.md) | Security posture, audit findings, and environment-file safeguards |
+| [`docs/BACKUP_RECOVERY.md`](./docs/BACKUP_RECOVERY.md) | Backup and recovery runbook |
 
 ---
 

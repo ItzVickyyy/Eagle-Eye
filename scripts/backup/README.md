@@ -6,7 +6,7 @@ PostgreSQL client tools (`pg_dump`, `pg_restore`, `psql`) and `tar` — no
 extra dependencies, no Python code, no in-app UI.
 
 > **Full procedure, retention guidance, and security notes live in
-> [`docs/backup-recovery.md`](../../docs/backup-recovery.md).** This README
+> [`docs/BACKUP_RECOVERY.md`](../../docs/BACKUP_RECOVERY.md).** This README
 > is a quick usage reference.
 
 ## Scripts

@@ -1,36 +1,61 @@
 # Eagle Eye — CDLB Media Club News Website
 
 Eagle Eye is a personal rebuild of the CDLB Media Club news site, originally
-built as a Grade 12 Practical Research project. This version is rebuilt
-on a modern, production-grade stack, directly aligned with the v5 system specification.
+built as a Grade 12 Practical Research project in 2023 (PHP, MySQL, HTML/CSS/JS).
+This version is a ground-up rewrite on a modern, production-grade stack.
 
-The full system specification lives in [`docs/SYSTEM_SPEC.md`](./docs/SYSTEM_SPEC.md).
+---
+
+## Background
+
+The CDLB Media Club is a student journalism and media organization. In 2023,
+a news website was built from scratch as a Grade 12 Practical Research output —
+raw PHP, MySQL, and vanilla HTML/CSS/JS, delivered under school-project constraints.
+
+Eagle Eye is that website, rebuilt properly. Same purpose, same organization,
+different everything else: a real API, a real auth system, a real frontend
+framework, containerized infrastructure, and a security posture that would
+survive outside a school server.
+
+---
+
+## What It Does
+
+Eagle Eye is a content management and publishing platform for a student media club:
+
+- **Readers** browse published articles by category or tag, read full articles,
+  view the club member roster, and submit contact messages.
+- **Contributors** draft, edit, and submit articles for editorial review.
+- **Admins** review and publish articles, moderate comments, manage categories,
+  tags, media, and club member profiles, and handle contact messages.
+- **Super Admins** manage user accounts and system-wide site settings.
+
+The editorial workflow is `draft → pending → published → archived`, with
+moderation required at every promotion step.
+
+---
 
 ## Stack
 
-- **Backend:** Python + FastAPI + SQLModel, JWT auth, Role-Based Access Control (Super Admin, Admin/Editor, Contributor)
-- **Database:** PostgreSQL, Alembic migrations
-- **Frontend:** React + TypeScript + Vite + Tailwind CSS
-- **Dev environment:** Docker Compose
-- **Testing:** Pytest (backend), Playwright (end-to-end)
+| Layer | Technology |
+|-------|------------|
+| Backend | Python ≥ 3.14, FastAPI, SQLModel + SQLAlchemy, uv |
+| Database | PostgreSQL 18, Alembic migrations |
+| Auth | JWT (HS256), argon2 password hashing, Cloudflare Turnstile CAPTCHA, token revocation |
+| Rate limiting | Redis 7-alpine sliding-window Lua script; in-memory fail-open fallback |
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, TanStack Router, TanStack Query |
+| API client | `@hey-api/openapi-ts` auto-generated SDK |
+| Infrastructure | Docker Compose, Traefik 3.6, SHA-pinned Tecnativa socket proxy |
+| Testing | Pytest (≥ 90% coverage gate), Playwright E2E (4-shard matrix) |
+| CI | 13 GitHub Actions workflows |
 
-## Domain Models
-
-- `User`: Accounts with roles (`super_admin`, `admin`, `contributor`), secure password hashing (Argon2/bcrypt)
-- `Category`: News categories (News, Academics, Sports, Events) with unique slugs
-- `Tag`: Article tags for cross-category topic filtering
-- `Article`: Headlines, slugs, structured rich-text body, cover images, status workflow (`draft` → `pending` → `published` → `archived`), view counts
-- `Media`: File management linked to articles and uploaders
-- `ClubMember`: About Us CMS for advisers, officers, and members with departments and photos
-- `ContactMessage`: Messages submitted through the contact form
-- `SiteSetting`: Global configuration (logo, social links, site title)
+---
 
 ## Getting Started
 
 See [`development.md`](./development.md) for the full local dev workflow. Quick version:
 
 ```bash
-# from the repo root
 docker compose watch
 ```
 
@@ -47,6 +72,22 @@ Default local dev login (configured in `.env`):
 - Email: `admin@eagleeye.dev`
 - Password: `EagleEyeDev123!`
 
+---
+
+## Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [`docs/SYSTEM_SPEC.md`](./docs/SYSTEM_SPEC.md) | Authoritative technical specification — architecture, API surface, security, RBAC, data model |
+| [`docs/MILESTONES.md`](./docs/MILESTONES.md) | Historical record of completed work with verified commit hashes |
+| [`docs/TO-DO.md`](./docs/TO-DO.md) | Remaining and planned work |
+| [`docs/ARCHITECTURE_DIAGRAMS.md`](./docs/ARCHITECTURE_DIAGRAMS.md) | Mermaid diagrams of system architecture |
+| [`docs/SECURITY_AUDIT_REPORT.md`](./docs/SECURITY_AUDIT_REPORT.md) | Security audit findings and status |
+| [`docs/backup-recovery.md`](./docs/backup-recovery.md) | Backup and recovery runbook |
+
+---
+
 ## License
 
-The underlying Full Stack FastAPI Template is MIT licensed. Eagle Eye is a personal, non-commercial project for the CDLB Media Club.
+The original Full Stack FastAPI Template base is MIT licensed.
+Eagle Eye is a personal, non-commercial project for the CDLB Media Club.

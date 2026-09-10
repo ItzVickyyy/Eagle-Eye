@@ -106,13 +106,13 @@ Systematic removal of all Full Stack FastAPI Template boilerplate that did not a
 
 ## Security Remediation — Implementation 12A
 
-Addressed the `.env` secret exposure present in the initial commit (`f8dd2e6`):
+Added preventive environment-file safeguards (repo audit confirmed `.env` and `frontend/.env` were never committed to Git):
 
-- Removed `.env` and `frontend/.env` from git tracking
-- Added `.env.example` template files
+- Added `.gitignore` rules for `.env` / `.env.*` files
+- Added `.env.example` template files (placeholders only)
 - Added `scripts/guard-secrets.sh` pre-commit guard
 
-The exposed secrets from the initial commit still require rotation by the operator. This is a documented outstanding action — see [`docs/security-remediation.md`](./security-remediation.md).
+No secrets were exposed through the repository's history, so no rotation is required — see [`docs/security-remediation.md`](./security-remediation.md).
 
 ---
 

@@ -11,7 +11,7 @@
 |---|---|---|
 | [`SYSTEM_SPEC.md`](SYSTEM_SPEC.md) | Full system specification (v5) — scope, roles, features, data model, sitemap, acceptance criteria, legacy parity rules | All |
 | [`SECURITY_AUDIT_REPORT.md`](SECURITY_AUDIT_REPORT.md) | 2026-09-08 security audit — 20 requirements evaluated, all PASS (no open P0/P1) | Security reviewers |
-| [`security-remediation.md`](security-remediation.md) | Secrets remediation actions — `.env` committed→removed, `.env.example` templates, `guard-secrets.sh` | Security / DevOps |
+| [`security-remediation.md`](security-remediation.md) | Secrets safeguard record — verified `.env` never committed, `.env.example` templates, `guard-secrets.sh` | Security / DevOps |
 | [`backup-recovery.md`](backup-recovery.md) | Backup & recovery runbook — `pg_dump` database backups, `uploads/` file backups, restore procedures | Operations |
 | [Root `README.md`](../README.md) | Project overview, stack, quick start, domain models | Developers, contributors |
 | [`development.md`](../development.md) | Local development setup — Docker Compose, FastAPI, Vite, Mailpit | Developers |

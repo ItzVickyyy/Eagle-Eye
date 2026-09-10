@@ -277,9 +277,6 @@
 | guard-dependencies | `guard-dependencies.yml` | pull_request_target | Author gate | ubuntu-latest |
 | smokeshow | `smokeshow.yml` | push/PR main | Coverage HTML publish | ubuntu-latest |
 | zizmor | `zizmor.yml` | push/PR main | GH Actions security scan | ubuntu-latest |
-| add-to-project | `add-to-project.yml` | — | **INACTIVE** (fastapi owner gate) | — |
-| issue-manager | `issue-manager.yml` | — | **INACTIVE** (fastapi owner gate) | — |
-| bump-pre-commit-hooks | `bump-pre-commit-hooks.yml` | — | **INACTIVE** (fastapi owner gate) | — |
 
 ---
 

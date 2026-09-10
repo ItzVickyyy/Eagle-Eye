@@ -1,7 +1,7 @@
 # Eagle Eye — Definition of Done
 
 > Validation checklist for the documentation knowledge base and the codebase itself.
-> Covers all 49 required coverage areas from the archaeology mission briefing.
+> Covers all 48 required coverage areas from the archaeology mission briefing.
 > Each item is **CONFIRMED FACT** verified against commit `792c43c`.
 
 ---
@@ -78,11 +78,10 @@
 
 | # | Area | Evidence | Status |
 |---|---|---|---|
-| 29 | Workflows (13 active) | test-backend, test-docker-compose, playwright (4-shard), pre-commit, deploy, deploy-docker-compose, detect-conflicts, guard-dependencies, smokeshow, zizmor (+ 3 inactive) | CONFIRMED |
-| 30 | Template-inherited inactive | issue-manager, add-to-project, bump-pre-commit-hooks (all `if: github.repository_owner == 'fastapi'`) | CONFIRMED |
-| 31 | Coverage threshold | `--fail-under=90` + smokeshow 90 | CONFIRMED |
-| 32 | deploy.yml target | FastAPI Cloud (`uv run fastapi deploy`) | CONFIRMED |
-| 33 | deploy-docker-compose target | Self-hosted runner (rsync + SSH + Docker) | CONFIRMED |
+| 29 | Workflows (13 active) | test-backend, test-docker-compose, playwright (4-shard), pre-commit, deploy, deploy-docker-compose, detect-conflicts, guard-dependencies, smokeshow, zizmor | CONFIRMED |
+| 30 | Coverage threshold | `--fail-under=90` + smokeshow 90 | CONFIRMED |
+| 31 | deploy.yml target | FastAPI Cloud (`uv run fastapi deploy`) | CONFIRMED |
+| 32 | deploy-docker-compose target | Self-hosted runner (rsync + SSH + Docker) | CONFIRMED |
 
 ### B7. Security
 
@@ -161,8 +160,8 @@ grep -o '\.\./[a-zA-Z_-]*\.md' docs/README.md | sort -u
 | Category | Items | Confirmed | Actioned |
 |---|---|---|---|
 | Documentation deliverables | 6 | 6/6 | All complete |
-| Codebase coverage areas | 49 | 49/49 | All documented or verified |
+| Codebase coverage areas | 48 | 48/48 | All documented or verified |
 | Previous open findings retracted | 1 | 1/1 | S4 retracted |
 | Previous open findings closed | 1 | 1/1 | O9 closed |
 
-**OVERALL STATUS: COMPLETE.** All documentation deliverables written, all 49 coverage areas addressed, all prior findings verified or corrected, all doc links validated.
+**OVERALL STATUS: COMPLETE.** All documentation deliverables written, all 48 coverage areas addressed, all prior findings verified or corrected, all doc links validated.

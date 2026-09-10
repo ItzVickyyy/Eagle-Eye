@@ -146,7 +146,7 @@
 
 ---
 
-## 8. CI Workflows (13 active + 3 inactive)
+## 8. CI Workflows (13 active)
 
 ### Active
 | Workflow | Trigger | Purpose |
@@ -161,13 +161,6 @@
 | `guard-dependencies` | pull_request_target | Author gate for dependency changes |
 | `smokeshow` | push/PR to main | Coverage HTML publishing |
 | `zizmor` | push/PR to main | GitHub Actions security scanning |
-
-### Inactive (template-inherited, inactive for this repo)
-| Workflow | Why inactive |
-|---|---|
-| `issue-manager` | `if: github.repository_owner == 'fastapi'` |
-| `add-to-project` | `if: github.repository_owner == 'fastapi'` |
-| `bump-pre-commit-hooks` | `if: github.repository_owner == 'fastapi'` |
 
 ---
 

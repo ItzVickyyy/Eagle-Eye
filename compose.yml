@@ -1,7 +1,7 @@
 services:
 
   proxy:
-    image: traefik:3.6
+    image: traefik:v3.7
     command:
       # Enable Docker in Traefik, so that it reads labels from Docker services
       - --providers.docker
@@ -72,7 +72,7 @@ services:
     # the variable is set; if this service is removed and REDIS_URL is
     # unset, the backend silently falls back to per-worker in-memory
     # rate limiting (legacy behavior).
-    image: redis:7-alpine
+    image: redis:8-alpine
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
